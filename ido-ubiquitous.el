@@ -50,7 +50,8 @@
 
 ;;;###autoload
 (defadvice completing-read (around use-ido-when-possible activate)
-  (if (or (not ido-ubiquitous-enabled) ; Manual override disable ido
+  (if (or (not ido-mode)
+          (not ido-ubiquitous-enabled) ; Manual override disable ido
           (and (boundp 'ido-cur-list)
                ido-cur-list)) ; Avoid infinite loop from ido calling this
       ad-do-it
