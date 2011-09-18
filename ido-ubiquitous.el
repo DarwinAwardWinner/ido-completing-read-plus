@@ -6,7 +6,7 @@
 
 ;; Author: Unknown
 ;; URL: http://www.emacswiki.org/emacs/InteractivelyDoThings#toc13
-;; Version: 0.1
+;; Version: 0.2
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
