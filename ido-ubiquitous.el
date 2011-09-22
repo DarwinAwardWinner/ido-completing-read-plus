@@ -34,12 +34,12 @@
 
 ;;;###autoload
 (defcustom ido-ubiquitous-enabled t
-  "If non-nil, use ido-completing-read instead of completing-read if possible.
+  "If non-nil, use `ido-completing-read' instead of `completing-read' if possible.
 
-  Set it to nil using let in around-advice for functions where the
-  original completing-read is required.  For example, if a function
-  foo absolutely must use the original completing-read, define some
-  advice like this:
+  Set it to nil using let in around-advice for functions where
+  the original `completing-read' is required. For example, if a
+  function `foo' absolutely cannot use ido, but must instead use
+  the original `completing-read', define some advice like this:
 
   (defadvice foo (around original-completing-read-only activate)
     (let (ido-ubiquitous-enabled) ad-do-it))"
