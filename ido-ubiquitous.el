@@ -47,16 +47,16 @@
   :type 'boolean)
 
 ;;;###autoload
-(defadvice completing-read (around use-ido-when-possible activate)
+(defadvice completing-read (around ido-ubiquitous activate)
   (if (or (not ido-mode)
-          (not ido-ubiquitous-enabled) ; Manual override disable ido
-          (and (boundp 'ido-cur-list)
-               ido-cur-list)) ; Avoid infinite loop from ido calling this
+          (not ido-ubiquitous-enabled)
+          (boundp 'ido-cur-item)) ; Avoid infinite loop from ido calling completing-read
       ad-do-it
     (let ((allcomp (all-completions "" collection predicate)))
       (if allcomp
           (setq ad-return-value
-                (ido-completing-read prompt allcomp
+                (ido-completing-read prompt
+                                     allcomp
                                      nil require-match initial-input hist def))
         ad-do-it))))
 
