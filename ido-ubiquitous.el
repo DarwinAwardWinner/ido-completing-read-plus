@@ -36,6 +36,9 @@
 (defcustom ido-ubiquitous-enabled t
   "If non-nil, use `ido-completing-read' instead of `completing-read' if possible.
 
+  This variable has no effect unless `ido-everywhere' is also
+  non-nil.
+
   Set it to nil using let in around-advice for functions where
   the original `completing-read' is required. For example, if a
   function `foo' absolutely cannot use ido, but must instead use
@@ -49,6 +52,7 @@
 ;;;###autoload
 (defadvice completing-read (around ido-ubiquitous activate)
   (if (or (not ido-mode)
+          (not ido-everywhere)
           (not ido-ubiquitous-enabled)
           (boundp 'ido-cur-item)) ; Avoid infinite loop from ido calling completing-read
       ad-do-it
