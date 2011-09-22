@@ -1,10 +1,6 @@
 ;;; ido-ubiquitous.el --- Use ido (nearly) everywhere.
 
-;; Copyright unknown; taken from
-;; http://www.emacswiki.org/emacs/InteractivelyDoThings#toc13
-;; EmacsWiki edit history is currently unavailable for proper crediting.
-
-;; Author: Unknown
+;; Author: Ryan C. Thompson
 ;; URL: http://www.emacswiki.org/emacs/InteractivelyDoThings#toc13
 ;; Version: 0.2
 ;; Created: 2011-09-01
