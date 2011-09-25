@@ -11,6 +11,19 @@
 
 ;;; Commentary:
 
+;; You may have seen the `ido-everywhere' variable in ido.el and got
+;; exceited that you could use ido completion for everything. Then you
+;; were probably disappointed when you realized that it only applied
+;; to *file names* and nothing else. Well, ido-ubiquitous is here to
+;; fulfill the original promise and let use use ido completion for
+;; (almost) any command that uses `completing-read' to offer you a
+;; choice of several alternatives.
+
+;; One place where this package *doesn't* work is the completion
+;; offered by "M-x" (that is, the `execute-extended-command'
+;; function). If you want ido-style completion for "M-x", you should
+;; install the "smex" package.
+
 ;;; License:
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -33,36 +46,68 @@
 (require 'ido)
 
 ;;;###autoload
-(defcustom ido-ubiquitous-enabled t
-  "If non-nil, use `ido-completing-read' instead of `completing-read' if possible.
+(defgroup ido-ubiquitous nil
+  "Switch between files using substrings."
+  :group 'ido)
 
-  This variable has no effect unless `ido-everywhere' is also
-  non-nil.
+;;;###autoload
+(define-minor-mode ido-ubiquitous
+  "Use `ido-completing-read' instead of `completing-read' almost everywhere.
 
-  Set it to nil using let in around-advice for functions where
-  the original `completing-read' is required. For example, if a
-  function `foo' absolutely cannot use ido, but must instead use
-  the original `completing-read', define some advice like this:
+  This mode has no effect unles `ido-mode' is also enabled.
 
-  (defadvice foo (around original-completing-read-only activate)
-    (let (ido-ubiquitous-enabled) ad-do-it))"
-  :group 'ido
-  :type 'boolean)
+  If this mode causes problems for a function, you can force the
+  function to use the original completing read by using the macro
+  `disable-ido-ubiquitous-in-function'. For example, if a
+  function `foo' cannot work with ido-style completion, evaluate
+  the following (for example by putting it in your .emacs file):
+
+    (disable-ido-ubiquitous-in-function foo)"
+
+  nil
+  :global t
+  :group 'ido-ubiquitous)
+
+;;;###autoload
+(defcustom ido-ubiquitous-exceptions '()
+  "List of commands that should not be affected by `ido-ubiquitous'.
+
+Even when `ido-ubiquitous' mode is enabled, these commands will
+continue to use `completing-read' instead of
+`ido-completing-read'."
+  :type '(repeat symbol)
+  :group 'ido-ubiquitous)
 
 ;;;###autoload
 (defadvice completing-read (around ido-ubiquitous activate)
   (if (or (not ido-mode)
-          (not ido-everywhere)
-          (not ido-ubiquitous-enabled)
-          (boundp 'ido-cur-item)) ; Avoid infinite loop from ido calling completing-read
+          (not ido-ubiquitous)
+          (memq this-command ido-ubiquitous-exceptions)
+          (boundp 'ido-cur-item)) ; Avoid infinite recursion from ido calling completing-read
       ad-do-it
     (let ((allcomp (all-completions "" collection predicate)))
+      ;; Only use ido completion if there are actually any completions
+      ;; to offer.
       (if allcomp
           (setq ad-return-value
-                (ido-completing-read prompt
-                                     allcomp
+                (ido-completing-read prompt allcomp
                                      nil require-match initial-input hist def))
         ad-do-it))))
 
-(provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
+(defmacro disable-ido-ubiquitous-in-function (func)
+  "Disable ido-ubiquitous in FUNC."
+  `(defadvice ,func (around disable-ido-ubiquitous activate)
+     (let (ido-ubiquitous) ad-do-it)))
 
+(defmacro enable-ido-ubiquitous-in-function (func)
+  "Re-enable ido-ubiquitous in FUNC.
+
+  This reverses the effects of `disable-ido-ubiquitous-in-function'."
+  `(defadvice ,func (around disable-ido-ubiquitous activate)
+     ad-do-it))
+
+;; Disable ido-ubiquitous in `find-file' and similar, because they are
+;; not supposed to use ido.
+(disable-ido-ubiquitous-in-function find-file-read-args)
+
+(provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
