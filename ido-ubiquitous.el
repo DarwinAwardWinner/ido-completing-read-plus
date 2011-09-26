@@ -47,7 +47,7 @@
 
 ;;;###autoload
 (defgroup ido-ubiquitous nil
-  "Switch between files using substrings."
+  "Use ido for (almost) all completion."
   :group 'ido)
 
 ;;;###autoload
