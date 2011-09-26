@@ -103,6 +103,12 @@ continue to use `completing-read' instead of
   "Re-enable ido-ubiquitous in FUNC.
 
   This reverses the effect of `disable-ido-ubiquitous-in-function'."
+  ;; In my experience, simply using `ad-remove-advice' or
+  ;; `ad-disable-advice' doesn't work correctly (in Emacs 23).
+  ;; Instead, I've found that one must redefine the advice under the
+  ;; same name ("disable-ido-ubiquitous") to simply call the original
+  ;; function with no modifications. This has the same effect
+  ;; (disables the advice), but is presumably less efficient.
   `(defadvice ,func (around disable-ido-ubiquitous activate)
      ad-do-it))
 
