@@ -62,7 +62,7 @@
   function `foo' cannot work with ido-style completion, evaluate
   the following (for example by putting it in your .emacs file):
 
-    (disable-ido-ubiquitous-in-function foo)"
+    (disable-ido-ubiquitous-in foo)"
 
   nil
   :global t
@@ -94,12 +94,12 @@ continue to use `completing-read' instead of
                                      nil require-match initial-input hist def))
         ad-do-it))))
 
-(defmacro disable-ido-ubiquitous-in-function (func)
+(defmacro disable-ido-ubiquitous-in (func)
   "Disable ido-ubiquitous in FUNC."
   `(defadvice ,func (around disable-ido-ubiquitous activate)
      (let (ido-ubiquitous) ad-do-it)))
 
-(defmacro enable-ido-ubiquitous-in-function (func)
+(defmacro enable-ido-ubiquitous-in (func)
   "Re-enable ido-ubiquitous in FUNC.
 
   This reverses the effects of `disable-ido-ubiquitous-in-function'."
@@ -108,6 +108,6 @@ continue to use `completing-read' instead of
 
 ;; Disable ido-ubiquitous in `find-file' and similar, because they are
 ;; not supposed to use ido.
-(disable-ido-ubiquitous-in-function find-file-read-args)
+(disable-ido-ubiquitous-in read-file-name)
 
 (provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
