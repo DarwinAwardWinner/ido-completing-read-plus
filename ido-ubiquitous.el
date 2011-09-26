@@ -102,12 +102,12 @@ continue to use `completing-read' instead of
 (defmacro enable-ido-ubiquitous-in (func)
   "Re-enable ido-ubiquitous in FUNC.
 
-  This reverses the effects of `disable-ido-ubiquitous-in-function'."
+  This reverses the effect of `disable-ido-ubiquitous-in-function'."
   `(defadvice ,func (around disable-ido-ubiquitous activate)
      ad-do-it))
 
-;; Disable ido-ubiquitous in `find-file' and similar, because they are
-;; not supposed to use ido.
+;; Disable ido-ubiquitous in `find-file' and similar functions,
+;; because they are not supposed to use ido.
 (disable-ido-ubiquitous-in read-file-name)
 
 (provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
