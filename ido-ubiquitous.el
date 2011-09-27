@@ -78,7 +78,6 @@ continue to use `completing-read' instead of
   :type '(repeat symbol)
   :group 'ido-ubiquitous)
 
-;;;###autoload
 (defadvice completing-read (around ido-ubiquitous activate)
   (if (or (not ido-mode)
           (not ido-ubiquitous)
