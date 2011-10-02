@@ -58,7 +58,7 @@
 
   If this mode causes problems for a function, you can force the
   function to use the original completing read by using the macro
-  `disable-ido-ubiquitous-in-function'. For example, if a
+  `disable-ido-ubiquitous-in'. For example, if a
   function `foo' cannot work with ido-style completion, evaluate
   the following (for example by putting it in your .emacs file):
 
@@ -101,7 +101,7 @@ continue to use `completing-read' instead of
 (defmacro enable-ido-ubiquitous-in (func)
   "Re-enable ido-ubiquitous in FUNC.
 
-  This reverses the effect of `disable-ido-ubiquitous-in-function'."
+  This reverses the effect of `disable-ido-ubiquitous-in'."
   ;; In my experience, simply using `ad-remove-advice' or
   ;; `ad-disable-advice' doesn't work correctly (in Emacs 23).
   ;; Instead, I've found that one must redefine the advice under the
