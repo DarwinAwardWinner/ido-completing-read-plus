@@ -12,10 +12,10 @@
 ;;; Commentary:
 
 ;; You may have seen the `ido-everywhere' variable in ido.el and got
-;; exceited that you could use ido completion for everything. Then you
+;; excited that you could use ido completion for everything. Then you
 ;; were probably disappointed when you realized that it only applied
 ;; to *file names* and nothing else. Well, ido-ubiquitous is here to
-;; fulfill the original promise and let use use ido completion for
+;; fulfill the original promise and let you use ido completion for
 ;; (almost) any command that uses `completing-read' to offer you a
 ;; choice of several alternatives.
 
