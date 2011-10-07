@@ -148,7 +148,8 @@ ido-ubiquitous in non-interactive functions, customize
       (eval `(disable-ido-ubiquitous-in ,newfun)))))
 
 ;;;###autoload
-(defcustom ido-ubiquitous-function-exceptions '()
+(defcustom ido-ubiquitous-function-exceptions
+  '(grep-read-files)
   "List of functions in which to disable ido-ubiquitous.
 
 Certain functions, such as `read-file-name', always have
