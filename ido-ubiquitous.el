@@ -44,6 +44,7 @@
 ;;; Code:
 
 (require 'ido)
+(require 'cl)
 
 ;;;###autoload
 (defgroup ido-ubiquitous nil
@@ -69,24 +70,29 @@
   :group 'ido-ubiquitous)
 
 ;;;###autoload
-(defcustom ido-ubiquitous-exceptions '(grep-read-files)
+(defcustom ido-ubiquitous-command-exceptions '()
   "List of commands that should not be affected by `ido-ubiquitous'.
 
 Even when `ido-ubiquitous' mode is enabled, these commands will
 continue to use `completing-read' instead of
-`ido-completing-read'."
-  :type '(repeat symbol)
+`ido-completing-read'.
+
+Only *interactive* commands should go here. To disable
+ido-ubiquitous in non-interactive functions, customize
+`ido-ubiquitous-function-exceptions'."
+  :type '(repeat (symbol :tag "Command"))
   :group 'ido-ubiquitous)
 
 (defadvice completing-read (around ido-ubiquitous activate)
   (if (or (not ido-mode)
           (not ido-ubiquitous)
-          (memq this-command ido-ubiquitous-exceptions)
+          (memq this-command ido-ubiquitous-command-exceptions)
           ;; Avoid infinite recursion from ido calling completing-read
           (boundp 'ido-cur-item))
       ad-do-it
     (let ((allcomp (all-completions "" collection predicate)))
-      ;; Only use ido completion if there are actually any completions to offer.
+      ;; Only use ido completion if there are actually any completions
+      ;; to offer.
       (if allcomp
           (setq ad-return-value
                 (ido-completing-read prompt allcomp
@@ -95,8 +101,11 @@ continue to use `completing-read' instead of
 
 (defmacro disable-ido-ubiquitous-in (func)
   "Disable ido-ubiquitous in FUNC."
-  `(defadvice ,func (around disable-ido-ubiquitous activate)
-     (let (ido-ubiquitous) ad-do-it)))
+  (let ((docstring
+         (format "Disable ido-ubiquitous in %s" func)))
+    `(defadvice ,func (around disable-ido-ubiquitous activate)
+       ,docstring
+       (let (ido-ubiquitous) ad-do-it))))
 
 (defmacro enable-ido-ubiquitous-in (func)
   "Re-enable ido-ubiquitous in FUNC.
@@ -108,11 +117,46 @@ continue to use `completing-read' instead of
   ;; same name ("disable-ido-ubiquitous") to simply call the original
   ;; function with no modifications. This has the same effect
   ;; (disables the advice), but is presumably less efficient.
-  `(defadvice ,func (around disable-ido-ubiquitous activate)
-     ad-do-it))
+  (let ((docstring
+         (format "DO NOT disable ido-ubiquitous in %s" func)))
+    `(defadvice ,func (around disable-ido-ubiquitous activate)
+       ,docstring
+       ad-do-it)))
 
-;; Disable ido-ubiquitous in `find-file' and similar functions,
+;; Always disable ido-ubiquitous in `find-file' and similar functions,
 ;; because they are not supposed to use ido.
-(disable-ido-ubiquitous-in read-file-name)
+(defvar ido-ubiquitous-permanent-function-exceptions
+  '(read-file-name)
+  "Functions in which ido-ubiquitous should always be disabled.")
+
+(dolist (func ido-ubiquitous-permanent-function-exceptions)
+  (eval `(disable-ido-ubiquitous-in ,func)))
+
+(defun ido-ubiquitous-set-function-exceptions (sym newval)
+  (let* ((oldval (when (boundp sym) (eval sym))))
+    ;; Filter out permanent fixtures
+    (setq oldval (set-difference oldval ido-ubiquitous-permanent-function-exceptions))
+    (setq newval (set-difference newval ido-ubiquitous-permanent-function-exceptions))
+    ;; Re-enable ido-ubiquitous on all old functions, in case they
+    ;; were removed from the list.
+    (dolist (oldfun oldval)
+      (eval `(enable-ido-ubiquitous-in ,oldfun)))
+    ;; Set the new value
+    (set-default sym newval)
+    ;; Disable ido-ubiquitous on all new functions
+    (dolist (newfun newval)
+      (eval `(disable-ido-ubiquitous-in ,newfun)))))
+
+;;;###autoload
+(defcustom ido-ubiquitous-function-exceptions '()
+  "List of functions in which to disable ido-ubiquitous.
+
+Certain functions, such as `read-file-name', always have
+ido-ubiquitous disabled, and cannot be added here. (They are
+effectively permanently part of this list already.)"
+  :group 'ido-ubiquitous
+  :type '(repeat :tag "Functions"
+                 (symbol :tag "Function"))
+  :set 'ido-ubiquitous-set-function-exceptions)
 
 (provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
