@@ -19,10 +19,8 @@
 ;; (almost) any command that uses `completing-read' to offer you a
 ;; choice of several alternatives.
 
-;; One place where this package *doesn't* work is the completion
-;; offered by "M-x" (that is, the `execute-extended-command'
-;; function). If you want ido-style completion for "M-x", you should
-;; install the "smex" package.
+;; This even works in M-x, but for that, you might prefer the "smex"
+;; package instead.
 
 ;;; License:
 
