@@ -81,6 +81,9 @@ ido-ubiquitous in non-interactive functions, customize
   :type '(repeat (symbol :tag "Command"))
   :group 'ido-ubiquitous)
 
+(define-obsolete-variable-alias 'ido-ubiquitous-exceptions
+  'ido-ubiquitous-command-exceptions "0.4")
+
 (defadvice completing-read (around ido-ubiquitous activate)
   (if (or (not ido-mode)
           (not ido-ubiquitous)
