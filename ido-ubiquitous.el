@@ -69,7 +69,7 @@
   :group 'ido-ubiquitous)
 
 ;;;###autoload
-(defcustom ido-ubiquitous-exceptions '()
+(defcustom ido-ubiquitous-exceptions '(grep-read-files)
   "List of commands that should not be affected by `ido-ubiquitous'.
 
 Even when `ido-ubiquitous' mode is enabled, these commands will
