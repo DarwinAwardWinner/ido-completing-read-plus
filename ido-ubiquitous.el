@@ -57,11 +57,11 @@
 
   If this mode causes problems for a function, you can force the
   function to use the original completing read by using the macro
-  `disable-ido-ubiquitous-in'. For example, if a
+  `ido-ubiquitous-disable-in'. For example, if a
   function `foo' cannot work with ido-style completion, evaluate
   the following (for example by putting it in your .emacs file):
 
-    (disable-ido-ubiquitous-in foo)"
+    (ido-ubiquitous-disable-in foo)"
 
   nil
   :global t
@@ -97,7 +97,7 @@ ido-ubiquitous in non-interactive functions, customize
                                      nil require-match initial-input hist def))
         ad-do-it))))
 
-(defmacro disable-ido-ubiquitous-in (func)
+(defmacro ido-ubiquitous-disable-in (func)
   "Disable ido-ubiquitous in FUNC."
   (let ((docstring
          (format "Disable ido-ubiquitous in %s" func)))
@@ -105,10 +105,15 @@ ido-ubiquitous in non-interactive functions, customize
        ,docstring
        (let (ido-ubiquitous) ad-do-it))))
 
-(defmacro enable-ido-ubiquitous-in (func)
+(define-obsolete-function-alias
+  'disable-ido-ubiquitous-in
+  'ido-ubiquitous-disable-in
+  "0.4")
+
+(defmacro ido-ubiquitous-enable-in (func)
   "Re-enable ido-ubiquitous in FUNC.
 
-  This reverses the effect of `disable-ido-ubiquitous-in'."
+  This reverses the effect of `ido-ubiquitous-disable-in'."
   ;; In my experience, simply using `ad-remove-advice' or
   ;; `ad-disable-advice' doesn't work correctly (in Emacs 23).
   ;; Instead, I've found that one must redefine the advice under the
@@ -121,6 +126,11 @@ ido-ubiquitous in non-interactive functions, customize
        ,docstring
        ad-do-it)))
 
+(define-obsolete-function-alias
+  'enable-ido-ubiquitous-in
+  'ido-ubiquitous-enable-in
+  "0.4")
+
 ;; Always disable ido-ubiquitous in `find-file' and similar functions,
 ;; because they are not supposed to use ido.
 (defvar ido-ubiquitous-permanent-function-exceptions
@@ -128,7 +138,7 @@ ido-ubiquitous in non-interactive functions, customize
   "Functions in which ido-ubiquitous should always be disabled.")
 
 (dolist (func ido-ubiquitous-permanent-function-exceptions)
-  (eval `(disable-ido-ubiquitous-in ,func)))
+  (eval `(ido-ubiquitous-disable-in ,func)))
 
 (defun ido-ubiquitous-set-function-exceptions (sym newval)
   (let* ((oldval (when (boundp sym) (eval sym))))
@@ -138,12 +148,12 @@ ido-ubiquitous in non-interactive functions, customize
     ;; Re-enable ido-ubiquitous on all old functions, in case they
     ;; were removed from the list.
     (dolist (oldfun oldval)
-      (eval `(enable-ido-ubiquitous-in ,oldfun)))
+      (eval `(ido-ubiquitous-enable-in ,oldfun)))
     ;; Set the new value
     (set-default sym newval)
     ;; Disable ido-ubiquitous on all new functions
     (dolist (newfun newval)
-      (eval `(disable-ido-ubiquitous-in ,newfun)))))
+      (eval `(ido-ubiquitous-disable-in ,newfun)))))
 
 ;;;###autoload
 (defcustom ido-ubiquitous-function-exceptions
