@@ -82,11 +82,11 @@ continue to use `completing-read' instead of
   (if (or (not ido-mode)
           (not ido-ubiquitous)
           (memq this-command ido-ubiquitous-exceptions)
-          (boundp 'ido-cur-item)) ; Avoid infinite recursion from ido calling completing-read
+          ;; Avoid infinite recursion from ido calling completing-read
+          (boundp 'ido-cur-item))
       ad-do-it
     (let ((allcomp (all-completions "" collection predicate)))
-      ;; Only use ido completion if there are actually any completions
-      ;; to offer.
+      ;; Only use ido completion if there are actually any completions to offer.
       (if allcomp
           (setq ad-return-value
                 (ido-completing-read prompt allcomp
