@@ -42,7 +42,8 @@
 ;;; Code:
 
 (require 'ido)
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 
 ;;;###autoload
 (defgroup ido-ubiquitous nil
