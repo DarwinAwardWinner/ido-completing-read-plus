@@ -137,7 +137,11 @@ ido-ubiquitous in non-interactive functions, customize
 ;; because they are not supposed to use ido.
 (defvar ido-ubiquitous-permanent-function-exceptions
   '(read-file-name)
-  "Functions in which ido-ubiquitous should always be disabled.")
+  "Functions in which ido-ubiquitous should always be disabled.
+
+If you want to disable ido in a specific function or command, do
+not modify this variable. Instead, try `M-x customize-group
+ido-ubiquitous..")
 
 (dolist (func ido-ubiquitous-permanent-function-exceptions)
   (eval `(ido-ubiquitous-disable-in ,func)))
