@@ -42,8 +42,6 @@
 ;;; Code:
 
 (require 'ido)
-(eval-when-compile
-  (require 'cl))
 
 ;;;###autoload
 (defgroup ido-ubiquitous nil
@@ -144,11 +142,16 @@ ido-ubiquitous in non-interactive functions, customize
 (dolist (func ido-ubiquitous-permanent-function-exceptions)
   (eval `(ido-ubiquitous-disable-in ,func)))
 
+(defun ido-ubiquitous--set-difference (list1 list2)
+  "Replacement for `set-difference' from `cl'."
+  (mapcan (lambda (elt) (unless (memq elt list2) (list elt)))
+          list1))
+
 (defun ido-ubiquitous-set-function-exceptions (sym newval)
   (let* ((oldval (when (boundp sym) (eval sym))))
     ;; Filter out permanent fixtures
-    (setq oldval (set-difference oldval ido-ubiquitous-permanent-function-exceptions))
-    (setq newval (set-difference newval ido-ubiquitous-permanent-function-exceptions))
+    (setq oldval (ido-ubiquitous--set-difference oldval ido-ubiquitous-permanent-function-exceptions))
+    (setq newval (ido-ubiquitous--set-difference newval ido-ubiquitous-permanent-function-exceptions))
     ;; Re-enable ido-ubiquitous on all old functions, in case they
     ;; were removed from the list.
     (dolist (oldfun oldval)
