@@ -148,8 +148,9 @@ ido-ubiquitous..")
 
 (defun ido-ubiquitous--set-difference (list1 list2)
   "Replacement for `set-difference' from `cl'."
-  (mapcan (lambda (elt) (unless (memq elt list2) (list elt)))
-          list1))
+  (apply #'nconc
+         (mapcar (lambda (elt) (unless (memq elt list2) (list elt)))
+                 list1)))
 
 (defun ido-ubiquitous-set-function-exceptions (sym newval)
   (let* ((oldval (when (boundp sym) (eval sym))))
