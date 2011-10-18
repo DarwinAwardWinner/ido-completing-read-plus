@@ -2,7 +2,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: http://www.emacswiki.org/emacs/InteractivelyDoThings#toc13
-;; Version: 0.4
+;; Version: 0.5
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
