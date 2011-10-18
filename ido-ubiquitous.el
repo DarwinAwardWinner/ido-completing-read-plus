@@ -1,7 +1,7 @@
 ;;; ido-ubiquitous.el --- Use ido (nearly) everywhere.
 
 ;; Author: Ryan C. Thompson
-;; URL: http://www.emacswiki.org/emacs/InteractivelyDoThings#toc13
+;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Version: 0.5
 ;; Created: 2011-09-01
 ;; Keywords: convenience
