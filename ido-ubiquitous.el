@@ -180,4 +180,19 @@ effectively permanently part of this list already.)"
                  (symbol :tag "Function"))
   :set 'ido-ubiquitous-set-function-exceptions)
 
+(defadvice ido-exit-minibuffer (around required-allow-empty-string activate)
+  "Emulate a quirk of `completing-read'.
+
+Apparently, `completing-read' used to request the default item by
+returning an empty string when RET was pressed with an empty input.
+This forces `ido-completing-read' to do the same (instead of returning
+the first choice in the list).
+
+This has no effect when ido is completing buffers or files."
+  (if (and (eq ido-cur-item 'list)
+           ido-require-match
+           (string= ido-text ""))
+      (ido-select-text)
+    ad-do-it))
+
 (provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
