@@ -191,6 +191,7 @@ the first choice in the list).
 This has no effect when ido is completing buffers or files."
   (if (and (eq ido-cur-item 'list)
            ido-require-match
+           (null ido-default-item)
            (string= ido-text ""))
       (ido-select-text)
     ad-do-it))
