@@ -22,6 +22,13 @@
 ;; This even works in M-x, but for that, you might prefer the "smex"
 ;; package instead.
 
+;; As of version 0.7, this package also makes a small modification to
+;; ido's behavior so as to support a strange corner case of
+;; `completing-read' that some functions rely on. Since the goal of
+;; this package is to replace `completing-read' everywhere instead of
+;; just selectively (as ido itself does), compatibility with all the
+;; quriks of `completing-read' is important here.
+
 ;;; License:
 
 ;; This program is free software; you can redistribute it and/or modify
