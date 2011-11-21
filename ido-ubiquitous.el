@@ -56,7 +56,7 @@
   :group 'ido)
 
 ;;;###autoload
-(define-minor-mode ido-ubiquitous
+(define-minor-mode ido-ubiquitous-mode
   "Use `ido-completing-read' instead of `completing-read' almost everywhere.
 
   This mode has no effect unles `ido-mode' is also enabled.
@@ -74,6 +74,13 @@
   :group 'ido-ubiquitous)
 
 ;;;###autoload
+(define-obsolete-variable-alias 'ido-ubiquitous
+  'ido-ubiquitous-mode "0.8")
+;;;###autoload
+(define-obsolete-function-alias 'ido-ubiquitous
+  'ido-ubiquitous-mode "0.8")
+
+;;;###autoload
 (defcustom ido-ubiquitous-command-exceptions '()
   "List of commands that should not be affected by `ido-ubiquitous'.
 
@@ -87,12 +94,13 @@ ido-ubiquitous in non-interactive functions, customize
   :type '(repeat (symbol :tag "Command"))
   :group 'ido-ubiquitous)
 
+;;;###autoload
 (define-obsolete-variable-alias 'ido-ubiquitous-exceptions
   'ido-ubiquitous-command-exceptions "0.4")
 
 (defadvice completing-read (around ido-ubiquitous activate)
   (if (or (not ido-mode)
-          (not ido-ubiquitous)
+          (not ido-ubiquitous-mode)
           (memq this-command ido-ubiquitous-command-exceptions)
           ;; Avoid infinite recursion from ido calling completing-read
           (boundp 'ido-cur-item))
@@ -112,7 +120,7 @@ ido-ubiquitous in non-interactive functions, customize
          (format "Disable ido-ubiquitous in %s" func)))
     `(defadvice ,func (around disable-ido-ubiquitous activate)
        ,docstring
-       (let (ido-ubiquitous) ad-do-it))))
+       (let (ido-ubiquitous-mode) ad-do-it))))
 
 (define-obsolete-function-alias
   'disable-ido-ubiquitous-in
