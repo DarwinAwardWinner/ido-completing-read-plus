@@ -195,6 +195,20 @@ effectively permanently part of this list already.)"
                  (symbol :tag "Function"))
   :set 'ido-ubiquitous-set-function-exceptions)
 
+(defcustom ido-ubiquitous-enable-compatibility t
+  "Emulate a quirk of `completing-read'.
+
+Apparently, long ago `completing-read' did not have a \"default\"
+argument, so functions that used it requested the default item by
+returning an empty string when RET was pressed with an empty
+input. When t, this option forces `ido-completing-read' to do the
+same (instead of returning the first choice in the list like it
+would normally do). This improves compatibility with many
+functions that use completing-read in this way, but may also
+break compatibility with others.
+
+This has no effect when ido is completing buffers or files.")
+
 (defadvice ido-exit-minibuffer (around required-allow-empty-string activate)
   "Emulate a quirk of `completing-read'.
 
@@ -204,7 +218,8 @@ This forces `ido-completing-read' to do the same (instead of returning
 the first choice in the list).
 
 This has no effect when ido is completing buffers or files."
-  (if (and (eq ido-cur-item 'list)
+  (if (and ido-ubiquitous-enable-compatibility
+           (eq ido-cur-item 'list)
            ido-require-match
            (null ido-default-item)
            (string= ido-text ""))
