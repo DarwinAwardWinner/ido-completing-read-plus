@@ -29,6 +29,10 @@
 ;; just selectively (as ido itself does), compatibility with all the
 ;; quriks of `completing-read' is important here.
 
+;; If you find a case where enabling ido-ubiquitous causes a command
+;; not to work correctly, please report it by creating an issue on
+;; GitHub: https://github.com/DarwinAwardWinner/ido-ubiquitous/issues
+
 ;;; License:
 
 ;; This program is free software; you can redistribute it and/or modify
