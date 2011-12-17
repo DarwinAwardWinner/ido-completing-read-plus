@@ -209,6 +209,9 @@ improves compatibility with many older functions that use
 `completing-read' in this way, but may also break compatibility
 with others.
 
+You can also disable this behavior just once by pressing \"C-u\"
+right before pressing \"RET\".
+
 This has no effect when ido is completing buffers or files.")
 
 (defvar ido-ubiquitous-initial-item nil
@@ -240,6 +243,7 @@ This has no effect when ido is completing buffers or files."
            (eq ido-cur-item 'list)
            ido-require-match
            (null ido-default-item)
+           (not current-prefix-arg)
            (string= ido-text "")
            (string= (car ido-cur-list)
                     ido-ubiquitous-initial-item))
