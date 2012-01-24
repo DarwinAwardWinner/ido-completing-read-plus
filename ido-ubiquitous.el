@@ -155,7 +155,9 @@ ido-ubiquitous in non-interactive functions, customize
 ;; Always disable ido-ubiquitous in `find-file' and similar functions,
 ;; because they are not supposed to use ido.
 (defvar ido-ubiquitous-permanent-function-exceptions
-  '(read-file-name)
+  '(read-file-name
+    gnus-emacs-completing-read
+    gnus-iswitchb-completing-read)
   "Functions in which ido-ubiquitous should always be disabled.
 
 If you want to disable ido in a specific function or command, do
