@@ -258,7 +258,7 @@ This has no effect when ido is completing buffers or files."
 
 (defadvice bookmark-completing-read (around disable-ido-compatibility activate)
   "`bookmark-completing-read' uses `completing-read' in an odd
-  way the conflicts with the compatibilty mode of
+  way that conflicts with the compatibilty mode of
   ido-ubiquitous."
   (let (ido-ubiquitous-enable-compatibility)
     ad-do-it))
