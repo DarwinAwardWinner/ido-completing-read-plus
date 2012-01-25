@@ -193,9 +193,14 @@ ido-ubiquitous..")
   '(grep-read-files)
   "List of functions in which to disable ido-ubiquitous.
 
-Certain functions, such as `read-file-name', always have
-ido-ubiquitous disabled, and cannot be added here. (They are
-effectively permanently part of this list already.)"
+If you need to add a function to this list, please also file a
+bug report at
+https://github.com/DarwinAwardWinner/ido-ubiquitous/issues
+
+Note that certain functions, such as `read-file-name', must
+always have ido-ubiquitous disabled, and cannot be added
+here. (They are effectively a permanent part of this list
+already.)"
   :group 'ido-ubiquitous
   :type '(repeat :tag "Functions"
                  (symbol :tag "Function"))
