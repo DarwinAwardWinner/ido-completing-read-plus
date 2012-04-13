@@ -157,7 +157,8 @@ ido-ubiquitous in non-interactive functions, customize
 (defvar ido-ubiquitous-permanent-function-exceptions
   '(read-file-name
     gnus-emacs-completing-read
-    gnus-iswitchb-completing-read)
+    gnus-iswitchb-completing-read
+    man)
   "Functions in which ido-ubiquitous should always be disabled.
 
 If you want to disable ido in a specific function or command, do
