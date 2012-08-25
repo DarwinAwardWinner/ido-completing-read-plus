@@ -210,21 +210,35 @@ already.)"
 (defcustom ido-ubiquitous-enable-compatibility t
   "Emulate a quirk of `completing-read'.
 
-Apparently, long ago `completing-read' did not have a \"default\"
-argument, so functions that used it requested the default item by
-returning an empty string when RET was pressed with an empty
-input. When t, this option forces `ido-completing-read' to mimic
-this behavior by returning an empty string if the user has
-neither entered any text nor cycled choices (instead of ido's
-normal behavior of returning the first choice in the list). This
-improves compatibility with many older functions that use
-`completing-read' in this way, but may also break compatibility
-with others.
+In the past, the `completing-read' function had no way of
+specifying a default item, so instead the convention was to
+request the default by returning an empty string. This occurrs in
+standard emacs completion system when you press \"RET\" without
+typing anything first. This is a problem for ido completion
+because when ido is used this way, it does not know which item is
+the default, so it cannot put the default at the head of the
+list. Hence, simply pressing \"RET\" will not properly select the
+advertised default. Setting this variable to non-nil will force
+ido to emulate this quirk of the standard emacs completion system
+in order to maintain compatibility with old functions that still
+use the empty-string-as-default convention.
 
-You can also disable this behavior just once by pressing \"C-u\"
-right before pressing \"RET\".
+Specifically, when this variable is non-nil, ido will return an
+empty string (thereby requesting the default) if you press \"RET\"
+without entering any text or cycling through the offered choices.
+This replaces the standard ido behavior of returning the first
+item on the list. Enabling this option improves compatibility
+with many older functions that use `completing-read' in this way,
+but may also break compatibility with others, since it changes
+what ido returns.
 
-This has no effect when ido is completing buffers or files.")
+If you want this enabled most of the time but once in a while you
+really want to select the first item on the list, you can do so
+by prefixing \"RET\" with \"C-u\".
+
+This has no effect when ido is completing buffers or files."
+  :type 'boolean
+  :group 'ido-ubiquitous)
 
 (defvar ido-ubiquitous-initial-item nil
   "The first item selected when ido starts.")
