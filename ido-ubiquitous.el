@@ -259,12 +259,16 @@ This has no effect when ido is completing buffers or files."
 (defadvice ido-exit-minibuffer (around required-allow-empty-string activate)
   "Emulate a quirk of `completing-read'.
 
-Apparently, `completing-read' used to request the default item by
-returning an empty string when RET was pressed with an empty input.
-This forces `ido-completing-read' to do the same (instead of returning
-the first choice in the list).
+Apparently, in the past `completing-read' used to request the
+default item by returning an empty string when RET was pressed
+with an empty input. This forces `ido-completing-read' to do the
+same (instead of returning the first choice in the list),
+allowing the default to be properly selected.
 
-This has no effect when ido is completing buffers or files."
+This has no effect when ido is completing buffers or files.
+
+This behavior is disabled by setting
+`ido-ubiquitous-enable-compatibility' to nil."
   (if (and ido-ubiquitous-enable-compatibility
            (eq ido-cur-item 'list)
            ido-require-match
