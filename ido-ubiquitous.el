@@ -271,7 +271,6 @@ This behavior is disabled by setting
 `ido-ubiquitous-enable-compatibility' to nil."
   (if (and ido-ubiquitous-enable-compatibility
            (eq ido-cur-item 'list)
-           ido-require-match
            (null ido-default-item)
            (not current-prefix-arg)
            (string= ido-text "")
