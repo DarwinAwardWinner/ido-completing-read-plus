@@ -134,18 +134,11 @@ ido-ubiquitous in non-interactive functions, customize
 (defmacro ido-ubiquitous-enable-in (func)
   "Re-enable ido-ubiquitous in FUNC.
 
-  This reverses the effect of `ido-ubiquitous-disable-in'."
-  ;; In my experience, simply using `ad-remove-advice' or
-  ;; `ad-disable-advice' doesn't work correctly (in Emacs 23).
-  ;; Instead, I've found that one must redefine the advice under the
-  ;; same name ("disable-ido-ubiquitous") to simply call the original
-  ;; function with no modifications. This has the same effect
-  ;; (disables the advice), but is presumably less efficient.
-  (let ((docstring
-         (format "DO NOT disable ido-ubiquitous in %s" func)))
-    `(defadvice ,func (around disable-ido-ubiquitous activate)
-       ,docstring
-       ad-do-it)))
+  This reverses the effect of a previous call to
+  `ido-ubiquitous-disable-in'."
+  `(when (ad-find-advice ',func 'around 'disable-ido-ubiquitous)
+     (ad-disable-advice ',func 'around 'disable-ido-ubiquitous)
+     (ad-activate ',func)))
 
 (define-obsolete-function-alias
   'enable-ido-ubiquitous-in
@@ -165,8 +158,8 @@ If you want to disable ido in a specific function or command, do
 not modify this variable. Instead, try `M-x customize-group
 ido-ubiquitous.")
 
-(dolist (func ido-ubiquitous-permanent-function-exceptions)
-  (eval `(ido-ubiquitous-disable-in ,func)))
+(mapc (lambda (func) (eval `(ido-ubiquitous-disable-in ,func)))
+      ido-ubiquitous-permanent-function-exceptions)
 
 (defun ido-ubiquitous--set-difference (list1 list2)
   "Replacement for `set-difference' from `cl'."
@@ -176,7 +169,7 @@ ido-ubiquitous.")
 
 (defun ido-ubiquitous-set-function-exceptions (sym newval)
   (let* ((oldval (when (boundp sym) (eval sym))))
-    ;; Filter out permanent fixtures
+    ;; Filter out the permanent exceptions so we never act on them.
     (setq oldval (ido-ubiquitous--set-difference oldval ido-ubiquitous-permanent-function-exceptions))
     (setq newval (ido-ubiquitous--set-difference newval ido-ubiquitous-permanent-function-exceptions))
     ;; Re-enable ido-ubiquitous on all old functions, in case they
