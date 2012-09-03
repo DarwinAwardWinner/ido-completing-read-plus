@@ -192,6 +192,7 @@ be used as the value of `completing-read-function'."
 (defvar ido-ubiquitous-permanent-function-exceptions
   '(read-file-name
     read-file-name-internal
+    read-buffer
     gnus-emacs-completing-read
     gnus-iswitchb-completing-read
     man)
