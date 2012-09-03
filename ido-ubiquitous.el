@@ -149,6 +149,7 @@ ido-ubiquitous in non-interactive functions, customize
 ;; because they are not supposed to use ido.
 (defvar ido-ubiquitous-permanent-function-exceptions
   '(read-file-name
+    read-file-name-internal
     gnus-emacs-completing-read
     gnus-iswitchb-completing-read
     man)
