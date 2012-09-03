@@ -54,6 +54,21 @@
 
 (require 'ido)
 
+;; Clean up old versions of ido-ubiquitous (1.3 and earlier) that
+;; defined advice on `completing-read' instead of modifying
+;; `completing-read-function'.
+(when (ad-find-advice 'completing-read 'around 'ido-ubiquitous)
+  (ad-remove-advice 'completing-read 'around 'ido-ubiquitous)
+  (ad-activate 'completing-read))
+
+(defvar ido-ubiquitous-orig-completing-read-function
+  completing-read-function
+  "The value of `completing-read-function' before ido-ubiquitous-mode was enabled.
+
+This value will be restored when `ido-ubiquitous-mode' is
+deactivated. It will also be used as a fallback if ido-ubiquitous
+detects something that ido cannot handle.")
+
 ;;;###autoload
 (defgroup ido-ubiquitous nil
   "Use ido for (almost) all completion."
@@ -75,7 +90,11 @@
 
   nil
   :global t
-  :group 'ido-ubiquitous)
+  :group 'ido-ubiquitous
+  (setq completing-read-function
+        (if ido-ubiquitous-mode
+            'completing-read-ido
+          ido-ubiquitous-orig-completing-read-function)))
 
 ;;;###autoload
 (define-obsolete-variable-alias 'ido-ubiquitous
@@ -102,21 +121,32 @@ ido-ubiquitous in non-interactive functions, customize
 (define-obsolete-variable-alias 'ido-ubiquitous-exceptions
   'ido-ubiquitous-command-exceptions "0.4")
 
-(defadvice completing-read (around ido-ubiquitous activate)
-  (if (or (not ido-mode)
+(defun completing-read-ido (prompt collection &optional predicate
+                                   require-match initial-input
+                                   hist def inherit-input-method)
+  "Ido-based method for reading from the minibuffer with completion.
+See `completing-read' for the meaning of the arguments.
+
+This function is a wrapper for `ido-completing-read' designed to
+be used as the value of `completing-read-function'."
+  (if (or inherit-input-method          ; Can't handle this arg
+          (not ido-mode)
           (not ido-ubiquitous-mode)
-          (memq this-command ido-ubiquitous-command-exceptions)
-          ;; Avoid infinite recursion from ido calling completing-read
-          (boundp 'ido-cur-item))
-      ad-do-it
+          (memq this-command ido-ubiquitous-command-exceptions))
+      (funcall ido-ubiquitous-orig-completing-read-function
+               prompt collection predicate
+               require-match initial-input
+               hist def inherit-input-method)
     (let ((allcomp (all-completions "" collection predicate)))
       ;; Only use ido completion if there are actually any completions
       ;; to offer.
       (if allcomp
-          (setq ad-return-value
-                (ido-completing-read prompt allcomp
-                                     nil require-match initial-input hist def))
-        ad-do-it))))
+          (ido-completing-read prompt allcomp
+                               nil require-match initial-input hist def)
+        (funcall ido-ubiquitous-orig-completing-read-function
+                 prompt collection predicate
+                 require-match initial-input
+                 hist def inherit-input-method)))))
 
 (defmacro ido-ubiquitous-disable-in (func)
   "Disable ido-ubiquitous in FUNC."
@@ -280,5 +310,8 @@ This behavior is disabled by setting
   ido-ubiquitous."
   (let (ido-ubiquitous-enable-compatibility)
     ad-do-it))
+
+;; Make sure the mode is initialized for the first time
+(ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0))
 
 (provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
