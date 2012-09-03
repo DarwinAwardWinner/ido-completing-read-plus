@@ -53,6 +53,7 @@
 ;;; Code:
 
 (require 'ido)
+(require 'advice)
 
 ;; Clean up old versions of ido-ubiquitous (1.3 and earlier) that
 ;; defined advice on `completing-read' instead of modifying
