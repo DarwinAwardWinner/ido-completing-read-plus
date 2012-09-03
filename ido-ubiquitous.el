@@ -121,6 +121,9 @@ ido-ubiquitous in non-interactive functions, customize
 (define-obsolete-variable-alias 'ido-ubiquitous-exceptions
   'ido-ubiquitous-command-exceptions "0.4")
 
+(defvar ido-next-call-replaces-completing-read nil)
+(defvar ido-this-call-replaces-completing-read nil)
+
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
                                    hist def inherit-input-method)
@@ -141,12 +144,21 @@ be used as the value of `completing-read-function'."
       ;; Only use ido completion if there are actually any completions
       ;; to offer.
       (if allcomp
-          (ido-completing-read prompt allcomp
-                               nil require-match initial-input hist def)
+          (let ((ido-next-call-replaces-completing-read t))
+            (ido-completing-read prompt allcomp
+                                 nil require-match initial-input hist def))
         (funcall ido-ubiquitous-orig-completing-read-function
                  prompt collection predicate
                  require-match initial-input
                  hist def inherit-input-method)))))
+
+(defadvice ido-completing-read (around detect-replacing-cr activate)
+  (if ido-next-call-replaces-completing-read
+      (let ((ido-next-call-replaces-completing-read nil)
+            (ido-this-call-replaces-completing-read t))
+        ad-do-it)
+    (let ((ido-this-call-replaces-completing-read nil))
+      ad-do-it)))
 
 (defmacro ido-ubiquitous-disable-in (func)
   "Disable ido-ubiquitous in FUNC."
@@ -232,35 +244,34 @@ already.)"
   :set 'ido-ubiquitous-set-function-exceptions)
 
 (defcustom ido-ubiquitous-enable-compatibility t
-  "Emulate a quirk of `completing-read'.
+  "Allow ido to emulate a quirk of `completing-read'.
 
-In the past, the `completing-read' function had no way of
-specifying a default item, so instead the convention was to
-request the default by returning an empty string. This occurrs in
-standard emacs completion system when you press \"RET\" without
-typing anything first. This is a problem for ido completion
-because when ido is used this way, it does not know which item is
-the default, so it cannot put the default at the head of the
-list. Hence, simply pressing \"RET\" will not properly select the
-advertised default. Setting this variable to non-nil will force
-ido to emulate this quirk of the standard emacs completion system
-in order to maintain compatibility with old functions that still
-use the empty-string-as-default convention.
+From the `completing-read' docstring:
 
-Specifically, when this variable is non-nil, ido will return an
-empty string (thereby requesting the default) if you press \"RET\"
-without entering any text or cycling through the offered choices.
-This replaces the standard ido behavior of returning the first
-item on the list. Enabling this option improves compatibility
-with many older functions that use `completing-read' in this way,
-but may also break compatibility with others, since it changes
-what ido returns.
+> If the input is null, `completing-read' returns DEF, or the
+> first element of the list of default values, or an empty string
+> if DEF is nil, regardless of the value of REQUIRE-MATCH.
 
-If you want this enabled most of the time but once in a while you
-really want to select the first item on the list, you can do so
-by prefixing \"RET\" with \"C-u\".
+If this variable is non-nil, then ido-ubiquitous will attempt to
+emulate this behavior. Specifically, if RET is pressed
+immediately upon entering completion, an empty string will be
+returned instead of the first element in the list. This behavior
+is only enabled when ido is being used as a substitute for
+`completing-read', and not when it is used directly.
 
-This has no effect when ido is completing buffers or files."
+This odd behavior is required for compatibility with an old-style
+usage pattern whereby the default was requested by returning an
+empty string. In this mode, the caller receives the empty string
+and handles the default case manually, while `completing-read'
+never has any knowledge of the default. This is a problem for
+ido, which always returns the first element in the list when the
+input is empty. Without knowledge of the default, it cannot
+ensure that the default is first on the list, so returning the
+first item is not the correct behavior. Instead, it must return
+an empty string like `completing-read'.
+
+When this mode is enabled, you can still select the first item on
+the list by prefixing \"RET\" with \"C-u\"."
   :type 'boolean
   :group 'ido-ubiquitous)
 
@@ -280,29 +291,30 @@ This has no effect when ido is completing buffers or files."
 (defadvice ido-prev-match (after clear-initial-item activate)
   (setq ido-ubiquitous-initial-item nil))
 
-(defadvice ido-exit-minibuffer (around required-allow-empty-string activate)
+(defadvice ido-exit-minibuffer (around compatibility activate)
   "Emulate a quirk of `completing-read'.
 
-Apparently, in the past `completing-read' used to request the
-default item by returning an empty string when RET was pressed
-with an empty input. This forces `ido-completing-read' to do the
-same (instead of returning the first choice in the list),
-allowing the default to be properly selected.
+> If the input is null, `completing-read' returns DEF, or the
+> first element of the list of default values, or an empty string
+> if DEF is nil, regardless of the value of REQUIRE-MATCH.
 
-This has no effect when ido is completing buffers or files.
-
-This behavior is disabled by setting
-`ido-ubiquitous-enable-compatibility' to nil."
-  (if (and ido-ubiquitous-enable-compatibility
-           (eq ido-cur-item 'list)
-           ido-require-match
-           (null ido-default-item)
-           (not current-prefix-arg)
+See `ido-ubiquitous-enable-compatibility', which controls whether
+this advice has any effect."
+  (if (and (eq ido-cur-item 'list)
+           ido-ubiquitous-enable-compatibility
+           ;; Only enable if we are replacing `completing-read'
+           ido-this-call-replaces-completing-read
+           ;; Input is empty
            (string= ido-text "")
+           ;; Default is nil
+           (null ido-default-item)
+           ;; Prefix disables compatibility
+           (not current-prefix-arg)
            (string= (car ido-cur-list)
                     ido-ubiquitous-initial-item))
       (ido-select-text)
-    ad-do-it))
+    ad-do-it)
+  (setq ido-ubiquitous-initial-item nil))
 
 (defadvice bookmark-completing-read (around disable-ido-compatibility activate)
   "`bookmark-completing-read' uses `completing-read' in an odd
