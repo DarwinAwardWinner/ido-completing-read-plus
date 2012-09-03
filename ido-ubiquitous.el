@@ -275,6 +275,21 @@ the list by prefixing \"RET\" with \"C-u\"."
   :type 'boolean
   :group 'ido-ubiquitous)
 
+;;;###autoload
+(defcustom ido-ubiquitous-command-compatibility-exceptions '()
+  "List of commands in which to disable compatibility.
+
+See `ido-ubiquitous-enable-compatibility' for a description of
+the compatibility behavior. If this behavior causes a command to
+break, add that command to this list to disable compatibility
+mode for just that command.
+
+Only *interactive* commands should go here. To disable
+compatibility mode in non-interactive functions, customize
+`ido-ubiquitous-function-compatibility-exceptions'."
+  :type '(repeat (symbol :tag "Command"))
+  :group 'ido-ubiquitous)
+
 (defvar ido-ubiquitous-initial-item nil
   "The first item selected when ido starts.")
 
@@ -304,6 +319,8 @@ this advice has any effect."
            ido-ubiquitous-enable-compatibility
            ;; Only enable if we are replacing `completing-read'
            ido-this-call-replaces-completing-read
+           ;; Disable in command exceptions
+           (not (memq this-command ido-ubiquitous-command-compatibility-exceptions))
            ;; Input is empty
            (string= ido-text "")
            ;; Default is nil
@@ -316,12 +333,52 @@ this advice has any effect."
     ad-do-it)
   (setq ido-ubiquitous-initial-item nil))
 
-(defadvice bookmark-completing-read (around disable-ido-compatibility activate)
-  "`bookmark-completing-read' uses `completing-read' in an odd
-  way that conflicts with the compatibilty mode of
-  ido-ubiquitous."
-  (let (ido-ubiquitous-enable-compatibility)
-    ad-do-it))
+(defmacro ido-ubiquitous-disable-compatibility-in (func)
+  "Disable ido-ubiquitous compatibility mode in FUNC."
+  (let ((docstring
+         (format "Disable ido-ubiquitous in %s" func)))
+    `(defadvice ,func (around disable-ido-ubiquitous-compatibility activate)
+       ,docstring
+       (let (ido-ubiquitous-enable-compatibility) ad-do-it))))
+
+(defmacro ido-ubiquitous-enable-compatibility-in (func)
+  "Re-enable ido-ubiquitous comaptibility mode in FUNC.
+
+  This reverses the effect of a previous call to
+  `ido-ubiquitous-disable-compatibility-in'."
+  `(when (ad-find-advice ',func 'around 'disable-ido-ubiquitous-compatibility)
+     (ad-disable-advice ',func 'around 'disable-ido-ubiquitous-compatibility)
+     (ad-activate ',func)))
+
+(defun ido-ubiquitous-set-function-compatibility-exceptions (sym newval)
+  (let* ((oldval (when (boundp sym) (eval sym))))
+    ;; Re-enable compatibility on all old functions, in case they
+    ;; were removed from the list.
+    (dolist (oldfun oldval)
+      (eval `(ido-ubiquitous-enable-compatibility-in ,oldfun)))
+    ;; Set the new value
+    (set-default sym newval)
+    ;; Disable compatibility on all new functions
+    (dolist (newfun newval)
+      (eval `(ido-ubiquitous-disable-compatibility-in ,newfun)))))
+
+;;;###autoload
+(defcustom ido-ubiquitous-function-compatibility-exceptions
+  '()
+  "List of functions in which to disable ido-ubiquitous compatibility mode.
+
+See `ido-ubiquitous-enable-compatibility' for a description of
+the compatibility behavior. If this behavior causes a function to
+break, add that function to this list to disable compatibility
+mode for just that command.
+
+If you need to add a function to this list, please also file a
+bug report at
+https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
+  :group 'ido-ubiquitous
+  :type '(repeat :tag "Functions"
+                 (symbol :tag "Function"))
+  :set 'ido-ubiquitous-set-function-exceptions)
 
 ;; Make sure the mode is initialized for the first time
 (ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0))
