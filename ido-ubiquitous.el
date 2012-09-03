@@ -201,8 +201,8 @@ If you want to disable ido in a specific function or command, do
 not modify this variable. Instead, try `M-x customize-group
 ido-ubiquitous.")
 
-(mapc (lambda (func) (eval `(ido-ubiquitous-disable-in ,func)))
-      ido-ubiquitous-permanent-function-exceptions)
+(dolist (func ido-ubiquitous-permanent-function-exceptions)
+  (eval `(ido-ubiquitous-disable-in ,func)))
 
 (defun ido-ubiquitous--set-difference (list1 list2)
   "Replacement for `set-difference' from `cl'."
