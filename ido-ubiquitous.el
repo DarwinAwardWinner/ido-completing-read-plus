@@ -154,12 +154,13 @@ be used as the value of `completing-read-function'."
                  hist def inherit-input-method)))))
 
 (defadvice ido-completing-read (around detect-replacing-cr activate)
-  (if ido-next-call-replaces-completing-read
-      (let ((ido-next-call-replaces-completing-read nil)
-            (ido-this-call-replaces-completing-read t))
-        ad-do-it)
-    (let ((ido-this-call-replaces-completing-read nil))
-      ad-do-it)))
+  ;; Determine whether this call to `ido-completing-read' was done
+  ;; through the ido-ubiquitous wrapper `completing-read-ido'.
+  (let* ((ido-this-call-replaces-completing-read ido-next-call-replaces-completing-read)
+         (ido-next-call-replaces-completing-read nil))
+    ad-do-it))
+
+(defadvice ido-completing-read (before handle-default-initial-conflict activate)
 
 (defmacro ido-ubiquitous-disable-in (func)
   "Disable ido-ubiquitous in FUNC."
