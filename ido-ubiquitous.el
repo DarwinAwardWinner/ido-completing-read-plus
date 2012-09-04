@@ -114,7 +114,12 @@ continue to use `completing-read' instead of
 
 Only *interactive* commands should go here. To disable
 ido-ubiquitous in non-interactive functions, customize
-`ido-ubiquitous-function-exceptions'."
+`ido-ubiquitous-function-exceptions'.
+
+Note: this feature depends on the variable `this-command' being
+properly set to the name of the currently executing command.
+Depending on how the command is onvoked, this may or may not
+happen, so this feature may simply not work in some cases."
   :type '(repeat (symbol :tag "Command"))
   :group 'ido-ubiquitous)
 
