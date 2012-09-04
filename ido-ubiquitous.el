@@ -158,9 +158,17 @@ be used as the value of `completing-read-function'."
   ;; through the ido-ubiquitous wrapper `completing-read-ido'.
   (let* ((ido-this-call-replaces-completing-read ido-next-call-replaces-completing-read)
          (ido-next-call-replaces-completing-read nil))
+    ;; Work around a bug in ido when both INITIAL-INPUT and DEF are provided
+    ;; More info: https://github.com/technomancy/ido-ubiquitous/issues/18
+    (when (and ido-this-call-replaces-completing-read
+               def initial-input
+               (not (string= initial-input "")))
+      ;; Both default and initial input were provided. So keep the
+      ;; initial input and preprocess the choices list to put the
+      ;; default at the head, then proceed with default = nil.
+      (setq choices (cons def (remove def choices))
+            def nil))
     ad-do-it))
-
-(defadvice ido-completing-read (before handle-default-initial-conflict activate)
 
 (defmacro ido-ubiquitous-disable-in (func)
   "Disable ido-ubiquitous in FUNC."
