@@ -55,12 +55,6 @@
 (require 'ido)
 (require 'advice)
 
-;; Clean up old versions of ido-ubiquitous (1.3 and earlier) that
-;; defined advice on `completing-read' instead of modifying
-;; `completing-read-function'.
-(when (ad-find-advice 'completing-read 'around 'ido-ubiquitous)
-  (ad-remove-advice 'completing-read 'around 'ido-ubiquitous)
-  (ad-activate 'completing-read))
 
 (defvar ido-ubiquitous-orig-completing-read-function
   completing-read-function
@@ -396,7 +390,26 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
                  (symbol :tag "Function"))
   :set 'ido-ubiquitous-set-function-exceptions)
 
-;; Make sure the mode is initialized for the first time
-(ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0))
+(defun ido-ubiquitous-initialize ()
+  "Do initial setup for ido-ubiquitous.
+
+This only needs to be called once when the file is first loaded."
+  ;; Clean up old versions of ido-ubiquitous (1.3 and earlier) that
+  ;; defined advice on `completing-read' instead of modifying
+  ;; `completing-read-function'.
+  (when (ad-find-advice 'completing-read 'around 'ido-ubiquitous)
+    (ad-remove-advice 'completing-read 'around 'ido-ubiquitous)
+    (ad-activate 'completing-read))
+  ;; Make sure all exceptions are activated
+  (ido-ubiquitous-set-function-exceptions
+   'ido-ubiquitous-function-exceptions
+   ido-ubiquitous-function-exceptions)
+  (ido-ubiquitous-set-function-compatibility-exceptions
+   'ido-ubiquitous-function-compatibility-exceptions
+   ido-ubiquitous-function-compatibility-exceptions)
+  ;; Make sure the mode is turned on/off as specified by the value of
+  ;; the mode variable
+  (ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0)))
+(ido-ubiquitous-initialize)
 
 (provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
