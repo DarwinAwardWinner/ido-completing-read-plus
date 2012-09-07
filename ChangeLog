@@ -1,0 +1,16 @@
+2012-09-07  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Work around an ido bug where providing both an initial input and
+	a default would break things
+
+	* Most modifications to ido behavior are now activated only when
+	ido is acting as a completing-read replacement, and not when it is
+	used directly. This shoud prevent ido-ubiquitous from interfering
+	with normal usage of ido.
+
+	* Add Custom interface for compatibility exceptions.
+
+2012-09-03  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* New implementation: Switch from defining advice on
+	"completing-read" to setting "completing-read-function"
