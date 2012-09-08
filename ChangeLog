@@ -1,5 +1,7 @@
 2012-09-07  Ryan C. Thompson  <rct@thompsonclan.org>
 
+	* Restore compatibility with Emacs 23 and earlier
+
 	* Work around an ido bug where providing both an initial input and
 	a default would break things
 

@@ -57,7 +57,7 @@
 
 
 (defvar ido-ubiquitous-orig-completing-read-function
-  completing-read-function
+  (bound-and-true-p completing-read-function)
   "The value of `completing-read-function' before ido-ubiquitous-mode was enabled.
 
 This value will be restored when `ido-ubiquitous-mode' is
@@ -86,10 +86,24 @@ detects something that ido cannot handle.")
   nil
   :global t
   :group 'ido-ubiquitous
-  (setq completing-read-function
-        (if ido-ubiquitous-mode
-            'completing-read-ido
-          ido-ubiquitous-orig-completing-read-function)))
+  (when ido-ubiquitous-mode
+    (unless (bound-and-true-p ido-mode)
+      (warn "Ido-ubiquitous-mode enabled without ido mode.")))
+  (if (and (boundp 'completing-read-function)
+           ido-ubiquitous-orig-completing-read-function)
+      ;; Emacs 24 and later
+      (progn
+        ;; Ensure emacs 23 code disabled
+        (ad-disable-advice 'completing-read 'around 'ido-ubiquitous-legacy)
+        (ad-activate 'completing-read)
+        (setq completing-read-function
+              (if ido-ubiquitous-mode
+                  'completing-read-ido
+                ido-ubiquitous-orig-completing-read-function)))
+    ;; Emacs 23 and earlier
+    (funcall (if ido-ubiquitous-mode 'ad-enable-advice 'ad-disable-advice)
+             'completing-read 'around 'ido-ubiquitous-legacy)
+    (ad-activate 'completing-read)))
 
 ;;;###autoload
 (define-obsolete-variable-alias 'ido-ubiquitous
@@ -124,6 +138,31 @@ happen, so this feature may simply not work in some cases."
 (defvar ido-next-call-replaces-completing-read nil)
 (defvar ido-this-call-replaces-completing-read nil)
 
+;; Emacs 23-
+(defadvice completing-read (around ido-ubiquitous-legacy activate)
+  "Ido-based method for reading from the minibuffer with completion.
+   See `completing-read' for the meaning of the arguments."
+  (if (or inherit-input-method          ; Can't handle this arg
+          (not ido-mode)
+          (not ido-ubiquitous-mode)
+          ;; Avoid infinite recursion from ido calling completing-read
+          (boundp 'ido-cur-item)
+          (memq this-command ido-ubiquitous-command-exceptions))
+      ad-do-it
+    (let ((allcomp (all-completions "" collection predicate)))
+      ;; Only use ido completion if there are actually any completions
+      ;; to offer.
+      (if allcomp
+          (let ((ido-next-call-replaces-completing-read t))
+            (setq ad-return-value
+                  (ido-completing-read prompt allcomp
+                                       nil require-match initial-input hist def)))
+        ad-do-it))))
+
+(ad-disable-advice 'completing-read 'around 'ido-ubiquitous-legacy)
+(ad-activate 'completing-read)
+
+;; Emacs 24+
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
                                    hist def inherit-input-method)
