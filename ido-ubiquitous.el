@@ -196,6 +196,11 @@ be used as the value of `completing-read-function'."
   (let* ((ido-this-call-replaces-completing-read ido-next-call-replaces-completing-read)
          (ido-next-call-replaces-completing-read nil))
     (when ido-this-call-replaces-completing-read
+      ;; If DEF is a list, prepend it to CHOICES and set DEF to just the
+      ;; car of the default list.
+      (when (and def (listp def))
+        (setq choices (delete-dups (append def choices))
+              def (car def)))    ;; Work around a bug in ido when both INITIAL-INPUT and DEF are provided
       ;; More info: https://github.com/technomancy/ido-ubiquitous/issues/18
       (let ((initial (cond ((null initial-input) "")
                            ((stringp initial-input) initial-input)
