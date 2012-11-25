@@ -192,20 +192,26 @@ be used as the value of `completing-read-function'."
                  hist def inherit-input-method)))))
 
 (defadvice ido-completing-read (around detect-replacing-cr activate)
-  ;; Determine whether this call to `ido-completing-read' was done
-  ;; through the ido-ubiquitous wrapper `completing-read-ido'.
+  "Detect whether this call was done through `completing-read-ido'."
   (let* ((ido-this-call-replaces-completing-read ido-next-call-replaces-completing-read)
          (ido-next-call-replaces-completing-read nil))
-    ;; Work around a bug in ido when both INITIAL-INPUT and DEF are provided
-    ;; More info: https://github.com/technomancy/ido-ubiquitous/issues/18
-    (when (and ido-this-call-replaces-completing-read
-               def initial-input
-               (not (string= initial-input "")))
-      ;; Both default and initial input were provided. So keep the
-      ;; initial input and preprocess the choices list to put the
-      ;; default at the head, then proceed with default = nil.
-      (setq choices (cons def (remove def choices))
-            def nil))
+    (when ido-this-call-replaces-completing-read
+      ;; More info: https://github.com/technomancy/ido-ubiquitous/issues/18
+      (let ((initial (cond ((null initial-input) "")
+                           ((stringp initial-input) initial-input)
+                           ((consp initial-input) (car initial-input))
+                           (t initial-input)))
+            (deflist (if (listp def)
+                         def
+                       (list def))))
+        (when (and deflist initial
+                   (stringp initial)
+                   (not (string= initial "")))
+          ;; Both default and initial input were provided. So keep the
+          ;; initial input and preprocess the choices list to put the
+          ;; default at the head, then proceed with default = nil.
+          (setq choices (delete-dups (append deflist (remove def choices)))
+                def nil))))
     ad-do-it))
 
 (defmacro ido-ubiquitous-disable-in (func)
