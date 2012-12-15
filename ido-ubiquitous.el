@@ -138,12 +138,11 @@ happen, so this feature may simply not work in some cases."
 (defvar ido-next-call-replaces-completing-read nil)
 (defvar ido-this-call-replaces-completing-read nil)
 
-;; Emacs 23-
+;; Emacs 23 and below
 (defadvice completing-read (around ido-ubiquitous-legacy activate)
   "Ido-based method for reading from the minibuffer with completion.
    See `completing-read' for the meaning of the arguments."
   (if (or inherit-input-method          ; Can't handle this arg
-          (bound-and-true-p completion-extra-properties) ; Can't handle this
           (not ido-mode)
           (not ido-ubiquitous-mode)
           ;; Avoid infinite recursion from ido calling completing-read
@@ -173,6 +172,7 @@ See `completing-read' for the meaning of the arguments.
 This function is a wrapper for `ido-completing-read' designed to
 be used as the value of `completing-read-function'."
   (if (or inherit-input-method          ; Can't handle this arg
+          (bound-and-true-p completion-extra-properties) ; Can't handle this
           (not ido-mode)
           (not ido-ubiquitous-mode)
           (memq this-command ido-ubiquitous-command-exceptions))
