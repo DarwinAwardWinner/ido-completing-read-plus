@@ -69,6 +69,12 @@ detects something that ido cannot handle.")
   "Use ido for (almost) all completion."
   :group 'ido)
 
+(defun ido-ubiquitous-warn-about-ido-disabled ()
+  "Warn if ido-ubiquitous is enabled without ido."
+  (if (and after-init-time
+	   (not (bound-and-true-p ido-mode)))
+      (warn "Ido-ubiquitous-mode enabled without ido mode.")))
+
 ;;;###autoload
 (define-minor-mode ido-ubiquitous-mode
   "Use `ido-completing-read' instead of `completing-read' almost everywhere.
@@ -88,7 +94,9 @@ detects something that ido cannot handle.")
   :group 'ido-ubiquitous
   (when ido-ubiquitous-mode
     (unless (bound-and-true-p ido-mode)
-      (warn "Ido-ubiquitous-mode enabled without ido mode.")))
+      (if after-init-time
+	  (ido-ubiquitous-warn-about-ido-disabled)
+	(add-hook 'after-init-hook 'ido-ubiquitous-warn-about-ido-disabled))))
   (if (and (boundp 'completing-read-function)
            ido-ubiquitous-orig-completing-read-function)
       ;; Emacs 24 and later
