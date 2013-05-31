@@ -1,3 +1,18 @@
+2013-05-31  Ryan C. Thompson  <ryan@wireless-121-75.scripps.edu>
+
+	* Drop support for Emacs 23 and lower. ido-ubiquitous now uses the
+	`completing-read-function' variable instead of advising
+	`completing-read'.
+
+	* Make ido-ubiquitous work more reliably in interactive commands.
+
+	* Avoid spurious warning when loaded before ido.
+
+	* Disable ido when completion-extra-properties is non-nil
+
+	* The interface for setting old-style completion compatibility has
+	changed.
+
 2012-09-07  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Restore compatibility with Emacs 23 and earlier
