@@ -59,7 +59,7 @@
 
 (require 'ido)
 (require 'advice)
-(require 'cl-seq)
+(require 'cl)
 
 ;;; Custom Declarations
 
@@ -92,8 +92,9 @@
 	  (ido-ubiquitous-warn-about-ido-disabled)
 	(add-hook 'after-init-hook 'ido-ubiquitous-warn-about-ido-disabled))))
   ;; Ensure emacs 23 code disabled
-  (ad-disable-advice 'completing-read 'around 'ido-ubiquitous-legacy)
-  (ad-activate 'completing-read)
+  (ignore-errors
+    (ad-disable-advice 'completing-read 'around 'ido-ubiquitous-legacy)
+    (ad-activate 'completing-read))
   ;; Actually enable/disable the mode
   (setq completing-read-function
 	(if ido-ubiquitous-mode
@@ -120,7 +121,8 @@
 This will be used for functions that are incompatibile with ido
 or if ido cannot handle the completion arguments.
 
-If you turn off ido-ubiquitous mode, `completing-read-function' will be set to this."
+If you turn off ido-ubiquitous mode, `completing-read-function'
+will be set to this."
   :type '(choice (const :tag "Standard emacs completion"
 			completing-read-default)
 		 (function :tag "Other function"))
@@ -151,6 +153,58 @@ happen, so this feature may simply not work in some cases."
 (define-obsolete-variable-alias 'ido-ubiquitous-exceptions
   'ido-ubiquitous-command-exceptions "0.4")
 
+(defvar ido-ubiquitous-default-function-exceptions
+  '(read-file-name
+    read-file-name-internal
+    read-buffer
+    gnus-emacs-completing-read
+    gnus-iswitchb-completing-read
+    man
+    grep-read-files)
+  "Default value of `ido-ubiquitous-function-exceptions'")
+
+(defun ido-ubiquitous-set-function-exceptions (sym newval)
+  ;; Loop through all functions, enabling or disabling ido-ubiquitous
+  ;; as appropriate.
+  (mapatoms
+   (lambda (sym)
+     (if (memq sym newval)
+	 (eval `(ido-ubiquitous-disable-in ,sym))
+       (eval `(ido-ubiquitous-enable-in ,sym)))))
+  ;; Set the new value
+  (set-default sym newval))
+
+(defmacro ido-ubiquitous-disable-in (func)
+  "Disable ido-ubiquitous in FUNC."
+  (put func 'ido-ubiquitous-disable t)
+  (let ((docstring
+         (format "Disable ido-ubiquitous in %s if its `idu-ubiquitous-disable' property is non-nil." func)))
+    `(defadvice ,func (around disable-ido-ubiquitous activate)
+       ,docstring
+       (let ((ido-ubiquitous-mode
+	      (and ido-ubiquitous-mode
+		   (not (get ',func 'ido-ubiquitous-disable)))))
+	 ad-do-it))))
+
+(define-obsolete-function-alias
+  'disable-ido-ubiquitous-in
+  'ido-ubiquitous-disable-in
+  "0.4")
+
+(defmacro ido-ubiquitous-enable-in (func)
+  "Re-enable ido-ubiquitous in FUNC.
+
+  This reverses the effect of a previous call to
+  `ido-ubiquitous-disable-in' (if no such call was made, this is
+  a no-op.)"
+  `(when (get ',func 'ido-ubiquitous-disable)
+     (put ,func 'ido-ubiquitous-disable nil)))
+
+(define-obsolete-function-alias
+  'enable-ido-ubiquitous-in
+  'ido-ubiquitous-enable-in
+  "0.4")
+
 ;;;###autoload
 (defcustom ido-ubiquitous-function-exceptions
   ido-ubiquitous-default-function-exceptions
@@ -179,6 +233,9 @@ through Customize."
   "If t, then the next call to ido-completing-read is by ido-ubiquitous.")
 (defvar ido-ubiquitous-this-call-replaces-completing-read nil
   "If t, then the current call to ido-completing-read is by ido-ubiquitous.")
+(defvar ido-ubiquitous-disable-for-one-command nil
+  "If t, disable ido-ubiquitous for the next command.")
+
 
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
@@ -254,9 +311,6 @@ features to avoid interfering with the normal operation of ido."
 
 ;;; Ido-ubiquitous interactive command exceptions
 
-(defvar ido-ubiquitous-disable-for-one-command nil
-  "If t, disable ido-ubiquitous for the next command.")
-
 ;; The following advices should allow ido-ubiquitous to apply to the
 ;; interactive forms of commands as well as their bodies.
 (defadvice call-interactively (around ido-ubiquitous-command-exceptions activate)
@@ -271,48 +325,6 @@ features to avoid interfering with the normal operation of ido."
     ad-do-it))
 
 ;;; Ido-ubiquitous function exceptions
-
-(defmacro ido-ubiquitous-disable-in (func)
-  "Disable ido-ubiquitous in FUNC."
-  (put func 'ido-ubiquitous-disable t)
-  (let ((docstring
-         (format "Disable ido-ubiquitous in %s if its `idu-ubiquitous-disable' property is non-nil." func)))
-    `(defadvice ,func (around disable-ido-ubiquitous activate)
-       ,docstring
-       (let ((ido-ubiquitous-mode
-	      (and ido-ubiquitous-mode
-		   (not (get ,func 'ido-ubiquitous-disable)))))
-	 ad-do-it))))
-
-(define-obsolete-function-alias
-  'disable-ido-ubiquitous-in
-  'ido-ubiquitous-disable-in
-  "0.4")
-
-(defmacro ido-ubiquitous-enable-in (func)
-  "Re-enable ido-ubiquitous in FUNC.
-
-  This reverses the effect of a previous call to
-  `ido-ubiquitous-disable-in' (if no such call was made, this is
-  a no-op.)"
-  `(when (get ,func 'ido-ubiquitous-disable)
-     (put ,func 'ido-ubiquitous-disable nil)))
-
-(define-obsolete-function-alias
-  'enable-ido-ubiquitous-in
-  'ido-ubiquitous-enable-in
-  "0.4")
-
-(defun ido-ubiquitous-set-function-exceptions (sym newval)
-  ;; Loop through all functions, enabling or disabling ido-ubiquitous
-  ;; as appropriate.
-  (mapatoms
-   (lambda (sym)
-     (if (memq sym newval)
-	 (eval `(ido-ubiquitous-disable-in ,sym))
-       (eval `(ido-ubiquitous-enable-in ,sym)))))
-  ;; Set the new value
-  (set-default sym newval))
 
 ;;; Ido-ubiquitous compatibility with old completing-read
 
@@ -369,9 +381,41 @@ list.
 Only *interactive* commands should go here. To disable
 compatibility mode in non-interactive functions, customize
 `ido-ubiquitous-function-compatibility-exceptions'."
-  :type '(repeat (list ))
-  :type 'hook(repeat (symbol :tag "Command"))
+  :type 'hook
   :group 'ido-ubiquitous-compatibility)
+
+(defmacro ido-ubiquitous-enable-compatibility-in (func)
+  "Enable ido-ubiquitous old-style compatibility in FUNC."
+  (let ((docstring
+         (format "Enable ido-ubiquitous old-style compatibility in %s if its `idu-ubiquitous-enable-compatibility' property is non-nil." func)))
+    `(progn
+       (defadvice ,func (around disable-ido-ubiquitous activate)
+	 ,docstring
+	 (let ((ido-ubiquitous-enable-compatibility-globally
+		(or ido-ubiquitous-enable-compatibility-globally
+		    (get ',func 'ido-ubiquitous-enable-compatibility))))
+	   ad-do-it))
+       (put func 'ido-ubiquitous-enable-compatibility t))))
+
+(defmacro ido-ubiquitous-disable-compatibility-in (func)
+  "Enable ido-ubiquitous old-style compatibility in FUNC.
+
+  This reverses the effect of a previous call to
+  `ido-ubiquitous-enable-compatibility-in' (if no such call was
+  made, this is a no-op.)"
+  `(when (get ',func 'ido-ubiquitous-enable-compatibility)
+     (put ,func 'ido-ubiquitous-enable-compatibility nil)))
+
+(defun ido-ubiquitous-set-function-compatibility-list (sym newval)
+  ;; Loop through all functions, enabling or disabling ido-ubiquitous
+  ;; as appropriate.
+  (mapatoms
+   (lambda (sym)
+     (if (memq sym newval)
+	 (eval `(ido-ubiquitous-enable-compatibility-in ,sym))
+       (eval `(ido-ubiquitous-disable-compatibility-in ,sym)))))
+  ;; Set the new value
+  (set-default sym newval))
 
 ;;;###autoload
 (defcustom ido-ubiquitous-function-compatibility-list
@@ -389,39 +433,6 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :group 'ido-ubiquitous-compatibility
   :type 'hook
   :set 'ido-ubiquitous-set-function-compatibility-list)
-
-(defmacro ido-ubiquitous-enable-compatibility-in (func)
-  "Enable ido-ubiquitous old-style compatibility in FUNC."
-  (let ((docstring
-         (format "Enable ido-ubiquitous old-style compatibility in %s if its `idu-ubiquitous-enable-compatibility' property is non-nil." func)))
-    `(progn
-       (defadvice ,func (around disable-ido-ubiquitous activate)
-	 ,docstring
-	 (let ((ido-ubiquitous-enable-compatibility-globally
-		(or ido-ubiquitous-enable-compatibility-globally
-		    (get ,func 'ido-ubiquitous-enable-compatibility))))
-	   ad-do-it))
-       (put func 'ido-ubiquitous-enable-compatibility t))))
-
-(defmacro ido-ubiquitous-disable-compatibility-in (func)
-  "Enable ido-ubiquitous old-style compatibility in FUNC.
-
-  This reverses the effect of a previous call to
-  `ido-ubiquitous-enable-compatibility-in' (if no such call was
-  made, this is a no-op.)"
-  `(when (get ,func 'ido-ubiquitous-enable-compatibility)
-     (put ,func 'ido-ubiquitous-enable-compatibility nil)))
-
-(defun ido-ubiquitous-set-function-compatibility-list (sym newval)
-  ;; Loop through all functions, enabling or disabling ido-ubiquitous
-  ;; as appropriate.
-  (mapatoms
-   (lambda (sym)
-     (if (memq sym newval)
-	 (eval `(ido-ubiquitous-enable-compatibility-in ,sym))
-       (eval `(ido-ubiquitous-disable-compatibility-in ,sym)))))
-  ;; Set the new value
-  (set-default sym newval))
 
 (defvar ido-ubiquitous-initial-item nil
   "The first item selected when ido starts.")
@@ -478,36 +489,8 @@ controls whether this advice has any effect."
 	     (memq function ido-ubiquitous-command-compatibility-list))))
     ad-do-it))
 
-(defmacro ido-ubiquitous-disable-compatibility-in (func)
-  "Disable ido-ubiquitous compatibility mode in FUNC."
-  (let ((docstring
-         (format "Disable ido-ubiquitous in %s" func)))
-    `(defadvice ,func (around disable-ido-ubiquitous-compatibility activate)
-       ,docstring
-       (let (ido-ubiquitous-enable-compatibility) ad-do-it))))
-
-(defmacro ido-ubiquitous-enable-compatibility-in (func)
-  "Re-enable ido-ubiquitous comaptibility mode in FUNC.
-
-  This reverses the effect of a previous call to
-  `ido-ubiquitous-disable-compatibility-in'."
-  `(when (ad-find-advice ',func 'around 'disable-ido-ubiquitous-compatibility)
-     (ad-disable-advice ',func 'around 'disable-ido-ubiquitous-compatibility)
-     (ad-activate ',func)))
-
-(defun ido-ubiquitous-set-function-compatibility-exceptions (sym newval)
-  (let* ((oldval (when (boundp sym) (eval sym))))
-    ;; Re-enable compatibility on all old functions, in case they
-    ;; were removed from the list.
-    (dolist (oldfun oldval)
-      (eval `(ido-ubiquitous-enable-compatibility-in ,oldfun)))
-    ;; Set the new value
-    (set-default sym newval)
-    ;; Disable compatibility on all new functions
-    (dolist (newfun newval)
-      (eval `(ido-ubiquitous-disable-compatibility-in ,newfun)))))
-
 ;;; Other
+
 (defun ido-ubiquitous-initialize ()
   "Do initial setup for ido-ubiquitous.
 
@@ -522,9 +505,9 @@ This only needs to be called once when the file is first loaded."
   (ido-ubiquitous-set-function-exceptions
    'ido-ubiquitous-function-exceptions
    ido-ubiquitous-function-exceptions)
-  (ido-ubiquitous-set-function-compatibility-exceptions
-   'ido-ubiquitous-function-compatibility-exceptions
-   ido-ubiquitous-function-compatibility-exceptions)
+  (ido-ubiquitous-set-function-compatibility-list
+   'ido-ubiquitous-function-compatibility-list
+   ido-ubiquitous-function-compatibility-list)
   ;; Make sure the mode is turned on/off as specified by the value of
   ;; the mode variable
   (ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0)))
