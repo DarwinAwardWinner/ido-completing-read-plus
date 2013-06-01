@@ -148,6 +148,7 @@ ido-ubiquitous in non-interactive functions, customize
 (define-obsolete-variable-alias 'ido-ubiquitous-exceptions
   'ido-ubiquitous-command-exceptions "0.4")
 
+;;;###autoload
 (defvar ido-ubiquitous-default-function-exceptions
   '(read-file-name
     read-file-name-internal
@@ -213,13 +214,7 @@ Setting this variable directly has no effect. You must set it
 through Customize."
   :group 'ido-ubiquitous
   :type 'hook
-  :options '(read-file-name
-	     read-file-name-internal
-	     read-buffer
-	     gnus-emacs-completing-read
-	     gnus-iswitchb-completing-read
-	     man
-	     grep-read-files)
+  :options ido-ubiquitous-default-function-exceptions
   :set 'ido-ubiquitous-set-function-exceptions)
 
 ;;; Ido-ubiquitous core
