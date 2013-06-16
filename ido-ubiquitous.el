@@ -195,7 +195,10 @@ be used as the value of `completing-read-function'."
 (defadvice ido-completing-read (around detect-replacing-cr activate)
   "Detect whether this call was done through `completing-read-ido'."
   (let* ((ido-this-call-replaces-completing-read ido-next-call-replaces-completing-read)
-         (ido-next-call-replaces-completing-read nil))
+         (ido-next-call-replaces-completing-read nil)
+         (def (if (null def)
+                  (car choices)
+                def)))
     (when ido-this-call-replaces-completing-read
       ;; If DEF is a list, prepend it to CHOICES and set DEF to just the
       ;; car of the default list.
