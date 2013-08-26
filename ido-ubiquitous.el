@@ -54,8 +54,9 @@
 
 ;; Check for required feature
 (eval-when-compile
-  (when (not (boundp 'completing-read-function))
-      (error "Could not find variable `completing-read-function'. Are you using Emacs version 24 or higher? If you have Emacs 23 or lower, please downgrade to ido-ubiquitous version 1.6.")))
+  (when (or (not (boundp 'completing-read-function))
+            (< emacs-major-version 24))
+      (error "Could not find required variable `completing-read-function'. Are you using Emacs version 24 or higher? If you have Emacs 23 or lower, please downgrade to ido-ubiquitous version 1.7.")))
 
 (require 'ido)
 (require 'advice)
@@ -91,7 +92,7 @@
       (if after-init-time
 	  (ido-ubiquitous-warn-about-ido-disabled)
 	(add-hook 'after-init-hook 'ido-ubiquitous-warn-about-ido-disabled))))
-  ;; Ensure emacs 23 code disabled
+  ;; Ensure emacs 23 code disabled (in case user upgraded in this session)
   (ignore-errors
     (ad-disable-advice 'completing-read 'around 'ido-ubiquitous-legacy)
     (ad-activate 'completing-read))
@@ -122,7 +123,7 @@ This will be used for functions that are incompatibile with ido
 or if ido cannot handle the completion arguments.
 
 If you turn off ido-ubiquitous mode, `completing-read-function'
-will be set to this."
+will be set back to this."
   :type '(choice (const :tag "Standard emacs completion"
 			completing-read-default)
 		 (function :tag "Other function"))
@@ -159,6 +160,7 @@ ido-ubiquitous in non-interactive functions, customize
     grep-read-files)
   "Default value of `ido-ubiquitous-function-exceptions'")
 
+;; TODO fix for new
 (defun ido-ubiquitous-set-function-exceptions (sym newval)
   ;; Loop through all functions, enabling or disabling ido-ubiquitous
   ;; as appropriate.
@@ -217,7 +219,7 @@ through Customize."
   :options ido-ubiquitous-default-function-exceptions
   :set 'ido-ubiquitous-set-function-exceptions)
 
-;;; Ido-ubiquitous core
+;;; ido-ubiquitous core
 
 (defvar ido-ubiquitous-next-call-replaces-completing-read nil
   "If t, then the next call to ido-completing-read is by ido-ubiquitous.")
@@ -230,7 +232,7 @@ through Customize."
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
                                    hist def inherit-input-method)
-  "Ido-based method for reading from the minibuffer with completion.
+  "ido-based method for reading from the minibuffer with completion.
 See `completing-read' for the meaning of the arguments.
 
 This function is a wrapper for `ido-completing-read' designed to
@@ -299,7 +301,7 @@ features to avoid interfering with the normal operation of ido."
                 def nil))))
     ad-do-it))
 
-;;; Ido-ubiquitous interactive command exceptions
+;;; ido-ubiquitous interactive command exceptions
 
 ;; The following advices should allow ido-ubiquitous to apply to the
 ;; interactive forms of commands as well as their bodies.
@@ -314,9 +316,9 @@ features to avoid interfering with the normal operation of ido."
 	      (memq cmd ido-ubiquitous-command-exceptions))))
     ad-do-it))
 
-;;; Ido-ubiquitous function exceptions
+;;; ido-ubiquitous function exceptions
 
-;;; Ido-ubiquitous compatibility with old completing-read
+;;; ido-ubiquitous compatibility with old completing-read
 
 ;;;###autoload
 (defgroup ido-ubiquitous-compatibility nil
@@ -510,6 +512,6 @@ Don't warn if emacs is still initializing, since ido-ubiquitous
 could be enabled first during init."
   (if (and after-init-time
 	   (not (bound-and-true-p ido-mode)))
-      (warn "Ido-ubiquitous-mode enabled without ido mode. Ido-ubiquitous requires ido mode to be enabled.")))
+      (warn "ido-ubiquitous-mode enabled without ido mode. ido-ubiquitous requires ido mode to be enabled.")))
 
 (provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
