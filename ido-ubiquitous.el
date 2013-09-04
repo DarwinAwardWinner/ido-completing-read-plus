@@ -244,7 +244,9 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (enable exact "bookmark-completing-read")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
     (enable-old exact "webjump-read-choice")
-    (enable-old exact "webjump-read-url-choice"))
+    (enable-old exact "webjump-read-url-choice")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/9
+    (disable exact "isearchp-read-unicode-char"))
   "Default value of `ido-ubiquitous-function-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
