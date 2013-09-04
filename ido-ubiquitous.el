@@ -290,7 +290,8 @@ behavior of ido-ubiquitous for arbitrary functions.
 
 If you need to add a new specification to this list, please also
 file a bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
-  :type '(repeat ido-ubiquitous-command-override-spec))
+  :type '(repeat ido-ubiquitous-command-override-spec)
+  :group 'ido-ubiquitous)
 
 (defun ido-ubiquitous-set-function-overrides (sym newval)
   "Custom setter function for `ido-ubiquitous-function-overrides'.
@@ -344,7 +345,8 @@ bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues
 Setting this variable directly has no effect. You must set it
 through Customize."
   :type '(repeat ido-ubiquitous-function-override-spec)
-  :set 'ido-ubiquitous-set-function-overrides)
+  :set 'ido-ubiquitous-set-function-overrides
+  :group 'ido-ubiquitous)
 
 ;;; ido-ubiquitous core
 
