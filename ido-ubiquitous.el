@@ -2,7 +2,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 2.0.1
+;; Version: 2.0.2
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
@@ -511,6 +511,7 @@ controls whether this advice has any effect."
 
 ;;; Overrides
 
+;;;###autoload
 (defun ido-ubiquitous-restore-default-overrides (&optional save)
   "Re-add the default overrides for ido-ubiquitous.
 
@@ -526,10 +527,10 @@ future sessions."
   (let ((setter (if save
                     'customize-save-variable
                   'customize-set-variable)))
-    (loop for ((var def) in '((ido-ubiquitous-command-overrides
-                               ido-ubiquitous-default-command-overrides)
-                              (ido-ubiquitous-function-overrides
-                               ido-ubiquitous-default-function-overrides)))
+    (loop for (var def) in '((ido-ubiquitous-command-overrides
+                              ido-ubiquitous-default-command-overrides)
+                             (ido-ubiquitous-function-overrides
+                              ido-ubiquitous-default-function-overrides))
           do (let* ((curval (eval var))
                     (defval (eval def))
                     (newval (delete-dups (append defval curval))))
