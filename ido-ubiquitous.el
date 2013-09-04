@@ -161,13 +161,6 @@
 	  ido-ubiquitous-fallback-completing-read-function)))
 
 ;;;###autoload
-(define-obsolete-variable-alias 'ido-ubiquitous
-  'ido-ubiquitous-mode "0.8")
-;;;###autoload
-(define-obsolete-function-alias 'ido-ubiquitous
-  'ido-ubiquitous-mode "0.8")
-
-;;;###autoload
 (defcustom ido-ubiquitous-fallback-completing-read-function
   ;; Initialize to the current value of `completing-read-function',
   ;; unless that is already set to the ido completer, in which case
