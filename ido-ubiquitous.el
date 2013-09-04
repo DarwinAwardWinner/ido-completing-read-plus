@@ -218,6 +218,7 @@ specific commands or functions, set appropriate overrides in
   :type 'boolean
   :group 'ido-ubiquitous)
 
+;;;###autoload
 (defconst ido-ubiquitous-default-command-overrides
   '(;; If you want ido for M-x, install smex
     (disable exact "execute-extended-command")
@@ -231,6 +232,7 @@ specific commands or functions, set appropriate overrides in
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
 
+;;;###autoload
 (defconst ido-ubiquitous-default-function-overrides
   '((disable exact "read-file-name")
     (disable exact "read-file-name-internal")
