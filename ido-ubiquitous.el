@@ -2,7 +2,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 2.0.2
+;; Version: 2.0.3
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
@@ -324,13 +324,16 @@ each function to apply the appropriate override."
   (put func 'ido-ubiquitous-override override)
   (when override
     (let ((docstring
-           (format "Override ido-ubiquitous behavior in %s if its `ido-ubiquitous-override' property is non-nil." func)))
+           (format "Override ido-ubiquitous behavior in %s if its `ido-ubiquitous-override' property is non-nil." func))
+          (body-form
+           (macroexpand
+            `(ido-ubiquitous-with-override
+                 (get ',func 'ido-ubiquitous-override)
+               ad-do-it))))
       (eval
        `(defadvice ,func (around ido-ubiquitous-override activate)
           ,docstring
-          (ido-ubiquitous-with-override
-              (get ',func 'ido-ubiquitous-override)
-            ad-do-it))))))
+          ,body-form)))))
 
 ;;;###autoload
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
