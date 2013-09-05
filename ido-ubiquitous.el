@@ -189,6 +189,11 @@ will be set back to this."
 		 (function :tag "Other function"))
   :group 'ido-ubiquitous)
 
+(define-obsolete-variable-alias
+  'ido-ubiquitous-enable-compatibility-globally
+  'ido-ubiquitous-enable-old-style-default
+  "2.0")
+
 (defcustom ido-ubiquitous-enable-old-style-default t
   "Allow ido to emulate a quirk of `completing-read'.
 
