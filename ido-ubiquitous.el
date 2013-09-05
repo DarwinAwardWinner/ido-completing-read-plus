@@ -46,6 +46,9 @@
 (require 'advice)
 (require 'cl)
 
+;; Declare this ahead of time to quiet the compiler
+(defvar ido-ubiquitous-fallback-completing-read-function)
+
 ;;; Internal utility functions
 
 (defun ido-ubiquitous--as-string (sym-or-str)
