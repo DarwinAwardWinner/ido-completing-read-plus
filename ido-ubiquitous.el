@@ -2,7 +2,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 2.0.5
+;; Version: 2.0.6
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
@@ -37,7 +37,7 @@
 
 ;;; Code:
 
-(defconst ido-ubiquitous-version "2.0.5"
+(defconst ido-ubiquitous-version "2.0.6"
   "Currently running version of ido-ubiquitous.")
 
 (eval-when-compile
@@ -568,24 +568,26 @@ future sessions."
   "Returns t if SPEC matches SYMBOL (which should be a function name).
 
 See `ido-ubiquitous-command-overrides'."
-  (destructuring-bind (type text) spec
-    (let ((matcher (cdr (assoc type ido-ubiquitous-spec-matchers)))
-          (text (ido-ubiquitous--as-string text))
-          (symname (ido-ubiquitous--as-string symbol)))
-      (when (null matcher)
-        (error "ido-ubiquitous: Unknown match spec type \"%s\". See `ido-ubiquitous-spec-matchers' for valid types." type))
-      (funcall matcher text symname))))
+  (when (symbolp symbol)
+    (destructuring-bind (type text) spec
+      (let ((matcher (cdr (assoc type ido-ubiquitous-spec-matchers)))
+            (text (ido-ubiquitous--as-string text))
+            (symname (ido-ubiquitous--as-string symbol)))
+        (when (null matcher)
+          (error "ido-ubiquitous: Unknown match spec type \"%s\". See `ido-ubiquitous-spec-matchers' for valid types." type))
+        (funcall matcher text symname)))))
 
 (defun ido-ubiquitous-get-command-override (cmd)
   "Return the override associated with the command CMD.
 
 If there is no override set for CMD in
 `ido-ubiquitous-command-overrides', return nil."
-  (loop for (action . spec) in ido-ubiquitous-command-overrides
-        when (memq action '(disable enable enable-old nil))
-        when (ido-ubiquitous-spec-match spec cmd)
-        return action
-        finally return nil))
+  (when (symbolp cmd)
+    (loop for (action . spec) in ido-ubiquitous-command-overrides
+          when (memq action '(disable enable enable-old nil))
+          when (ido-ubiquitous-spec-match spec cmd)
+          return action
+          finally return nil)))
 
 (defadvice call-interactively (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
