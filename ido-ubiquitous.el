@@ -128,7 +128,6 @@
 
 ;;; Custom Declarations
 
-;;;###autoload
 (defgroup ido-ubiquitous nil
   "Use ido for (almost) all completion."
   :group 'ido)
@@ -167,7 +166,6 @@
 (define-obsolete-function-alias 'ido-ubiquitous
   'ido-ubiquitous-mode "0.8")
 
-;;;###autoload
 (defcustom ido-ubiquitous-fallback-completing-read-function
   ;; Initialize to the current value of `completing-read-function',
   ;; unless that is already set to the ido completer, in which case
@@ -187,7 +185,6 @@ will be set back to this."
 		 (function :tag "Other function"))
   :group 'ido-ubiquitous)
 
-;;;###autoload
 (defcustom ido-ubiquitous-enable-old-style-default t
   "Allow ido to emulate a quirk of `completing-read'.
 
@@ -225,7 +222,6 @@ specific commands or functions, set appropriate overrides in
   :type 'boolean
   :group 'ido-ubiquitous)
 
-;;;###autoload
 (defconst ido-ubiquitous-default-command-overrides
   '(;; If you want ido for M-x, install smex
     (disable exact "execute-extended-command")
@@ -239,7 +235,6 @@ specific commands or functions, set appropriate overrides in
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
 
-;;;###autoload
 (defconst ido-ubiquitous-default-function-overrides
   '((disable exact "read-file-name")
     (disable exact "read-file-name-internal")
@@ -260,7 +255,6 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
 
-;;;###autoload
 (defcustom ido-ubiquitous-command-overrides ido-ubiquitous-default-command-overrides
   "List of command override specifications for ido-ubiquitous
 
@@ -342,7 +336,6 @@ each function to apply the appropriate override."
           ,docstring
           ,body-form)))))
 
-;;;###autoload
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
   "List of function override specifications for ido-ubiquitous
 
@@ -521,7 +514,6 @@ controls whether this advice has any effect."
 
 ;;; Overrides
 
-;;;###autoload
 (defun ido-ubiquitous-restore-default-overrides (&optional save)
   "Re-add the default overrides for ido-ubiquitous.
 
