@@ -569,7 +569,7 @@ future sessions."
   "Returns t if SPEC matches SYMBOL (which should be a function name).
 
 See `ido-ubiquitous-command-overrides'."
-  (when (symbolp symbol)
+  (when (and symbol (symbolp symbol))
     (destructuring-bind (type text) spec
       (let ((matcher (cdr (assoc type ido-ubiquitous-spec-matchers)))
             (text (ido-ubiquitous--as-string text))
@@ -583,7 +583,7 @@ See `ido-ubiquitous-command-overrides'."
 
 If there is no override set for CMD in
 `ido-ubiquitous-command-overrides', return nil."
-  (when (symbolp cmd)
+  (when (and cmd (symbolp cmd))
     (loop for (action . spec) in ido-ubiquitous-command-overrides
           when (memq action '(disable enable enable-old nil))
           when (ido-ubiquitous-spec-match spec cmd)
