@@ -6,6 +6,7 @@
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
+;; Package-Requires: ((emacs "24.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
