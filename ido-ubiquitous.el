@@ -167,8 +167,8 @@
   (setq completing-read-function
 	(if ido-ubiquitous-mode
 	    'completing-read-ido
-	  ido-ubiquitous-fallback-completing-read-function)))
-
+	  ido-ubiquitous-fallback-completing-read-function))
+  (message "Ido-ubiquitous mode %s" (if ido-ubiquitous-mode "enabled" "disabled")))
 
 (defcustom ido-ubiquitous-fallback-completing-read-function
   ;; Initialize to the current value of `completing-read-function',
