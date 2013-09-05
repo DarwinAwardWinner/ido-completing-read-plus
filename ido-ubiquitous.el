@@ -599,7 +599,10 @@ If there is no override set for CMD in
 (defadvice command-execute (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
   (ido-ubiquitous-with-override
-      (ido-ubiquitous-get-command-override (ad-get-arg 0))
+      (ido-ubiquitous-get-command-override
+       ;; Ugly hack because Emacs byte compiler doesn't know that CMD
+       ;; is defined for some reason
+       (bound-and-true-p cmd))
     ad-do-it))
 
 ;;; Other
