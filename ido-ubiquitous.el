@@ -600,13 +600,13 @@ If there is no override set for CMD in
 (defadvice call-interactively (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
   (ido-ubiquitous-with-override
-      (ido-ubiquitous-get-command-override function)
+      (ido-ubiquitous-get-command-override (ad-get-arg 0))
     ad-do-it))
 
 (defadvice command-execute (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
   (ido-ubiquitous-with-override
-      (ido-ubiquitous-get-command-override cmd)
+      (ido-ubiquitous-get-command-override (ad-get-arg 0))
     ad-do-it))
 
 ;;; Other
