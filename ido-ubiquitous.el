@@ -307,6 +307,35 @@ file a bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :type '(repeat ido-ubiquitous-command-override-spec)
   :group 'ido-ubiquitous)
 
+(defmacro ido-ubiquitous-with-override (override &rest body)
+  "Eval BODY with specicified OVERRIDE in place.
+
+The OVERRIDE argument is evaluated normally, so if it is a
+literal symbol, it must be quoted.
+
+See `ido-ubiquitous-command-overrides' for valid override types."
+  ;; Eval override
+  (setq override (eval override))
+  `(let ((ido-ubiquitous-next-override ',override))
+     ,@body))
+(put 'ido-ubiquitous-with-override 'lisp-indent-function
+     (eval-when-compile (get 'prog1 'lisp-indent-function)))
+
+(defun ido-ubiquitous-apply-function-override (func override)
+  "Set the override property on FUNC to OVERRIDE and set up advice to apply the override."
+  (setq func (ido-ubiquitous--as-symbol func)
+        override (ido-ubiquitous--as-symbol override))
+  (put func 'ido-ubiquitous-override override)
+  (when override
+    (let ((docstring
+           (format "Override ido-ubiquitous behavior in %s if its `ido-ubiquitous-override' property is non-nil." func)))
+      (eval
+       `(defadvice ,func (around ido-ubiquitous-override activate)
+          ,docstring
+          (ido-ubiquitous-with-override
+                 (get ',func 'ido-ubiquitous-override)
+               ad-do-it))))))
+
 (defun ido-ubiquitous-set-function-overrides (sym newval)
   "Custom setter function for `ido-ubiquitous-function-overrides'.
 
@@ -326,24 +355,6 @@ each function to apply the appropriate override."
   ;; set new overrides
   (loop for (action match-type func) in (eval sym)
           do (ido-ubiquitous-apply-function-override func action)))
-
-(defun ido-ubiquitous-apply-function-override (func override)
-  "Set the override property on FUNC to OVERRIDE and set up advice to apply the override."
-  (setq func (ido-ubiquitous--as-symbol func)
-        override (ido-ubiquitous--as-symbol override))
-  (put func 'ido-ubiquitous-override override)
-  (when override
-    (let ((docstring
-           (format "Override ido-ubiquitous behavior in %s if its `ido-ubiquitous-override' property is non-nil." func))
-          (body-form
-           (macroexpand
-            `(ido-ubiquitous-with-override
-                 (get ',func 'ido-ubiquitous-override)
-               ad-do-it))))
-      (eval
-       `(defadvice ,func (around ido-ubiquitous-override activate)
-          ,docstring
-          ,body-form)))))
 
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
   "List of function override specifications for ido-ubiquitous
@@ -549,31 +560,6 @@ future sessions."
     (message (if save
                  "ido-ubiquitous: Restored default command and function overrides and saved for future sessions."
                "ido-ubiquitous: Restored default command and function overrides for current session only."))))
-
-(defmacro ido-ubiquitous-with-override (override &rest body)
-  "Eval BODY with specicified OVERRIDE in place.
-
-The OVERRIDE argument is evaluated normally, so if it is a
-literal symbol, it must be quoted.
-
-See `ido-ubiquitous-command-overrides' for valid override types."
-  ;; Eval override
-  (setq override (eval override))
-  `(let ((ido-ubiquitous-next-override ',override))
-     ,@body))
-  ;; (append
-  ;;  (case override
-  ;;    (disable
-  ;;     '(let ((ido-ubiquitous-disable-for-one-command t))))
-  ;;    (enable
-  ;;     '(let ((ido-ubiquitous-newstyle-default-for-one-command t))))
-  ;;    (enable-old
-  ;;     '(let ((ido-ubiquitous-oldstyle-default-for-one-command t))))
-  ;;    ;; No override
-  ;;    (t '(progn)))
-  ;;  body))
-(put 'ido-ubiquitous-with-override 'lisp-indent-function
-     (eval-when-compile (get 'prog1 'lisp-indent-function)))
 
 (defun ido-ubiquitous-spec-match (spec symbol)
   "Returns t if SPEC matches SYMBOL (which should be a function name).
