@@ -1,3 +1,8 @@
+2013-09-11  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Fix handling of collection being a function (issues #23 and
+	#25).
+
 2013-09-10  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Fix the issue where `called-interactively-p' always returns
