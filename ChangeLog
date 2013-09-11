@@ -1,4 +1,18 @@
-2013-05-31  Ryan C. Thompson  <ryan@thompsonclan.org>
+2013-09-05  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Ido-ubiquitous now works better with interactive
+	commands. Specifically, it now works when the completion happens
+	inside the "interactive" form of the command instead of the
+	function body.
+
+	* Functions and commands that need non-standard behavior are now
+	controlled through the variables
+	"ido-ubiquitous-command-overrides" and
+	"ido-ubiquitous-function-overrides".
+
+	* Major rewrite of a significant portions of ido-ubiquitous.
+
+2013-05-31  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Officially drop support for Emacs 23 and lower. ido-ubiquitous
 	now uses the `completing-read-function' variable instead of
