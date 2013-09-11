@@ -1,3 +1,9 @@
+2013-09-10  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Fix the issue where `called-interactively-p' always returns
+	false
+	https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/24
+
 2013-09-05  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Ido-ubiquitous now works better with interactive

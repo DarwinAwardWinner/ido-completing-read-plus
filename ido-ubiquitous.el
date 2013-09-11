@@ -605,6 +605,132 @@ If there is no override set for CMD in
        (bound-and-true-p cmd))
     ad-do-it))
 
+;;; Workaround for https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/24
+
+;; When `call-interactively' is advised, `called-interactively-p'
+;; always returns nil. So we redefine it (and `interactive-p') to test
+;; the correct condition.
+
+(defsubst ido-ubiquitous--looks-like-advised-orig (func)
+  "Returns t if FUNC is a symbol starting with \"ad-Orig-\".
+
+Such symbols are used to store the original definitions of
+functions that have been advised by `defadvice' or similar."
+  (and (symbolp func)
+       (string-prefix-p "ad-Orig-" (symbol-name func))))
+
+(defsubst ido-ubiquitous--looks-like-call-interactively (func)
+  "Returns t if FUNC looks like the function `call-interactively'.
+
+FUNC \"looks like\" `call-interactively' if it is the literal
+symbol `call-interactively', or the value of `(symbol-function
+'call-interactively)', or a symbol whose `symbol-function' is the
+same as that of `call-interactively'.
+
+This function is used to determine whether a given function was
+\"called by\" `call-interactively' and therefore was called
+interactively."
+  (when func
+(eq (symbol-function 'call-interactively)
+      (if (symbolp func)
+          (symbol-function func)
+        func)))
+)
+
+(defun ido-ubiquitous--backtrace-from (fun)
+  "Return all backtrace frames, starting with the one for FUN.
+
+FUN may be a list of functions, in which case the first one found
+on the stack will be used."
+  (let ((stack (macroexp--backtrace))
+        (funcs (if (functionp fun)
+                   (list fun)
+                 fun)))
+    (while (and stack
+                (not (memq (cadar stack) funcs)))
+      (setq stack (cdr stack)))
+    stack))
+
+(defun ido-ubiquitous--clean-advice-from-backtrace (stack)
+  "Takes a stack trace and cleans all evidence of advice.
+
+Specifically, for each call to a function starting with
+\"ad-Orig-\", that call and all prior calls up to but not
+including the advised function's original name are deleted from
+the stack."
+  (let ((skipping-until nil))
+    (loop for frame in stack
+          for func = (cadr frame)
+          ;; Check if we found the frame we we're skipping to
+          if (and skipping-until
+                  (eq func skipping-until))
+          do (setq skipping-until nil)
+          ;; If we're looking at an the original form of an advised
+          ;; function, skip until the real name of that function.
+          if (and (not skipping-until)
+                  (ido-ubiquitous--looks-like-advised-orig func))
+          do (setq skipping-until
+                   (intern
+                    (substring (symbol-name func)
+                               (eval-when-compile (length "ad-Orig-")))))
+          unless skipping-until collect frame)))
+
+(defsubst ido-ubiquitous--interactive-internal ()
+  "Eqivalent of the INTERACTIVE macro in the Emacs C source.
+
+This is an internal function that should never be called
+directly.
+
+See the C source for the logic behind this function."
+  (and (not executing-kbd-macro)
+       (not noninteractive)))
+
+(defun ido-ubiquitous--interactive-p-internal ()
+  "Equivalent of C function \"interactive_p\".
+
+This is an internal function that should never be called
+directly.
+
+See the C source for the logic behind this function."
+  (let ((stack
+         ;; We clean advice from the backtrace. This ensures that we
+         ;; get the right answer even if `call-interactively' has been
+         ;; advised.
+         (ido-ubiquitous--clean-advice-from-backtrace
+          (cdr
+           (ido-ubiquitous--backtrace-from
+            '(called-interactively-p interactive-p))))))
+    ;; See comments in the C function for the logic here.
+    (while (and stack
+                (or (eq (cadar stack) 'bytecode)
+                    (null (caar stack))))
+      (setq stack (cdr stack)))
+    ;; Top of stack is now the function that we want to know
+    ;; about. Pop it, then check if the next function is
+    ;; `call-interactively', using a more permissive test than the default.
+    (ido-ubiquitous--looks-like-call-interactively (cadadr stack))))
+
+(defadvice interactive-p (around ido-ubiquitous activate)
+  "Return the correct result when `call-interactively' is advised."
+  (condition-case nil
+      (setq ad-return-value
+            (and (ido-ubiquitous--interactive-internal)
+       (ido-ubiquitous--interactive-p-internal)))
+    ;; In case of error in the advice, fall back to the default
+    ;; implementation
+    ad-do-it))
+
+(defadvice called-interactively-p (around ido-ubiquitous activate)
+  "Return the correct result when `call-interactively' is advised."
+  (condition-case nil
+      (setq ad-return-value
+            (and (or (ido-ubiquitous--interactive-internal)
+                     (not (eq kind 'interactive)))
+                 (ido-ubiquitous--interactive-p-internal)))
+    ;; In case of error in the advice, fall back to the default
+    ;; implementation
+    ad-do-it))
+
 ;;; Other
 
 (defun ido-ubiquitous-warn-about-ido-disabled ()
