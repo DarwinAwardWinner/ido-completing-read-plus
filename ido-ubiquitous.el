@@ -443,21 +443,24 @@ This function is a wrapper for `ido-completing-read' designed to
 be used as the value of `completing-read-function'. Importantly,
 it detects edge cases that ido cannot handle and uses normal
 completion for them."
+  ;; Pre-expand list of possible completions (but we can't handle a
+  ;; collection that is a function)
+  (unless (functionp collection)
+    (setq collection (all-completions "" collection predicate)
+          ;; Don't need this any more
+          predicate nil))
   (let* (;; Set the active override and clear the "next" one so it
          ;; doesn't apply to nested calls.
          (ido-ubiquitous-active-override ido-ubiquitous-next-override)
          (ido-ubiquitous-next-override nil)
-         ;; Pre-expand list of possible completions
-         (collection
-          (all-completions "" collection predicate))
-         ;; Don't need this any more
-         (predicate nil)
          ;; Check for conditions that ido can't or shouldn't handle
          (ido-allowed
           (and ido-mode
                ido-ubiquitous-mode
-               ;; Don't use ido if there are no completions.
-               collection
+               ;; Don't use ido if there are no completions, or if the
+               ;; collection is a function.
+               (and (not (functionp collection))
+                    collection)
                ;; Check for disable override
 	       (not (eq ido-ubiquitous-active-override 'disable))
                ;; Can't handle this arg
