@@ -527,32 +527,32 @@ the list.")
 
 See `ido-ubiquitous-enable-old-style-default', which
 controls whether this advice has any effect."
-
-  (not current-prefix-arg)
-  (let* ((enable-oldstyle
-          (and
-           ;; Completing a list, not a buffer or file
-           (eq ido-cur-item 'list)
-           ;; Only enable if we are replacing `completing-read'
-           ido-ubiquitous-this-call-replaces-completing-read
-           ;; Default is nil
-           (null ido-default-item)
-           ;; Input is empty
-           (string= ido-text "")
-           ;; Old-style default enabled
-           (if ido-ubiquitous-active-override
-               (eq ido-ubiquitous-active-override 'enable-old)
-             ido-ubiquitous-enable-old-style-default)
-           ;; First item on the list hasn't changed
-           (string= (car ido-cur-list)
-                    ido-ubiquitous-initial-item)))
-         ;; Prefix inverts oldstyle behavior
-         (should-invert current-prefix-arg)
-         (actually-enable-oldstyle
-          (if should-invert (not enable-oldstyle) enable-oldstyle)))
-    (if actually-enable-oldstyle
-        (ido-select-text)
-      ad-do-it))
+  (condition-case nil
+      (let* ((enable-oldstyle
+              (and
+               ;; Completing a list, not a buffer or file
+               (eq ido-cur-item 'list)
+               ;; Only enable if we are replacing `completing-read'
+               ido-ubiquitous-this-call-replaces-completing-read
+               ;; Default is nil
+               (null ido-default-item)
+               ;; Input is empty
+               (string= ido-text "")
+               ;; Old-style default enabled
+               (if ido-ubiquitous-active-override
+                   (eq ido-ubiquitous-active-override 'enable-old)
+                 ido-ubiquitous-enable-old-style-default)
+               ;; First item on the list hasn't changed
+               (string= (car ido-cur-list)
+                        ido-ubiquitous-initial-item)))
+             ;; Prefix inverts oldstyle behavior
+             (should-invert current-prefix-arg)
+             (actually-enable-oldstyle
+              (if should-invert (not enable-oldstyle) enable-oldstyle)))
+        (if actually-enable-oldstyle
+            (ido-select-text)
+          ad-do-it))
+    (error ad-do-it))
   (setq ido-ubiquitous-initial-item nil))
 
 ;;; Overrides
