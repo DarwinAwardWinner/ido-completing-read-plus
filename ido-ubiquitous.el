@@ -82,21 +82,21 @@
   "List of widget names for match specs.")
 (defvar ido-ubiquitous-spec-matchers nil
   "Alist of functions for matching function specs against function names.")
-(loop for (widget-name widget-tag key field-type matcher) in
-      '((exact-match "Exact match" exact string string=)
-        (prefix-match "Prefix match" prefix string string-prefix-p)
-        (regexp-match "Regexp match" regexp regexp string-match-p))
-      do (define-widget (ido-ubiquitous--as-symbol widget-name) 'lazy-notag widget-tag
-           :menu-tag widget-tag
-           :type `(list :tag ,widget-tag :format "%v"
-                        (const :format ""
-                               :tag ,widget-tag
-                               ,key)
-                        (,field-type :tag ,widget-tag)))
-      do (add-to-list 'ido-ubiquitous-match-spec-widget-types
-                      widget-name 'append)
-      do (add-to-list 'ido-ubiquitous-spec-matchers
-                      (cons key matcher) 'append))
+(cl-loop for (widget-name widget-tag key field-type matcher) in
+         '((exact-match "Exact match" exact string string=)
+           (prefix-match "Prefix match" prefix string string-prefix-p)
+           (regexp-match "Regexp match" regexp regexp string-match-p))
+         do (define-widget (ido-ubiquitous--as-symbol widget-name) 'lazy-notag widget-tag
+              :menu-tag widget-tag
+              :type `(list :tag ,widget-tag :format "%v"
+                           (const :format ""
+                                  :tag ,widget-tag
+                                  ,key)
+                           (,field-type :tag ,widget-tag)))
+         do (add-to-list 'ido-ubiquitous-match-spec-widget-types
+                         widget-name 'append)
+         do (add-to-list 'ido-ubiquitous-spec-matchers
+                         (cons key matcher) 'append))
 
 (define-widget 'ido-ubiquitous-match-spec 'lazy-notag
   "Choice of exact, prefix, or regexp match."
@@ -349,17 +349,17 @@ each function to apply the appropriate override."
   ;; Unset all previous overrides
   (when (boundp sym)
     (let ((oldval (eval sym)))
-      (loop for (action match-type func) in oldval
-            do (ido-ubiquitous-apply-function-override func nil))))
+      (cl-loop for (action match-type func) in oldval
+               do (ido-ubiquitous-apply-function-override func nil))))
   ;; Ensure that function names are strings, not symbols
   (setq newval
-        (loop for (action match-type func) in newval
-              collect (list action match-type
-			    (ido-ubiquitous--as-string func))))
+        (cl-loop for (action match-type func) in newval
+                 collect (list action match-type
+                               (ido-ubiquitous--as-string func))))
   (set-default sym newval)
   ;; set new overrides
-  (loop for (action match-type func) in (eval sym)
-          do (ido-ubiquitous-apply-function-override func action)))
+  (cl-loop for (action match-type func) in (eval sym)
+           do (ido-ubiquitous-apply-function-override func action)))
 
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
   "List of function override specifications for ido-ubiquitous
@@ -573,14 +573,14 @@ future sessions."
   (let ((setter (if save
                     'customize-save-variable
                   'customize-set-variable)))
-    (loop for (var def) in '((ido-ubiquitous-command-overrides
-                              ido-ubiquitous-default-command-overrides)
-                             (ido-ubiquitous-function-overrides
-                              ido-ubiquitous-default-function-overrides))
-          do (let* ((curval (eval var))
-                    (defval (eval def))
-                    (newval (delete-dups (append defval curval))))
-               (funcall setter var newval)))
+    (cl-loop for (var def) in '((ido-ubiquitous-command-overrides
+                                 ido-ubiquitous-default-command-overrides)
+                                (ido-ubiquitous-function-overrides
+                                 ido-ubiquitous-default-function-overrides))
+             do (let* ((curval (eval var))
+                       (defval (eval def))
+                       (newval (delete-dups (append defval curval))))
+                  (funcall setter var newval)))
     (message (if save
                  "ido-ubiquitous: Restored default command and function overrides and saved for future sessions."
                "ido-ubiquitous: Restored default command and function overrides for current session only."))))
@@ -604,11 +604,11 @@ See `ido-ubiquitous-command-overrides'."
 If there is no override set for CMD in
 `ido-ubiquitous-command-overrides', return nil."
   (when (and cmd (symbolp cmd))
-    (loop for (action . spec) in ido-ubiquitous-command-overrides
-          when (memq action '(disable enable enable-old nil))
-          when (ido-ubiquitous-spec-match spec cmd)
-          return action
-          finally return nil)))
+    (cl-loop for (action . spec) in ido-ubiquitous-command-overrides
+             when (memq action '(disable enable enable-old nil))
+             when (ido-ubiquitous-spec-match spec cmd)
+             return action
+             finally return nil)))
 
 (defadvice call-interactively (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
@@ -678,21 +678,21 @@ Specifically, for each call to a function starting with
 including the advised function's original name are deleted from
 the stack."
   (let ((skipping-until nil))
-    (loop for frame in stack
-          for func = (cadr frame)
-          ;; Check if we found the frame we we're skipping to
-          if (and skipping-until
-                  (eq func skipping-until))
-          do (setq skipping-until nil)
-          ;; If we're looking at an the original form of an advised
-          ;; function, skip until the real name of that function.
-          if (and (not skipping-until)
-                  (ido-ubiquitous--looks-like-advised-orig func))
-          do (setq skipping-until
-                   (intern
-                    (substring (symbol-name func)
-                               (eval-when-compile (length "ad-Orig-")))))
-          unless skipping-until collect frame)))
+    (cl-loop for frame in stack
+             for func = (cadr frame)
+             ;; Check if we found the frame we we're skipping to
+             if (and skipping-until
+                     (eq func skipping-until))
+             do (setq skipping-until nil)
+             ;; If we're looking at an the original form of an advised
+             ;; function, skip until the real name of that function.
+             if (and (not skipping-until)
+                     (ido-ubiquitous--looks-like-advised-orig func))
+             do (setq skipping-until
+                      (intern
+                       (substring (symbol-name func)
+                                  (eval-when-compile (length "ad-Orig-")))))
+             unless skipping-until collect frame)))
 
 (defsubst ido-ubiquitous--interactive-internal ()
   "Eqivalent of the INTERACTIVE macro in the Emacs C source.
