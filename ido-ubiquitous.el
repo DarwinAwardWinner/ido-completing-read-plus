@@ -650,11 +650,10 @@ This function is used to determine whether a given function was
 \"called by\" `call-interactively' and therefore was called
 interactively."
   (when func
-(eq (symbol-function 'call-interactively)
-      (if (symbolp func)
-          (symbol-function func)
-        func)))
-)
+    (eq (symbol-function 'call-interactively)
+        (if (symbolp func)
+            (symbol-function func)
+          func))))
 
 (defun ido-ubiquitous--backtrace-from (fun)
   "Return all backtrace frames, starting with the one for FUN.
