@@ -405,32 +405,48 @@ This advice implements the logic required for
 `ido-ubiquitous-completing-read', so other packages that use
 `ido-completing-read', such as `smex', will not be affected."
   (let* ((ido-ubiquitous-this-call-replaces-completing-read ido-ubiquitous-next-call-replaces-completing-read)
-         (ido-ubiquitous-next-call-replaces-completing-read nil))
+         (ido-ubiquitous-next-call-replaces-completing-read nil)
+         (error-during-setup nil))
     (when ido-ubiquitous-this-call-replaces-completing-read
-      ;; ido doesn't natively handle DEF being a list. If DEF is a
-      ;; list, prepend it to CHOICES and set DEF to just the car of
-      ;; the default list.
-      (when (and def (listp def))
-        (setq choices (delete-dups (append def choices))
-              def (car def)))
-      ;; Work around a bug in ido when both INITIAL-INPUT and DEF are provided
-      ;; More info: https://github.com/technomancy/ido-ubiquitous/issues/18
-      (let ((initial (cond ((null initial-input) "")
-                           ((stringp initial-input) initial-input)
-                           ((consp initial-input) (car initial-input))
-                           (t initial-input)))
-            (deflist (if (listp def)
-                         def
-                       (list def))))
-        (when (and deflist initial
-                   (stringp initial)
-                   (not (string= initial "")))
-          ;; Both default and initial input were provided. So keep the
-          ;; initial input and preprocess the choices list to put the
-          ;; default at the head, then proceed with default = nil.
-          (setq choices (delete-dups (append deflist choices))
-                def nil))))
-    ad-do-it))
+      (condition-case nil
+          (progn
+            ;; ido doesn't natively handle DEF being a list. If DEF is
+            ;; a list, prepend it to CHOICES and set DEF to just the
+            ;; car of the default list.
+            (when (and def (listp def))
+              (setq choices (delete-dups (append def choices))
+                    def (car def)))
+            ;; Work around a bug in ido when both INITIAL-INPUT and
+            ;; DEF are provided More info:
+            ;; https://github.com/technomancy/ido-ubiquitous/issues/18
+            (let ((initial (cond ((null initial-input) "")
+                                 ((stringp initial-input) initial-input)
+                                 ((consp initial-input) (car initial-input))
+                                 (t initial-input)))
+                  (deflist (if (listp def)
+                               def
+                             (list def))))
+              (when (and deflist initial
+                         (stringp initial)
+                         (not (string= initial "")))
+                ;; Both default and initial input were provided. So
+                ;; keep the initial input and preprocess the choices
+                ;; list to put the default at the head, then proceed
+                ;; with default = nil.
+                (setq choices (delete-dups (append deflist choices))
+                      def nil))))
+        (error
+         (progn
+           (warn "ido-ubiquitous: failed during setup. Falling back to standard completion")
+           (setq error-during-prep t)))))
+    ;; For ido-ubiquitous, only attempt ido completion if setup completed without error
+    (if (not error-during-prep)
+        ad-do-it
+      (setq ad-return-value
+            (funcall
+             ido-ubiquitous-fallback-completing-read-function
+             prompt choices predicate require-match initial-input
+             hist def inherit-input-method)))))
 
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
