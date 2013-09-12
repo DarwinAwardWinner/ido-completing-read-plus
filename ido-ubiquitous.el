@@ -2,7 +2,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 2.1
+;; Version: 2.1.1
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
@@ -38,7 +38,7 @@
 
 ;;; Code:
 
-(defconst ido-ubiquitous-version "2.1"
+(defconst ido-ubiquitous-version "2.1.1"
   "Currently running version of ido-ubiquitous.")
 
 (eval-when-compile
@@ -438,9 +438,9 @@ This advice implements the logic required for
         (error
          (progn
            (warn "ido-ubiquitous: failed during setup. Falling back to standard completion")
-           (setq error-during-prep t)))))
+           (setq error-during-setup t)))))
     ;; For ido-ubiquitous, only attempt ido completion if setup completed without error
-    (if (not error-during-prep)
+    (if (not error-during-setup)
         ad-do-it
       (setq ad-return-value
             (funcall
