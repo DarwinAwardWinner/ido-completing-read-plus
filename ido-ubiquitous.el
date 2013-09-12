@@ -319,7 +319,7 @@ literal symbol, it must be quoted.
 
 See `ido-ubiquitous-command-overrides' for valid override types."
   ;; Eval override
-  (setq override (eval override))
+  (setq override (ignore-errors (eval override)))
   `(let ((ido-ubiquitous-next-override ',override))
      ,@body))
 (put 'ido-ubiquitous-with-override 'lisp-indent-function
