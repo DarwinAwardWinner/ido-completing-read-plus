@@ -48,8 +48,8 @@
 
 (require 'ido)
 (require 'advice)
-(require 'cl)
 (require 'macroexp)
+(eval-when-compile (require 'cl))
 
 ;; Declare this ahead of time to quiet the compiler
 (defvar ido-ubiquitous-fallback-completing-read-function)
