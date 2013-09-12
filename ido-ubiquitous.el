@@ -338,8 +338,8 @@ See `ido-ubiquitous-command-overrides' for valid override types."
        `(defadvice ,func (around ido-ubiquitous-override activate)
           ,docstring
           (ido-ubiquitous-with-override
-                 (get ',func 'ido-ubiquitous-override)
-               ad-do-it))))))
+              (get ',func 'ido-ubiquitous-override)
+            ad-do-it))))))
 
 (defun ido-ubiquitous-set-function-overrides (sym newval)
   "Custom setter function for `ido-ubiquitous-function-overrides'.
@@ -734,7 +734,7 @@ See the C source for the logic behind this function."
   (condition-case nil
       (setq ad-return-value
             (and (ido-ubiquitous--interactive-internal)
-       (ido-ubiquitous--interactive-p-internal)))
+                 (ido-ubiquitous--interactive-p-internal)))
     ;; In case of error in the advice, fall back to the default
     ;; implementation
     ad-do-it))
