@@ -610,12 +610,6 @@ If there is no override set for CMD in
              return action
              finally return nil)))
 
-(defadvice call-interactively (around ido-ubiquitous activate)
-  "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
-  (ido-ubiquitous-with-override
-      (ido-ubiquitous-get-command-override (ad-get-arg 0))
-    ad-do-it))
-
 ;;; Workaround for https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/24
 
 ;; When `call-interactively' is advised, `called-interactively-p'
@@ -720,26 +714,51 @@ See the C source for the logic behind this function."
     ;; `call-interactively', using a more permissive test than the default.
     (ido-ubiquitous--looks-like-call-interactively (cadadr stack))))
 
-(defadvice interactive-p (around ido-ubiquitous activate)
-  "Return the correct result when `call-interactively' is advised."
-  (condition-case nil
-      (setq ad-return-value
-            (and (ido-ubiquitous--interactive-internal)
-                 (ido-ubiquitous--interactive-p-internal)))
-    ;; In case of error in the advice, fall back to the default
-    ;; implementation
-    ad-do-it))
+(if (boundp 'called-interactively-p-functions)
+    ;; Emacs trunk, in which called-interactively-p logic has
+    ;; changed, so we can't work around the "advice on
+    ;; call-interactively" bug. Define advice instead on
+    ;; `command-execute', which will not work for key bindings, but
+    ;; will work for many other things.
+    (defadvice command-execute (around ido-ubiquitous activate)
+      "Implements the behavior specified in `ido-ubiquitous-command-overrides'.
 
-(defadvice called-interactively-p (around ido-ubiquitous activate)
-  "Return the correct result when `call-interactively' is advised."
-  (condition-case nil
-      (setq ad-return-value
-            (and (or (ido-ubiquitous--interactive-internal)
-                     (not (eq kind 'interactive)))
-                 (ido-ubiquitous--interactive-p-internal)))
-    ;; In case of error in the advice, fall back to the default
-    ;; implementation
-    ad-do-it))
+Does not work for keybindings or anything else that skips `command-execute'."
+      (ido-ubiquitous-with-override
+          (ido-ubiquitous-get-command-override
+           ;; Ugly hack because Emacs byte compiler doesn't know that CMD
+           ;; is defined for some reason
+           (bound-and-true-p cmd))
+        ad-do-it))
+
+  ;; Emacs release 24.3.1: Old called-interactively-p logic & advice
+  ;; system, which we know how to manipulate.
+  (defadvice call-interactively (around ido-ubiquitous activate)
+    "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
+    (ido-ubiquitous-with-override
+        (ido-ubiquitous-get-command-override (ad-get-arg 0))
+      ad-do-it))
+
+  (defadvice interactive-p (around ido-ubiquitous activate)
+    "Return the correct result when `call-interactively' is advised."
+    (condition-case nil
+        (setq ad-return-value
+              (and (ido-ubiquitous--interactive-internal)
+                   (ido-ubiquitous--interactive-p-internal)))
+      ;; In case of error in the advice, fall back to the default
+      ;; implementation
+      ad-do-it))
+
+  (defadvice called-interactively-p (around ido-ubiquitous activate)
+    "Return the correct result when `call-interactively' is advised."
+    (condition-case nil
+        (setq ad-return-value
+              (and (or (ido-ubiquitous--interactive-internal)
+                       (not (eq kind 'interactive)))
+                   (ido-ubiquitous--interactive-p-internal)))
+      ;; In case of error in the advice, fall back to the default
+      ;; implementation
+      ad-do-it)))
 
 ;;; Other
 
