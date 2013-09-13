@@ -616,15 +616,6 @@ If there is no override set for CMD in
       (ido-ubiquitous-get-command-override (ad-get-arg 0))
     ad-do-it))
 
-(defadvice command-execute (around ido-ubiquitous activate)
-  "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
-  (ido-ubiquitous-with-override
-      (ido-ubiquitous-get-command-override
-       ;; Ugly hack because Emacs byte compiler doesn't know that CMD
-       ;; is defined for some reason
-       (bound-and-true-p cmd))
-    ad-do-it))
-
 ;;; Workaround for https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/24
 
 ;; When `call-interactively' is advised, `called-interactively-p'
