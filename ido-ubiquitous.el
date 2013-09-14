@@ -323,7 +323,7 @@ See `ido-ubiquitous-command-overrides' for valid override types."
   `(let ((ido-ubiquitous-next-override ',override))
      ,@body))
 (put 'ido-ubiquitous-with-override 'lisp-indent-function
-     (eval-when-compile (get 'prog1 'lisp-indent-function)))
+     (get 'prog1 'lisp-indent-function))
 
 (defun ido-ubiquitous-apply-function-override (func override)
   "Set the override property on FUNC to OVERRIDE and set up advice to apply the override."
