@@ -48,7 +48,6 @@
 
 (require 'ido)
 (require 'advice)
-(require 'macroexp)
 (require 'cl)
 
 ;; Declare this ahead of time to quiet the compiler
@@ -645,7 +644,11 @@ interactively."
 
 FUN may be a list of functions, in which case the first one found
 on the stack will be used."
-  (let ((stack (macroexp--backtrace))
+  (let ((stack
+         (loop for i upfrom 0
+               for frame = (backtrace-frame i)
+               while frame
+               collect frame))
         (funcs (if (functionp fun)
                    (list fun)
                  fun)))
