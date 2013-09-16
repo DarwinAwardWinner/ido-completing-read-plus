@@ -49,7 +49,7 @@
 (require 'ido)
 (require 'advice)
 (require 'macroexp)
-(eval-when-compile (require 'cl))
+(require 'cl)
 
 ;; Declare this ahead of time to quiet the compiler
 (defvar ido-ubiquitous-fallback-completing-read-function)
@@ -82,7 +82,7 @@
   "List of widget names for match specs.")
 (defvar ido-ubiquitous-spec-matchers nil
   "Alist of functions for matching function specs against function names.")
-(cl-loop for (widget-name widget-tag key field-type matcher) in
+(loop for (widget-name widget-tag key field-type matcher) in
          '((exact-match "Exact match" exact string string=)
            (prefix-match "Prefix match" prefix string string-prefix-p)
            (regexp-match "Regexp match" regexp regexp string-match-p))
@@ -348,16 +348,16 @@ each function to apply the appropriate override."
   ;; Unset all previous overrides
   (when (boundp sym)
     (let ((oldval (eval sym)))
-      (cl-loop for (action match-type func) in oldval
+      (loop for (action match-type func) in oldval
                do (ido-ubiquitous-apply-function-override func nil))))
   ;; Ensure that function names are strings, not symbols
   (setq newval
-        (cl-loop for (action match-type func) in newval
+        (loop for (action match-type func) in newval
                  collect (list action match-type
                                (ido-ubiquitous--as-string func))))
   (set-default sym newval)
   ;; set new overrides
-  (cl-loop for (action match-type func) in (eval sym)
+  (loop for (action match-type func) in (eval sym)
            do (ido-ubiquitous-apply-function-override func action)))
 
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
@@ -572,7 +572,7 @@ future sessions."
   (let ((setter (if save
                     'customize-save-variable
                   'customize-set-variable)))
-    (cl-loop for (var def) in '((ido-ubiquitous-command-overrides
+    (loop for (var def) in '((ido-ubiquitous-command-overrides
                                  ido-ubiquitous-default-command-overrides)
                                 (ido-ubiquitous-function-overrides
                                  ido-ubiquitous-default-function-overrides))
@@ -603,7 +603,7 @@ See `ido-ubiquitous-command-overrides'."
 If there is no override set for CMD in
 `ido-ubiquitous-command-overrides', return nil."
   (when (and cmd (symbolp cmd))
-    (cl-loop for (action . spec) in ido-ubiquitous-command-overrides
+    (loop for (action . spec) in ido-ubiquitous-command-overrides
              when (memq action '(disable enable enable-old nil))
              when (ido-ubiquitous-spec-match spec cmd)
              return action
@@ -662,7 +662,7 @@ Specifically, for each call to a function starting with
 including the advised function's original name are deleted from
 the stack."
   (let ((skipping-until nil))
-    (cl-loop for frame in stack
+    (loop for frame in stack
              for func = (cadr frame)
              ;; Check if we found the frame we we're skipping to
              if (and skipping-until
