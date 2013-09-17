@@ -253,10 +253,7 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (disable exact "read-buffer")
     (disable exact "gnus-emacs-completing-read")
     (disable exact "gnus-iswitchb-completing-read")
-    (disable exact "man")
-    ;; https://github.com/technomancy/ido-ubiquitous/issues/3
     (disable exact "grep-read-files")
-    ;; https://github.com/technomancy/ido-ubiquitous/issues/9
     (enable exact "bookmark-completing-read")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
     (enable-old exact "webjump-read-choice")
