@@ -1,3 +1,8 @@
+2013-09-17  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Eliminate use of "macroexp--backtrace", which doesn't exist in
+	Emacs 24.2.
+
 2013-09-11  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Fix handling of collection being a function (issues #23 and
