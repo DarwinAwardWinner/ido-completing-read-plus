@@ -786,4 +786,6 @@ This only needs to be called once when the file is first loaded."
   (ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0)))
 (ido-ubiquitous-initialize)
 
-(provide 'ido-ubiquitous) ;;; ido-ubiquitous.el ends here
+(provide 'ido-ubiquitous)
+
+;;; ido-ubiquitous.el ends here
