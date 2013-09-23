@@ -173,6 +173,26 @@
 	    'completing-read-ido
 	  ido-ubiquitous-fallback-completing-read-function)))
 
+(defcustom ido-ubiquitous-max-items 5000
+  "Max collection size to use ido-ubiquitous on.
+
+If `ido-ubiquitous-mode' is active and `completing-read' is
+called on a COLLECTION with greater than this number of items in
+it, the fallback completion method will be usedd instead. To
+fallback based on collection size, set this to nil."
+  :type '(choice (const :tag "No limit" nil)
+                 (integer
+                  :tag "Limit" :value 5000
+                  :validate
+                  (lambda (widget)
+                    (let ((v (widget-value widget)))
+                      (if (and (integerp v)
+                               (> v 0))
+                          nil
+                        (widget-put widget :error "This field should contain a positive integer")
+                        widget)))))
+  :group 'ido-ubiquitous)
+
 (defcustom ido-ubiquitous-fallback-completing-read-function
   ;; Initialize to the current value of `completing-read-function',
   ;; unless that is already set to the ido completer, in which case
@@ -470,9 +490,12 @@ completion for them."
           (and ido-mode
                ido-ubiquitous-mode
                ;; Don't use ido if there are no completions, or if the
-               ;; collection is a function.
-               (and (not (functionp collection))
-                    collection)
+               ;; collection is a function, or if the collection is
+               ;; too large.
+               (and collection
+                    (not (functionp collection))
+                    (or (null ido-ubiquitous-max-items)
+                        (<= (length collection) ido-ubiquitous-max-items)))
                ;; Check for disable override
 	       (not (eq ido-ubiquitous-active-override 'disable))
                ;; Can't handle this arg
