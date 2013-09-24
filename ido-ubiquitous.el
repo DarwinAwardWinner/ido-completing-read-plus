@@ -505,9 +505,13 @@ This function is a wrapper for `ido-completing-read' designed to
 be used as the value of `completing-read-function'. Importantly,
 it detects edge cases that ido cannot handle and uses normal
 completion for them."
-  ;; Pre-expand list of possible completions (but we can't handle a
-  ;; collection that is a function unless it is whitelisted)
-  (when (if (functionp collection)
+  (let* (;; Set the active override and clear the "next" one so it
+         ;; doesn't apply to nested calls.
+         (ido-ubiquitous-active-override ido-ubiquitous-next-override)
+         (ido-ubiquitous-next-override nil)
+         ;; Check if ido can handle this function
+         (collection-ok
+          (if (functionp collection)
               ;; Check if function is on the whitelist
               (let ((fname (if (symbolp collection)
                                collection
@@ -519,31 +523,33 @@ completion for them."
                 (and fname
                      (memq fname ido-ubiquitous-collection-function-whitelist)))
             ;; Collection is not a function
-            t)
-    (setq collection (all-completions "" collection predicate)
-          ;; Don't need this any more
-          predicate nil))
-  (let* (;; Set the active override and clear the "next" one so it
-         ;; doesn't apply to nested calls.
-         (ido-ubiquitous-active-override ido-ubiquitous-next-override)
-         (ido-ubiquitous-next-override nil)
+            t))
          ;; Check for conditions that ido can't or shouldn't handle
          (ido-allowed
           (and ido-mode
                ido-ubiquitous-mode
-               ;; Don't use ido if there are no completions, or if the
-               ;; collection is a function, or if the collection is
-               ;; too large.
-               (and collection
-                    (not (functionp collection))
-                    (or (null ido-ubiquitous-max-items)
-                        (<= (length collection) ido-ubiquitous-max-items)))
                ;; Check for disable override
 	       (not (eq ido-ubiquitous-active-override 'disable))
                ;; Can't handle this arg
                (not inherit-input-method)
                ;; Can't handle this being set
                (not (bound-and-true-p completion-extra-properties))))
+         ;; Pre-expand list of possible completions (but we can't
+         ;; handle a collection that is a function unless it is
+         ;; whitelisted). This executed after the ido-allowed check to
+         ;; avoid unnecessary work if ido isn't going to used.
+         (--ignore ;; (Return value doesn't matter).
+          (when (and ido-allowed collection-ok)
+            (setq collection (all-completions "" collection predicate)
+                  ;; Don't need this any more
+                  predicate nil)))
+         (colection-ok
+          ;; Don't use ido if the collection is empty or too large.
+          (and collection
+               (or (null ido-ubiquitous-max-items)
+                   (<= (length collection) ido-ubiquitous-max-items))))
+         ;; Final check for everything
+         (ido-allowed (and ido-allowed collection-ok))
          (comp-read-fun
           (if ido-allowed
               'ido-ubiquitous-completing-read
