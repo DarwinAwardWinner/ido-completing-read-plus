@@ -540,7 +540,8 @@ completion for them."
          ;; avoid unnecessary work if ido isn't going to used.
          (--ignore ;; (Return value doesn't matter).
           (when (and ido-allowed collection-ok)
-            (setq collection (all-completions "" collection predicate)
+            (setq collection
+                  (delete-dups (all-completions "" collection predicate))
                   ;; Don't need this any more
                   predicate nil)))
          (colection-ok
