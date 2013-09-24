@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 ;;; ido-ubiquitous.el --- Use ido (nearly) everywhere.
 
 ;; Author: Ryan C. Thompson
@@ -364,7 +366,7 @@ each function to apply the appropriate override."
   ;; Unset all previous overrides
   (when (boundp sym)
     (let ((oldval (eval sym)))
-      (loop for (action match-type func) in oldval
+      (loop for (_action _match-type func) in oldval
                do (ido-ubiquitous-apply-function-override func nil))))
   ;; Ensure that function names are strings, not symbols
   (setq newval
@@ -538,7 +540,7 @@ completion for them."
          ;; handle a collection that is a function unless it is
          ;; whitelisted). This executed after the ido-allowed check to
          ;; avoid unnecessary work if ido isn't going to used.
-         (--ignore ;; (Return value doesn't matter).
+         (__ignore ;; (Return value doesn't matter).
           (when (and ido-allowed collection-ok)
             (setq collection
                   (delete-dups (all-completions "" collection predicate))
@@ -546,7 +548,8 @@ completion for them."
                   predicate nil)))
          (colection-ok
           ;; Don't use ido if the collection is empty or too large.
-          (and collection
+          (and collection-ok
+               collection
                (or (null ido-ubiquitous-max-items)
                    (<= (length collection) ido-ubiquitous-max-items))))
          ;; Final check for everything
