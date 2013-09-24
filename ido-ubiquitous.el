@@ -445,7 +445,9 @@ This advice implements the logic required for
             ;; a list, prepend it to CHOICES and set DEF to just the
             ;; car of the default list.
             (when (and def (listp def))
-              (setq choices (delete-dups (append def choices))
+              (setq choices
+                    (append def
+                            (nreverse (cl-set-difference choices def)))
                     def (car def)))
             ;; Work around a bug in ido when both INITIAL-INPUT and
             ;; DEF are provided More info:
@@ -453,24 +455,22 @@ This advice implements the logic required for
             (let ((initial (cond ((null initial-input) "")
                                  ((stringp initial-input) initial-input)
                                  ((consp initial-input) (car initial-input))
-                                 (t initial-input)))
-                  (deflist (if (listp def)
-                               def
-                             (list def))))
-              (when (and deflist initial
+                                 (t initial-input))))
+              (when (and def initial
                          (stringp initial)
                          (not (string= initial "")))
                 ;; Both default and initial input were provided. So
                 ;; keep the initial input and preprocess the choices
                 ;; list to put the default at the head, then proceed
                 ;; with default = nil.
-                (setq choices (delete-dups (append deflist choices))
+                (setq choices (cons def (remove def choices))
                       def nil))))
         (error
          (progn
            (warn "ido-ubiquitous: failed during setup. Falling back to standard completion")
            (setq error-during-setup t)))))
-    ;; For ido-ubiquitous, only attempt ido completion if setup completed without error
+    ;; For ido-ubiquitous, only attempt ido completion if setup
+    ;; completed without error
     (if (not error-during-setup)
         ad-do-it
       (setq ad-return-value
