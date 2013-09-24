@@ -395,6 +395,19 @@ through Customize."
   :set 'ido-ubiquitous-set-function-overrides
   :group 'ido-ubiquitous)
 
+(defcustom ido-ubiquitous-collection-function-whitelist
+  '(locate-file-completion-table)
+  "List of functions that are ok for COLLECTION in `completing-read-ido'.
+
+Normally if the COLLECTION argument to `completing-read' is a
+function instead of a list of choices, ido-ubiquitous is
+automatically disabled, since some such functions actually
+implement their own completion method. However, other such
+functions just return a list of items, and these can be
+whitelisted for use with ido-ubiquitous."
+  :type '(repeat function)
+  :group 'ido-ubiquitous)
+
 ;;; ido-ubiquitous core
 
 (defvar ido-ubiquitous-next-call-replaces-completing-read nil
@@ -464,6 +477,24 @@ This advice implements the logic required for
              prompt choices predicate require-match initial-input
              hist def inherit-input-method)))))
 
+(defun ido-ubiquitous--partially-applied-function-name (func)
+  "Return the name of the partially applied function in FUNC.
+
+If func is not a closure resulting from a call to
+`apply-partially', or if the contained function is
+anonymous (e.g. a lambda form), return nil."
+  (condition-case nil
+      (cl-destructuring-bind (x1 x2 x3 (x4 (x5 fname) . x6)) func
+        (message "Contents: %S" (list x1 x2 x3 x4 x5 fname x6))
+        (when (and (equal x1 'closure)
+                   (equal x2 '(t))
+                   (equal x3 '(&rest args))
+                   (equal x4 'apply)
+                   (equal x5 'quote)
+                   (symbolp fname))
+          fname))
+    (error nil)))
+
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
                                    hist def inherit-input-method)
@@ -476,8 +507,20 @@ be used as the value of `completing-read-function'. Importantly,
 it detects edge cases that ido cannot handle and uses normal
 completion for them."
   ;; Pre-expand list of possible completions (but we can't handle a
-  ;; collection that is a function)
-  (unless (functionp collection)
+  ;; collection that is a function unless it is whitelisted)
+  (when (if (functionp collection)
+              ;; Check if function is on the whitelist
+              (let ((fname (if (symbolp collection)
+                               collection
+                             ;; Allow collection to be a partially applied
+                             ;; instance of a whitelisted function. (See
+                             ;; e.g. `find-library').
+                             (ido-ubiquitous--partially-applied-function-name
+                              collection))))
+                (and fname
+                     (memq fname ido-ubiquitous-collection-function-whitelist)))
+            ;; Collection is not a function
+            t)
     (setq collection (all-completions "" collection predicate)
           ;; Don't need this any more
           predicate nil))
