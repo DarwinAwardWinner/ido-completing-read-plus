@@ -485,7 +485,6 @@ If func is not a closure resulting from a call to
 anonymous (e.g. a lambda form), return nil."
   (condition-case nil
       (cl-destructuring-bind (x1 x2 x3 (x4 (x5 fname) . x6)) func
-        (message "Contents: %S" (list x1 x2 x3 x4 x5 fname x6))
         (when (and (equal x1 'closure)
                    (equal x2 '(t))
                    (equal x3 '(&rest args))
