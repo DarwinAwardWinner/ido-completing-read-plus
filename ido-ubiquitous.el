@@ -375,7 +375,7 @@ each function to apply the appropriate override."
                                (ido-ubiquitous--as-string func))))
   (set-default sym newval)
   ;; set new overrides
-  (loop for (action match-type func) in (eval sym)
+  (loop for (action _match-type func) in (eval sym)
            do (ido-ubiquitous-apply-function-override func action)))
 
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
