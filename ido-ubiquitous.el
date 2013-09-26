@@ -173,7 +173,8 @@
   (setq completing-read-function
 	(if ido-ubiquitous-mode
 	    'completing-read-ido
-	  ido-ubiquitous-fallback-completing-read-function)))
+	  (or ido-ubiquitous-fallback-completing-read-function
+              'completing-read-default))))
 
 (defcustom ido-ubiquitous-max-items 5000
   "Max collection size to use ido-ubiquitous on.
