@@ -1,3 +1,10 @@
+2013-09-26  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Fix a few minor and unlikely-to-ever-occur bugs
+
+	* Replace collection function whitelist with overrides (overrides
+	can now force ido completion when collection is a function)
+
 2013-09-23  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Implement collection function whitelist
