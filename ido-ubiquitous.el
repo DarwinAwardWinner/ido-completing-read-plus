@@ -52,13 +52,8 @@
 (require 'advice)
 (require 'cl)
 
-;; Declare these ahead of time to quiet the compiler
+;; Declare this ahead of time to quiet the compiler
 (defvar ido-ubiquitous-fallback-completing-read-function)
-(defvar predicate)
-(defvar inherit-input-method)
-(defvar ido-cur-item)
-(defvar ido-default-item)
-(defvar ido-cur-list)
 
 ;;; Internal utility functions
 
