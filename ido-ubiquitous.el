@@ -265,7 +265,9 @@ specific commands or functions, set appropriate overrides in
     ;; https://github.com/technomancy/ido-ubiquitous/issues/7
     (enable-old prefix "Info-")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
-    (enable exact "webjump"))
+    (enable exact "webjump")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/28
+    (enable exact "find-library"))
   "Default value of `ido-ubiquitous-command-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
@@ -277,6 +279,7 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (disable exact "gnus-emacs-completing-read")
     (disable exact "gnus-iswitchb-completing-read")
     (disable exact "grep-read-files")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/36
     (enable exact "bookmark-completing-read")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
     (enable-old exact "webjump-read-choice")
