@@ -267,7 +267,7 @@ specific commands or functions, set appropriate overrides in
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
     (enable exact "webjump")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/28
-    (enable exact "find-library"))
+    (enable regexp "\\`\\(find\\|load\\|locate\\)-library\\'"))
   "Default value of `ido-ubiquitous-command-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
