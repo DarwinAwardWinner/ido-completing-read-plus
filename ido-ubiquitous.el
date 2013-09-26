@@ -397,19 +397,6 @@ through Customize."
   :set 'ido-ubiquitous-set-function-overrides
   :group 'ido-ubiquitous)
 
-(defcustom ido-ubiquitous-collection-function-whitelist
-  '(locate-file-completion-table)
-  "List of functions that are ok for COLLECTION in `completing-read-ido'.
-
-Normally if the COLLECTION argument to `completing-read' is a
-function instead of a list of choices, ido-ubiquitous is
-automatically disabled, since some such functions actually
-implement their own completion method. However, other such
-functions just return a list of items, and these can be
-whitelisted for use with ido-ubiquitous."
-  :type '(repeat function)
-  :group 'ido-ubiquitous)
-
 ;;; ido-ubiquitous core
 
 (defvar ido-ubiquitous-next-call-replaces-completing-read nil
@@ -479,23 +466,6 @@ This advice implements the logic required for
              prompt choices predicate require-match initial-input
              hist def inherit-input-method)))))
 
-(defun ido-ubiquitous--partially-applied-function-name (func)
-  "Return the name of the partially applied function in FUNC.
-
-If func is not a closure resulting from a call to
-`apply-partially', or if the contained function is
-anonymous (e.g. a lambda form), return nil."
-  (condition-case nil
-      (cl-destructuring-bind (x1 x2 x3 (x4 (x5 fname) . x6)) func
-        (when (and (equal x1 'closure)
-                   (equal x2 '(t))
-                   (equal x3 '(&rest args))
-                   (equal x4 'apply)
-                   (equal x5 'quote)
-                   (symbolp fname))
-          fname))
-    (error nil)))
-
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
                                    hist def inherit-input-method)
@@ -511,21 +481,11 @@ completion for them."
          ;; doesn't apply to nested calls.
          (ido-ubiquitous-active-override ido-ubiquitous-next-override)
          (ido-ubiquitous-next-override nil)
-         ;; Check if ido can handle this function
+         ;; Check if ido can handle this collection. If collection is
+         ;; a function, require an override to be ok.
          (collection-ok
-          (if (functionp collection)
-              ;; Check if function is on the whitelist
-              (let ((fname (if (symbolp collection)
-                               collection
-                             ;; Allow collection to be a partially applied
-                             ;; instance of a whitelisted function. (See
-                             ;; e.g. `find-library').
-                             (ido-ubiquitous--partially-applied-function-name
-                              collection))))
-                (and fname
-                     (memq fname ido-ubiquitous-collection-function-whitelist)))
-            ;; Collection is not a function
-            t))
+          (or (not (functionp collection))
+              (memq ido-ubiquitous-active-override '(enable enable-old))))
          ;; Check for conditions that ido can't or shouldn't handle
          (ido-allowed
           (and ido-mode
@@ -536,11 +496,11 @@ completion for them."
                (not inherit-input-method)
                ;; Can't handle this being set
                (not (bound-and-true-p completion-extra-properties))))
-         ;; Pre-expand list of possible completions (but we can't
-         ;; handle a collection that is a function unless it is
-         ;; whitelisted). This executed after the ido-allowed check to
-         ;; avoid unnecessary work if ido isn't going to used.
-         (__ignore ;; (Return value doesn't matter).
+         ;; Pre-expand list of possible completions, but only if we
+         ;; have a chance of using ido. This is executed after the
+         ;; ido-allowed check to avoid unnecessary work if ido isn't
+         ;; going to used.
+         (_ignore ;; (Return value doesn't matter).
           (when (and ido-allowed collection-ok)
             (setq collection (all-completions "" collection predicate)
                   ;; Don't need this any more
@@ -674,10 +634,10 @@ If there is no override set for CMD in
 `ido-ubiquitous-command-overrides', return nil."
   (when (and cmd (symbolp cmd))
     (loop for (action . spec) in ido-ubiquitous-command-overrides
-             when (memq action '(disable enable enable-old nil))
-             when (ido-ubiquitous-spec-match spec cmd)
-             return action
-             finally return nil)))
+          when (memq action '(disable enable enable-old nil))
+          when (ido-ubiquitous-spec-match spec cmd)
+          return action
+          finally return nil)))
 
 ;;; Workaround for https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/24
 
