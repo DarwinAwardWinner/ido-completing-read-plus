@@ -171,9 +171,9 @@
     (ad-activate 'completing-read))
   ;; Actually enable/disable the mode
   (setq completing-read-function
-	(if ido-ubiquitous-mode
-	    'completing-read-ido
-	  (or ido-ubiquitous-fallback-completing-read-function
+        (if ido-ubiquitous-mode
+            'completing-read-ido
+          (or ido-ubiquitous-fallback-completing-read-function
               'completing-read-default))))
 
 (defcustom ido-ubiquitous-max-items 5000
@@ -211,8 +211,8 @@ or if ido cannot handle the completion arguments.
 If you turn off ido-ubiquitous mode, `completing-read-function'
 will be set back to this."
   :type '(choice (const :tag "Standard emacs completion"
-			completing-read-default)
-		 (function :tag "Other function"))
+                        completing-read-default)
+                 (function :tag "Other function"))
   :group 'ido-ubiquitous)
 
 (define-obsolete-variable-alias
