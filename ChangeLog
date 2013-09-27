@@ -1,3 +1,7 @@
+2013-09-27  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Disable in org and magit since they already support ido
+
 2013-09-26  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Make ido-ubiquitous work with Emacs trunk (pre-24.4)
