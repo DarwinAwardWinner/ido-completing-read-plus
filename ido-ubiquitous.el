@@ -779,17 +779,21 @@ Does not work for keybindings or anything else that skips `command-execute'."
       ad-do-it))
 
   (defadvice interactive-p (around ido-ubiquitous activate)
-    "Return the correct result when `call-interactively' is advised."
+    "Return the correct result when `call-interactively' is advised.
+
+This advice completely overrides the original definition."
     (condition-case nil
         (setq ad-return-value
               (and (ido-ubiquitous--interactive-internal)
                    (ido-ubiquitous--interactive-p-internal)))
       ;; In case of error in the advice, fall back to the default
       ;; implementation
-      ad-do-it))
+      (error ad-do-it)))
 
   (defadvice called-interactively-p (around ido-ubiquitous activate)
-    "Return the correct result when `call-interactively' is advised."
+    "Return the correct result when `call-interactively' is advised.
+
+This advice completely overrides the original definition."
     (condition-case nil
         (setq ad-return-value
               (and (or (ido-ubiquitous--interactive-internal)
@@ -797,7 +801,7 @@ Does not work for keybindings or anything else that skips `command-execute'."
                    (ido-ubiquitous--interactive-p-internal)))
       ;; In case of error in the advice, fall back to the default
       ;; implementation
-      ad-do-it)))
+      (error ad-do-it)))
 
 ;;; Other
 
