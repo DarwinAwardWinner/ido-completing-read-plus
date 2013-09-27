@@ -273,7 +273,11 @@ specific commands or functions, set appropriate overrides in
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
     (enable exact "webjump")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/28
-    (enable regexp "\\`\\(find\\|load\\|locate\\)-library\\'"))
+    (enable regexp "\\`\\(find\\|load\\|locate\\)-library\\'")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
+    ;; Org and Magit already support ido natively
+    (disable prefix "org-")
+    (disable prefix "magit-"))
   "Default value of `ido-ubiquitous-command-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
@@ -291,7 +295,12 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (enable-old exact "webjump-read-choice")
     (enable-old exact "webjump-read-url-choice")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/9
-    (disable exact "isearchp-read-unicode-char"))
+    (disable exact "isearchp-read-unicode-char")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
+    (disable exact "org-completing-read")
+    (disable exact "org-completing-read-no-i")
+    (disable exact "org-iswitchb-completing-read")
+    (disable exact "org-icompleting-read"))
   "Default value of `ido-ubiquitous-function-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
