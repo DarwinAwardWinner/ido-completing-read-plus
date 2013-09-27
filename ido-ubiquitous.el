@@ -54,6 +54,9 @@ be updated until you restart Emacs.")
 (require 'ido)
 (require 'advice)
 (require 'cl)
+;; Only exists in emacs 24.4 and up; we use a workaround for earlier
+;; versions.
+(require 'nadvice nil 'noerror)
 
 ;; Declare this ahead of time to quiet the compiler
 (defvar ido-ubiquitous-fallback-completing-read-function)
@@ -753,30 +756,16 @@ See the C source for the logic behind this function."
     ;; `call-interactively', using a more permissive test than the default.
     (ido-ubiquitous--looks-like-call-interactively (cadadr stack))))
 
-(if (boundp 'called-interactively-p-functions)
-    ;; Emacs trunk, in which called-interactively-p logic has
-    ;; changed, so we can't work around the "advice on
-    ;; call-interactively" bug. Define advice instead on
-    ;; `command-execute', which will not work for key bindings, but
-    ;; will work for many other things.
-    (defadvice command-execute (around ido-ubiquitous activate)
-      "Implements the behavior specified in `ido-ubiquitous-command-overrides'.
+(defadvice call-interactively (around ido-ubiquitous activate)
+  "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
+  (ido-ubiquitous-with-override
+      (ido-ubiquitous-get-command-override (ad-get-arg 0))
+    ad-do-it))
 
-Does not work for keybindings or anything else that skips `command-execute'."
-      (ido-ubiquitous-with-override
-          (ido-ubiquitous-get-command-override
-           ;; Ugly hack because Emacs byte compiler doesn't know that CMD
-           ;; is defined for some reason
-           (bound-and-true-p cmd))
-        ad-do-it))
-
-  ;; Emacs release 24.3.1: Old called-interactively-p logic & advice
-  ;; system, which we know how to manipulate.
-  (defadvice call-interactively (around ido-ubiquitous activate)
-    "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
-    (ido-ubiquitous-with-override
-        (ido-ubiquitous-get-command-override (ad-get-arg 0))
-      ad-do-it))
+;; Work around `called-interactively-p' in Emacs 24.3 and earlier,
+;; which always returns nil when `call-interactively' is advised.
+(when (not (and (featurep 'nadvice)
+                (boundp 'called-interactively-p-functions)))
 
   (defadvice interactive-p (around ido-ubiquitous activate)
     "Return the correct result when `call-interactively' is advised.
@@ -801,7 +790,7 @@ This advice completely overrides the original definition."
                    (ido-ubiquitous--interactive-p-internal)))
       ;; In case of error in the advice, fall back to the default
       ;; implementation
-      (error ad-do-it)))
+      (error ad-do-it))))
 
 ;;; Other
 
