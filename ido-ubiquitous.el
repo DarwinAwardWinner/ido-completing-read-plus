@@ -187,8 +187,8 @@ be updated until you restart Emacs.")
 
 If `ido-ubiquitous-mode' is active and `completing-read' is
 called on a COLLECTION with greater than this number of items in
-it, the fallback completion method will be usedd instead. To
-fallback based on collection size, set this to nil."
+it, the fallback completion method will be used instead. To
+disable fallback based on collection size, set this to nil."
   :type '(choice (const :tag "No limit" nil)
                  (integer
                   :tag "Limit" :value 5000
@@ -419,6 +419,22 @@ through Customize."
   :set 'ido-ubiquitous-set-function-overrides
   :group 'ido-ubiquitous)
 
+(defcustom ido-ubiquitous-allow-on-functional-collection nil
+  "Allow ido completion when COLLECTION is a function.
+
+The `completing-read' function allows its COLLECTION argument to
+be a function instead of a list of choices. Some such functions
+simply return a list of completions and are suitable for use with
+ido, but others implement more complex behavior and will result
+in incorrect behavior if used with ido. Since there is no way to
+tell the difference, this preference defaults to nil, which means
+that ido-ubiquitous will not work when COLLECTION is a function
+unless there is a specific override in effect. To disable this
+safeguard and guarantee breakage on some functions, you may set
+this to non-nil, but this is not recommended."
+  :type 'boolean
+  :group 'ido-ubiquitous)
+
 ;;; ido-ubiquitous core
 
 (defvar ido-ubiquitous-next-call-replaces-completing-read nil
@@ -506,7 +522,8 @@ completion for them."
          ;; Check if ido can handle this collection. If collection is
          ;; a function, require an override to be ok.
          (collection-ok
-          (or (not (functionp collection))
+          (or ido-ubiquitous-allow-on-functional-collection
+              (not (functionp collection))
               (memq ido-ubiquitous-active-override '(enable enable-old))))
          ;; Check for conditions that ido can't or shouldn't handle
          (ido-allowed
