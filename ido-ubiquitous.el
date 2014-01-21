@@ -544,7 +544,7 @@ completion for them."
             (setq collection (all-completions "" collection predicate)
                   ;; Don't need this any more
                   predicate nil)))
-         (colection-ok
+         (collection-ok
           ;; Don't use ido if the collection is empty or too large.
           (and collection-ok
                collection
