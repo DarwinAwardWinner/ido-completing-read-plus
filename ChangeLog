@@ -1,3 +1,8 @@
+2013-11-19  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Add new custom variable
+	"ido-ubiquitous-allow-on-functional-collection"
+
 2013-10-02  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Enable in "read-char-by-name"
