@@ -182,7 +182,7 @@ be updated until you restart Emacs.")
           (or ido-ubiquitous-fallback-completing-read-function
               'completing-read-default))))
 
-(defcustom ido-ubiquitous-max-items 5000
+(defcustom ido-ubiquitous-max-items 30000
   "Max collection size to use ido-ubiquitous on.
 
 If `ido-ubiquitous-mode' is active and `completing-read' is
