@@ -274,6 +274,8 @@ specific commands or functions, set appropriate overrides in
     (enable exact "webjump")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/28
     (enable regexp "\\`\\(find\\|load\\|locate\\)-library\\'")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
+    (disable exact "menu-bar-open")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
     ;; Org and Magit already support ido natively
     (disable prefix "org-")
