@@ -277,7 +277,8 @@ specific commands or functions, set appropriate overrides in
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
     ;; Org and Magit already support ido natively
     (disable prefix "org-")
-    (disable prefix "magit-"))
+    (disable prefix "magit-")
+    (disable prefix "tmm-"))
   "Default value of `ido-ubiquitous-command-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
