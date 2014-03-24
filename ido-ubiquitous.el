@@ -520,12 +520,6 @@ completion for them."
          ;; doesn't apply to nested calls.
          (ido-ubiquitous-active-override ido-ubiquitous-next-override)
          (ido-ubiquitous-next-override nil)
-         ;; Check if ido can handle this collection. If collection is
-         ;; a function, require an override to be ok.
-         (collection-ok
-          (or ido-ubiquitous-allow-on-functional-collection
-              (not (functionp collection))
-              (memq ido-ubiquitous-active-override '(enable enable-old))))
          ;; Check for conditions that ido can't or shouldn't handle
          (ido-allowed
           (and ido-mode
@@ -536,6 +530,15 @@ completion for them."
                (not inherit-input-method)
                ;; Can't handle this being set
                (not (bound-and-true-p completion-extra-properties))))
+         ;; Check if ido can handle this collection. If collection is
+         ;; a function, require an override to be ok. Also,
+         ;; collection-ok should never be true when ido-allowed is
+         ;; false.
+         (collection-ok
+          (and ido-allowed
+               (or ido-ubiquitous-allow-on-functional-collection
+                   (not (functionp collection))
+                   (memq ido-ubiquitous-active-override '(enable enable-old)))))
          ;; Pre-expand list of possible completions, but only if we
          ;; have a chance of using ido. This is executed after the
          ;; ido-allowed check to avoid unnecessary work if ido isn't
