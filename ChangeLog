@@ -1,3 +1,7 @@
+2014-03-27  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Add override for "*-theme" functions
+
 2014-03-24  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Fix a bug related to
