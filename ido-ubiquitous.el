@@ -278,7 +278,14 @@ specific commands or functions, set appropriate overrides in
     ;; Org and Magit already support ido natively
     (disable prefix "org-")
     (disable prefix "magit-")
-    (disable prefix "tmm-"))
+    ;; https://github.com/bbatsov/prelude/issues/488
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
+    ;; tmm implements its own non-standard completion mechanics
+    (disable prefix "tmm-")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/47
+    ;; theme functions don't need old-style compatibility
+    (enable regexp "\\`\\(load\\|enable\\|disable\\|describe\\|custom-theme-visit-theme\\)-theme\\'")
+)
   "Default value of `ido-ubiquitous-command-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
