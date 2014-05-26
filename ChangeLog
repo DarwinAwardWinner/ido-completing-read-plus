@@ -1,3 +1,7 @@
+2014-05-26  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Disable in tmm when called as a function as well as a command
+
 2014-03-27  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Add override for "*-theme" functions

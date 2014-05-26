@@ -312,7 +312,9 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/38
     (enable exact "read-char-by-name")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/39
-    (disable exact "Info-read-node-name"))
+    (disable exact "Info-read-node-name")
+    ;; https://github.com/purcell/emacs.d/issues/182#issuecomment-44212927
+    (disable exact "tmm-menubar"))
   "Default value of `ido-ubiquitous-function-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
