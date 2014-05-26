@@ -4,7 +4,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 2.12
+;; Version: 2.13
 ;; Created: 2011-09-01
 ;; Keywords: convenience
 ;; EmacsWiki: InteractivelyDoThings
@@ -40,7 +40,7 @@
 
 ;;; Code:
 
-(defconst ido-ubiquitous-version "2.12"
+(defconst ido-ubiquitous-version "2.13"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
