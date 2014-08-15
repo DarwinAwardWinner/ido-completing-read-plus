@@ -266,9 +266,9 @@ specific commands or functions, set appropriate overrides in
 (defconst ido-ubiquitous-default-command-overrides
   '(;; If you want ido for M-x, install smex
     (disable exact "execute-extended-command")
-    ;; https://github.com/technomancy/ido-ubiquitous/issues/13#issuecomment-8033522
+    ;; Wanderlust uses new-style default
     (enable prefix "wl-")
-    ;; https://github.com/technomancy/ido-ubiquitous/issues/7
+    ;; Info functions use old-style default selection
     (enable-old prefix "Info-")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
     (enable exact "webjump")
