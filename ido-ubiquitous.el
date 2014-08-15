@@ -284,7 +284,7 @@ specific commands or functions, set appropriate overrides in
     (disable prefix "tmm-")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/47
     ;; theme functions don't need old-style compatibility
-    (enable regexp "\\`\\(load\\|enable\\|disable\\|describe\\|custom-theme-visit-theme\\)-theme\\'")
+    (enable regexp "\\`\\(load\\|enable\\|disable\\|describe\\|custom-theme-visit\\)-theme\\'")
 )
   "Default value of `ido-ubiquitous-command-overrides'.
 
