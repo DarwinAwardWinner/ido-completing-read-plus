@@ -6,7 +6,7 @@
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Version: 2.14
 ;; Created: 2011-09-01
-;; Keywords: convenience
+;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
 ;; Package-Requires: ((emacs "24.1"))
 
