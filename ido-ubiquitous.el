@@ -53,7 +53,7 @@ be updated until you restart Emacs.")
 
 (require 'ido)
 (require 'advice)
-(require 'cl)
+(require 'cl-lib)
 ;; Only exists in emacs 24.4 and up; we use a workaround for earlier
 ;; versions.
 (require 'nadvice nil 'noerror)
@@ -89,7 +89,7 @@ be updated until you restart Emacs.")
   "List of widget names for match specs.")
 (defvar ido-ubiquitous-spec-matchers nil
   "Alist of functions for matching function specs against function names.")
-(loop for (widget-name widget-tag key field-type matcher) in
+(cl-loop for (widget-name widget-tag key field-type matcher) in
          '((exact-match "Exact match" exact string string=)
            (prefix-match "Prefix match" prefix string string-prefix-p)
            (regexp-match "Regexp match" regexp regexp string-match-p))
@@ -285,7 +285,7 @@ specific commands or functions, set appropriate overrides in
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/47
     ;; theme functions don't need old-style compatibility
     (enable regexp "\\`\\(load\\|enable\\|disable\\|describe\\|custom-theme-visit\\)-theme\\'")
-)
+    )
   "Default value of `ido-ubiquitous-command-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
@@ -398,16 +398,16 @@ each function to apply the appropriate override."
   ;; Unset all previous overrides
   (when (boundp sym)
     (let ((oldval (eval sym)))
-      (loop for (_action _match-type func) in oldval
+      (cl-loop for (_action _match-type func) in oldval
                do (ido-ubiquitous-apply-function-override func nil))))
   ;; Ensure that function names are strings, not symbols
   (setq newval
-        (loop for (action match-type func) in newval
+        (cl-loop for (action match-type func) in newval
                  collect (list action match-type
                                (ido-ubiquitous--as-string func))))
   (set-default sym newval)
   ;; set new overrides
-  (loop for (action _match-type func) in (eval sym)
+  (cl-loop for (action _match-type func) in (eval sym)
            do (ido-ubiquitous-apply-function-override func action)))
 
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
@@ -654,7 +654,7 @@ future sessions."
   (let ((setter (if save
                     'customize-save-variable
                   'customize-set-variable)))
-    (loop for (var def) in '((ido-ubiquitous-command-overrides
+    (cl-loop for (var def) in '((ido-ubiquitous-command-overrides
                                  ido-ubiquitous-default-command-overrides)
                                 (ido-ubiquitous-function-overrides
                                  ido-ubiquitous-default-function-overrides))
@@ -671,7 +671,7 @@ future sessions."
 
 See `ido-ubiquitous-command-overrides'."
   (when (and symbol (symbolp symbol))
-    (destructuring-bind (type text) spec
+    (cl-destructuring-bind (type text) spec
       (let ((matcher (cdr (assoc type ido-ubiquitous-spec-matchers)))
             (text (ido-ubiquitous--as-string text))
             (symname (ido-ubiquitous--as-string symbol)))
@@ -685,11 +685,11 @@ See `ido-ubiquitous-command-overrides'."
 If there is no override set for CMD in
 `ido-ubiquitous-command-overrides', return nil."
   (when (and cmd (symbolp cmd))
-    (loop for (action . spec) in ido-ubiquitous-command-overrides
-          when (memq action '(disable enable enable-old nil))
-          when (ido-ubiquitous-spec-match spec cmd)
-          return action
-          finally return nil)))
+    (cl-loop for (action . spec) in ido-ubiquitous-command-overrides
+             when (memq action '(disable enable enable-old nil))
+             when (ido-ubiquitous-spec-match spec cmd)
+             return action
+             finally return nil)))
 
 ;;; Workaround for https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/24
 
@@ -728,15 +728,15 @@ interactively."
 FUN may be a list of functions, in which case the first one found
 on the stack will be used."
   (let ((stack
-         (loop for i upfrom 0
-               for frame = (backtrace-frame i)
-               while frame
-               collect frame))
+         (cl-loop for i upfrom 0
+                  for frame = (backtrace-frame i)
+                  while frame
+                  collect frame))
         (funcs (if (functionp fun)
                    (list fun)
                  fun)))
     (while (and stack
-                (not (memq (cadar stack) funcs)))
+                (not (memq (cl-cadar stack) funcs)))
       (setq stack (cdr stack)))
     stack))
 
@@ -748,7 +748,7 @@ Specifically, for each call to a function starting with
 including the advised function's original name are deleted from
 the stack."
   (let ((skipping-until nil))
-    (loop for frame in stack
+    (cl-loop for frame in stack
              for func = (cadr frame)
              ;; Check if we found the frame we we're skipping to
              if (and skipping-until
@@ -791,13 +791,13 @@ See the C source for the logic behind this function."
             '(called-interactively-p interactive-p))))))
     ;; See comments in the C function for the logic here.
     (while (and stack
-                (or (eq (cadar stack) 'bytecode)
+                (or (eq (cl-cadar stack) 'bytecode)
                     (null (caar stack))))
       (setq stack (cdr stack)))
     ;; Top of stack is now the function that we want to know
     ;; about. Pop it, then check if the next function is
     ;; `call-interactively', using a more permissive test than the default.
-    (ido-ubiquitous--looks-like-call-interactively (cadadr stack))))
+    (ido-ubiquitous--looks-like-call-interactively (cl-cadadr stack))))
 
 (defadvice call-interactively (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
