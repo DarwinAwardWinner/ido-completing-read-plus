@@ -457,7 +457,12 @@ this to non-nil, but this is not recommended."
   "This holds the override being applied to the current call to `completing-read'.")
 
 (defun ido-ubiquitous-completing-read (&rest args)
-  "Wrapper for `ido-completing-read' that enables ido-ubiquitous features."
+  "Wrapper for `ido-completing-read' that enables ido-ubiquitous features.
+
+Unlike `ido-completing-read', this function can return with
+`ido-exit' set to `fallback', and any function that calls this
+should check the value of `ido-exit' and handle this case
+appropriately. For example, see `completing-read-ido'."
   (let ((ido-ubiquitous-next-call-replaces-completing-read t))
     (apply 'ido-completing-read args)))
 
@@ -585,6 +590,21 @@ completion for them."
         (apply ido-ubiquitous-fallback-completing-read-function
                orig-args)
       result)))
+
+;; Fallback on magic C-f and C-b
+(defadvice ido-magic-forward-char (before ido-ubiquitous-fallback activate)
+  "Allow falling back in ido-ubiquitous."
+  (when ido-ubiquitous-this-call-replaces-completing-read
+    ;; `ido-context-switch-command' is already let-bound at this
+    ;; point.
+    (setq ido-context-switch-command #'ido-fallback-command)))
+
+(defadvice ido-magic-backward-char (before ido-ubiquitous-fallback activate)
+  "Allow falling back in ido-ubiquitous."
+  (when ido-ubiquitous-this-call-replaces-completing-read
+    ;; `ido-context-switch-command' is already let-bound at this
+    ;; point.
+    (setq ido-context-switch-command #'ido-fallback-command)))
 
 ;;; Old-style default support
 
