@@ -525,7 +525,12 @@ This function is a wrapper for `ido-completing-read' designed to
 be used as the value of `completing-read-function'. Importantly,
 it detects edge cases that ido cannot handle and uses normal
 completion for them."
-  (let* (;; Set the active override and clear the "next" one so it
+  (let* (;; Save the original arguments in case we need to do the
+         ;; fallback
+         (orig-args
+          (list prompt collection predicate require-match
+          initial-input hist def inherit-input-method))
+         ;; Set the active override and clear the "next" one so it
          ;; doesn't apply to nested calls.
          (ido-ubiquitous-active-override ido-ubiquitous-next-override)
          (ido-ubiquitous-next-override nil)
@@ -565,14 +570,21 @@ completion for them."
                    (<= (length collection) ido-ubiquitous-max-items))))
          ;; Final check for everything
          (ido-allowed (and ido-allowed collection-ok))
-         (comp-read-fun
+         (result
           (if ido-allowed
-              'ido-ubiquitous-completing-read
-            ido-ubiquitous-fallback-completing-read-function)))
-    (funcall comp-read-fun
-	     prompt collection predicate
-	     require-match initial-input
-	     hist def inherit-input-method)))
+              (ido-ubiquitous-completing-read prompt collection
+               predicate require-match initial-input hist def
+               inherit-input-method)
+            (setq ido-exit 'fallback))))
+    ;; (message "Result: %S" result)
+    ;; (message "ido-exit: %S" ido-exit)
+    ;; Do the fallback if necessary. This could either be because ido
+    ;; can't handle the arguments, or the user indicated during
+    ;; completion that they wanted to fall back to non-ido completion.
+    (if (memq 'fallback (list ido-exit result))
+        (apply ido-ubiquitous-fallback-completing-read-function
+               orig-args)
+      result)))
 
 ;;; Old-style default support
 
