@@ -1,3 +1,7 @@
+2014-09-04  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Enable fallbacks to non-ido-completion using C-f and C-b
+
 2014-05-26  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Disable in tmm when called as a function as well as a command
