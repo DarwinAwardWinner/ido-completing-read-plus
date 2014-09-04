@@ -470,7 +470,9 @@ This advice implements the logic required for
 `ido-completing-read' is called through
 `ido-ubiquitous-completing-read', so other packages that use
 `ido-completing-read', such as `smex', will not be affected."
-  (let* ((ido-ubiquitous-this-call-replaces-completing-read ido-ubiquitous-next-call-replaces-completing-read)
+  (let* ((orig-args (ad-get-args 0))
+         (ido-ubiquitous-this-call-replaces-completing-read
+          ido-ubiquitous-next-call-replaces-completing-read)
          (ido-ubiquitous-next-call-replaces-completing-read nil)
          (error-during-setup nil))
     (when ido-ubiquitous-this-call-replaces-completing-read
@@ -509,10 +511,8 @@ This advice implements the logic required for
     (if (not error-during-setup)
         ad-do-it
       (setq ad-return-value
-            (funcall
-             ido-ubiquitous-fallback-completing-read-function
-             prompt choices predicate require-match initial-input
-             hist def inherit-input-method)))))
+            (apply ido-ubiquitous-fallback-completing-read-function
+                   orig-args)))))
 
 (defun completing-read-ido (prompt collection &optional predicate
                                    require-match initial-input
