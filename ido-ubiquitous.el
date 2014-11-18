@@ -334,7 +334,10 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/39
     (disable exact "Info-read-node-name")
     ;; https://github.com/purcell/emacs.d/issues/182#issuecomment-44212927
-    (disable exact "tmm-menubar"))
+    (disable exact "tmm-menubar")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/58
+    ;; https://github.com/mooz/js2-mode/issues/181
+    (enable exact "imenu--completion-buffer"))
   "Default value of `ido-ubiquitous-function-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
