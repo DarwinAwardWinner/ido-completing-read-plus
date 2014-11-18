@@ -719,7 +719,7 @@ future sessions."
                   (funcall setter var newval)))
     (message (if save
                  "ido-ubiquitous: Restored default command and function overrides and saved for future sessions."
-               "ido-ubiquitous: Restored default command and function overrides for current session only."))))
+               "ido-ubiquitous: Restored default command and function overrides for current session only. Call again with prefix to save for future sessions."))))
 
 (defun ido-ubiquitous-spec-match (spec symbol)
   "Returns t if SPEC matches SYMBOL (which should be a function name).
