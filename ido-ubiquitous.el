@@ -620,6 +620,7 @@ completion for them."
   (when ido-ubiquitous-this-call-replaces-completing-read
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
+    (defvar ido-context-switch-command)
     (setq ido-context-switch-command #'ido-fallback-command)))
 
 (defadvice ido-magic-backward-char (before ido-ubiquitous-fallback activate)
@@ -627,6 +628,7 @@ completion for them."
   (when ido-ubiquitous-this-call-replaces-completing-read
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
+    (defvar ido-context-switch-command)
     (setq ido-context-switch-command #'ido-fallback-command)))
 
 ;;; Old-style default support
@@ -668,10 +670,12 @@ controls whether this advice has any effect."
       (let* ((enable-oldstyle
               (and
                ;; Completing a list, not a buffer or file
+               (defvar ido-cur-item)
                (eq ido-cur-item 'list)
                ;; Only enable if we are replacing `completing-read'
                ido-ubiquitous-this-call-replaces-completing-read
                ;; Default is nil
+               (defvar ido-default-item)
                (null ido-default-item)
                ;; Input is empty
                (string= ido-text "")
@@ -680,6 +684,7 @@ controls whether this advice has any effect."
                    (eq ido-ubiquitous-active-override 'enable-old)
                  ido-ubiquitous-enable-old-style-default)
                ;; First item on the list hasn't changed
+               (defvar ido-cur-list)
                (string= (car ido-cur-list)
                         ido-ubiquitous-initial-item)))
              ;; Prefix inverts oldstyle behavior
