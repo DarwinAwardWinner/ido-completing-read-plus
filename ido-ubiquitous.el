@@ -918,5 +918,7 @@ This only needs to be called once when the file is first loaded."
 (ido-ubiquitous-initialize)
 
 (provide 'ido-ubiquitous)
-
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; ido-ubiquitous.el ends here
