@@ -410,8 +410,8 @@ See `ido-ubiquitous-command-overrides' for valid override types."
        `(defadvice ,func (around ido-ubiquitous-override activate)
           ,docstring
           (ido-ubiquitous-with-override
-              (get ',func 'ido-ubiquitous-override)
-            ad-do-it))))))
+           (get ',func 'ido-ubiquitous-override)
+           ad-do-it))))))
 
 (defun ido-ubiquitous-set-function-overrides (sym newval)
   "Custom setter function for `ido-ubiquitous-function-overrides'.
@@ -557,7 +557,7 @@ completion for them."
          ;; fallback
          (orig-args
           (list prompt collection predicate require-match
-          initial-input hist def inherit-input-method))
+                initial-input hist def inherit-input-method))
          ;; Set the active override and clear the "next" one so it
          ;; doesn't apply to nested calls.
          (ido-ubiquitous-active-override ido-ubiquitous-next-override)
@@ -567,7 +567,7 @@ completion for them."
           (and ido-mode
                ido-ubiquitous-mode
                ;; Check for disable override
-	       (not (eq ido-ubiquitous-active-override 'disable))
+               (not (eq ido-ubiquitous-active-override 'disable))
                ;; Can't handle this arg
                (not inherit-input-method)
                ;; Can't handle this being set
@@ -600,7 +600,8 @@ completion for them."
          (ido-allowed (and ido-allowed collection-ok))
          (result
           (if ido-allowed
-              (ido-ubiquitous-completing-read prompt collection
+              (ido-ubiquitous-completing-read
+               prompt collection
                predicate require-match initial-input hist def
                inherit-input-method)
             (setq ido-exit 'fallback))))
@@ -857,8 +858,8 @@ See the C source for the logic behind this function."
 (defadvice call-interactively (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
   (ido-ubiquitous-with-override
-      (ido-ubiquitous-get-command-override (ad-get-arg 0))
-    ad-do-it))
+   (ido-ubiquitous-get-command-override (ad-get-arg 0))
+   ad-do-it))
 
 ;; Work around `called-interactively-p' in Emacs 24.3 and earlier,
 ;; which always returns nil when `call-interactively' is advised.
