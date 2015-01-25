@@ -1,3 +1,7 @@
+2015-01-25  Ryan Thompson  <rct@thompsonclan.org>
+
+	* Fix indentation issues (https://github.com/DarwinAwardWinner/ido-ubiquitous/pull/62)
+
 2014-09-04  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Enable fallbacks to non-ido-completion using C-f and C-b
