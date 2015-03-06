@@ -470,14 +470,25 @@ this to non-nil, but this is not recommended."
 
 ;;; ido-ubiquitous core
 
+;; These variable are used to make ido-ubiquitous work properly in the
+;; case that `completing-read' is called recursively (which is
+;; possible when `enable-recursive-minibuffers' is non-nil.)
 (defvar ido-ubiquitous-next-call-replaces-completing-read nil
-  "If t, then the next call to `ido-completing-read' is by ido-ubiquitous.")
+  "If non-nil, then the next call to `ido-completing-read' is by ido-ubiquitous.")
 (defvar ido-ubiquitous-this-call-replaces-completing-read nil
-  "If t, then the current call to `ido-completing-read' is by ido-ubiquitous.")
+  "If non-nil, then the current call to `ido-completing-read' is by ido-ubiquitous.")
 (defvar ido-ubiquitous-next-override nil
-  "This holds the override to be applied on the next call to `completing-read'.")
+  "This holds the override to be applied on the next call to `completing-read'.
+
+It's value can be nil or one of the symbols `disable', `enable', or `enable-old'.
+
+You should not modify this variable directly. Instead use the macro `ido-ubiquitous-with-override'.")
 (defvar ido-ubiquitous-active-override nil
-  "This holds the override being applied to the current call to `completing-read'.")
+  "This holds the override being applied to the current call to `completing-read'.
+
+It's value can be nil or one of the symbols `disable', `enable', or `enable-old'.
+
+You should not modify this variable directly. Instead use the macro `ido-ubiquitous-with-override'.")
 
 (defun ido-ubiquitous-completing-read (&rest args)
   "Wrapper for `ido-completing-read' that enables ido-ubiquitous features.
