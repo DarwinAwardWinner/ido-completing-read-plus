@@ -39,7 +39,9 @@
 ;; 
 ;;; Code:
 
-(require 'cl-macs)
+;; TODO: Cleanup custom vars, version variable, defgroup, autoloads?
+
+(require 'ido)
 
 (defvar ido-cr+-enable-next-call nil
   "If non-nil, then the next call to `ido-completing-read' is by `ido-completing-read+'.")
@@ -73,7 +75,7 @@ this, the fallback completion method will be used instead. To
 disable fallback based on collection size, set this to nil."
   :type '(choice (const :tag "No limit" nil)
                  (integer
-                  :tag "Limit" :value 5000
+                  :tag "Limit" :value 30000
                   :validate
                   (lambda (widget)
                     (let ((v (widget-value widget)))
