@@ -1,6 +1,4 @@
-;; -*- lexical-binding: t -*-
-
-;;; ido-completing-read+.el --- A completing-read-function using ido
+;;; ido-completing-read+.el --- A completing-read-function using ido  -*- "lexical-binding": t -*-
 ;; 
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
@@ -9,6 +7,8 @@
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
+;;
+;; This file is NOT part of GNU Emacs.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 

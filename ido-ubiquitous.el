@@ -1,7 +1,5 @@
-;; -*- lexical-binding: t -*-
-
-;;; ido-ubiquitous.el --- Use ido (nearly) everywhere.
-
+;;; ido-ubiquitous.el --- Use ido (nearly) everywhere. -*- lexical-binding: t -*-
+;;
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Version: 2.16
@@ -9,18 +7,21 @@
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
 ;; Package-Requires: ((emacs "24.1"))
-
+;; Filename: ido-ubiquitous.el
+;;
 ;; This file is NOT part of GNU Emacs.
-
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;;; Commentary:
-
+;;
 ;; If you use the excellent `ido-mode' for efficient completion of
 ;; file names and buffers, you might wonder if you can get ido-style
 ;; completion everywhere else too. Well, that's what this package
 ;; does! ido-ubiquitous is here to enable ido-style completion for
 ;; (almost) every function that uses the standard completion function
 ;; `completing-read'.
-
+;;
 ;; To use this package, call `ido-ubiquitous-mode' to enable the mode,
 ;; or use `M-x customize-variable ido-ubiquitous-mode' it to enable it
 ;; permanently. Note that `ido-ubiquotous-mode' has no effect unless
@@ -30,7 +31,7 @@
 ;; use ido, just C-f or C-b at the end/beginning of the input to fall
 ;; back to non-ido completion (this is the same shortcut as when using
 ;; ido for buffers or files).
-
+;;
 ;; Note that `completing-read' has some quirks and complex behavior
 ;; that ido cannot emulate. Ido-ubiquitous attempts to detect some of
 ;; these quirks and avoid using ido when it sees them. So some
@@ -40,24 +41,24 @@
 ;; example, org-mode and magit). See `M-x customize-group
 ;; ido-ubiquitous' and read about the override variables for more
 ;; information.
-
-;;; License:
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
 ;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
-
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;;; Code:
 
 (defconst ido-ubiquitous-version "2.16"
