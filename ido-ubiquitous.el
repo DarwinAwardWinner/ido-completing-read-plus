@@ -26,13 +26,12 @@
 
 ;; To use this package, call `ido-ubiquitous-mode' to enable the mode,
 ;; or use `M-x customize-variable ido-ubiquitous-mode' it to enable it
-;; permanently. Note that `ido-ubiquotous-mode' has no effect unless
-;; `ido-mode' is also enabled. Once the mode is enabled, most
-;; functions that use `completing-read' will now have ido completion.
-;; If you decide in the middle of a command that you would rather not
-;; use ido, just C-f or C-b at the end/beginning of the input to fall
-;; back to non-ido completion (this is the same shortcut as when using
-;; ido for buffers or files).
+;; permanently. Once the mode is enabled, most functions that use
+;; `completing-read' will now have ido completion. If you decide in
+;; the middle of a command that you would rather not use ido, just C-f
+;; or C-b at the end/beginning of the input to fall back to non-ido
+;; completion (this is the same shortcut as when using ido for buffers
+;; or files).
 
 ;; Note that `completing-read' has some quirks and complex behavior
 ;; that ido cannot emulate. Ido-ubiquitous attempts to detect some of
@@ -77,8 +76,9 @@ be updated until you restart Emacs.")
 (require 'ido)
 (require 'advice)
 (require 'cl-lib)
-;; Only exists in emacs 24.4 and up; we use a workaround for earlier
-;; versions.
+;; Only exists in emacs 24.4 and up; we don't use this library
+;; directly, but we load it here so we can test if it's available,
+;; because if it isn't we need enable a workaround.
 (require 'nadvice nil 'noerror)
 
 ;; Declare this ahead of time to quiet the compiler; it is actually
@@ -182,8 +182,6 @@ be updated until you restart Emacs.")
 (define-minor-mode ido-ubiquitous-mode
   "Use `ido-completing-read' instead of `completing-read' almost everywhere.
 
-  This mode has no effect unles `ido-mode' is also enabled.
-
   If this mode causes problems for a function, you can customize
   when ido completion is or is not used by customizing
   `ido-ubiquitous-command-overrides' or
@@ -192,9 +190,6 @@ be updated until you restart Emacs.")
   nil
   :global t
   :group 'ido-ubiquitous
-  ;; Handle warning about ido disabled
-  (when ido-ubiquitous-mode
-    (ido-ubiquitous-warn-about-ido-disabled))
   ;; Ensure emacs 23 code disabled (in case user upgraded in this session)
   (ignore-errors
     (ad-disable-advice 'completing-read 'around 'ido-ubiquitous-legacy)
@@ -215,7 +210,7 @@ it, the fallback completion method will be used instead. To
 disable fallback based on collection size, set this to nil."
   :type '(choice (const :tag "No limit" nil)
                  (integer
-                  :tag "Limit" :value 5000
+                  :tag "Limit" :value 30000
                   :validate
                   (lambda (widget)
                     (let ((v (widget-value widget)))
@@ -579,8 +574,7 @@ completion for them."
          (ido-ubiquitous-next-override nil)
          ;; Check for conditions that ido can't or shouldn't handle
          (ido-allowed
-          (and ido-mode
-               ido-ubiquitous-mode
+          (and ido-ubiquitous-mode
                ;; Check for disable override
                (not (eq ido-ubiquitous-active-override 'disable))
                ;; Can't handle this arg
@@ -907,16 +901,6 @@ This advice completely overrides the original definition."
       (error ad-do-it))))
 
 ;;; Other
-
-(defun ido-ubiquitous-warn-about-ido-disabled ()
-  "Warn if ido-ubiquitous is enabled without ido.
-
-Don't warn if emacs is still initializing, since ido-ubiquitous
-could be enabled first during init."
-  (when (and ido-ubiquitous-mode
-             after-init-time
-             (not (bound-and-true-p ido-mode)))
-    (warn "ido-ubiquitous-mode enabled without ido mode. ido-ubiquitous requires ido mode to be enabled.")))
 
 (defun ido-ubiquitous-initialize ()
   "Do initial setup for ido-ubiquitous.
