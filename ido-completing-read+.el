@@ -41,8 +41,6 @@
 ;;
 ;;; Code:
 
-;; TODO: autoloads, obsolete aliases
-
 (require 'ido)
 
 (defvar ido-cr+-enable-next-call nil
@@ -91,7 +89,6 @@ disable fallback based on collection size, set this to nil."
                         (widget-put widget :error "This field should contain a positive integer")
                         widget)))))
   :group 'ido-completing-read-plus)
-(define-obsolete-variable-alias 'ido-ubiquitous-max-items 'ido-cr+-max-items "2.17")
 
 (defcustom ido-cr+-replace-completely nil
   "If non-nil, replace `ido-completeing-read' completely with ido-cr+.
@@ -105,6 +102,7 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
 ;; Signal used to trigger fallback
 (define-error 'ido-cr+-fallback "ido-cr+-fallback")
 
+;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
                                     require-match initial-input
                                     hist def inherit-input-method)
@@ -176,6 +174,7 @@ completion for them."
       (ido-cr+-fallback
        (apply ido-cr+-fallback-function orig-args)))))
 
+;;;###autoload
 (defadvice ido-completing-read (around ido-cr+ activate)
   "This advice handles application of ido-completing-read+ features.
 
@@ -187,6 +186,10 @@ properly. This variable should be non-nil during execution of
 Second, if `ido-cr+-replace-completely' is non-nil, then this
 advice completely replaces `ido-completing-read' with
 `ido-completing-read+'."
+  ;; If this advice is autoloaded, then we need to force loading of
+  ;; the rest of the file so all the variables will be defined.
+  (when (not (featurep 'ido-completing-read+))
+    (require 'ido-completing-read+))
   (let ((ido-cr+-enable-this-call ido-cr+-enable-next-call)
         (ido-cr+-enable-next-call nil))
     (if (or
