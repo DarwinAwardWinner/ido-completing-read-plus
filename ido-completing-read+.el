@@ -93,6 +93,15 @@ disable fallback based on collection size, set this to nil."
   :group 'ido-completing-read-plus)
 (define-obsolete-variable-alias 'ido-ubiquitous-max-items 'ido-cr+-max-items "2.17")
 
+(defcustom ido-cr+-replace-completely nil
+  "If non-nil, replace `ido-completeing-read' completely with ido-cr+.
+
+Enabling this may interfere with or cause errors in other
+packages that use `ido-completing-read'. If you discover any such
+incompatibilites, please file a bug report at
+https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
+  :type 'boolean)
+
 ;; Signal used to trigger fallback
 (define-error 'ido-cr+-fallback "ido-cr+-fallback")
 
@@ -168,14 +177,24 @@ completion for them."
        (apply ido-cr+-fallback-function orig-args)))))
 
 (defadvice ido-completing-read (around ido-cr+ activate)
-  "Ensure that `ido-cr+-enable-this-call' is set properly.
+  "This advice handles application of ido-completing-read+ features.
 
-This variable should be non-nil while executing
+First, it ensures that `ido-cr+-enable-this-call' is set
+properly. This variable should be non-nil during execution of
 `ido-completing-read' if it was called from
+`ido-completing-read+'.
+
+Second, if `ido-cr+-replace-completely' is non-nil, then this
+advice completely replaces `ido-completing-read' with
 `ido-completing-read+'."
   (let ((ido-cr+-enable-this-call ido-cr+-enable-next-call)
         (ido-cr+-enable-next-call nil))
-    ad-do-it))
+    (if (or
+       ido-cr+-enable-this-call         ; Avoid recursion
+       (not ido-cr+-replace-completely))
+      ad-do-it
+    (message "Replacing ido-completing-read")
+    (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0))))))
 
 ;; Fallback on magic C-f and C-b
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
