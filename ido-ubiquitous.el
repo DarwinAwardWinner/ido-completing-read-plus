@@ -76,14 +76,11 @@ be updated until you restart Emacs.")
 (require 'ido)
 (require 'advice)
 (require 'cl-lib)
+(require 'ido-completing-read+)
 ;; Only exists in emacs 24.4 and up; we don't use this library
 ;; directly, but we load it here so we can test if it's available,
 ;; because if it isn't we need enable a workaround.
 (require 'nadvice nil 'noerror)
-
-;; Declare this ahead of time to quiet the compiler; it is actually
-;; defined later.
-(defvar ido-ubiquitous-fallback-completing-read-function)
 
 ;;; Internal utility functions
 
@@ -169,118 +166,108 @@ be updated until you restart Emacs.")
 
 (defgroup ido-ubiquitous nil
   "Use ido for (almost) all completion."
-  :group 'ido)
+  :group 'ido
+  :group 'ido-completing-read-plus)
 
 ;;;###autoload
 (define-obsolete-variable-alias 'ido-ubiquitous
-  'ido-ubiquitous-mode "0.8")
+  'ido-ubiquitous-mode "ido-ubiquitous 0.8")
 ;;;###autoload
 (define-obsolete-function-alias 'ido-ubiquitous
-  'ido-ubiquitous-mode "0.8")
+  'ido-ubiquitous-mode "ido-ubiquitous 0.8")
 
 ;;;###autoload
 (define-minor-mode ido-ubiquitous-mode
   "Use `ido-completing-read' instead of `completing-read' almost everywhere.
 
-  If this mode causes problems for a function, you can customize
-  when ido completion is or is not used by customizing
-  `ido-ubiquitous-command-overrides' or
-  `ido-ubiquitous-function-overrides'."
-
+If this mode causes problems for a function, you can customize
+when ido completion is or is not used by customizing
+`ido-ubiquitous-command-overrides' or
+`ido-ubiquitous-function-overrides'."
   nil
   :global t
   :group 'ido-ubiquitous
-  ;; Ensure emacs 23 code disabled (in case user upgraded in this session)
-  (ignore-errors
-    (ad-disable-advice 'completing-read 'around 'ido-ubiquitous-legacy)
-    (ad-activate 'completing-read))
-  ;; Actually enable/disable the mode
+  ;; Actually enable/disable the mode by setting
+  ;; `completing-read-function'.
   (setq completing-read-function
         (if ido-ubiquitous-mode
-            'completing-read-ido
-          (or ido-ubiquitous-fallback-completing-read-function
-              'completing-read-default))))
+            #'completing-read-ido-ubiquitous
+          ido-cr+-fallback-function)))
 
-(defcustom ido-ubiquitous-max-items 30000
-  "Max collection size to use ido-ubiquitous on.
-
-If `ido-ubiquitous-mode' is active and `completing-read' is
-called on a COLLECTION with greater than this number of items in
-it, the fallback completion method will be used instead. To
-disable fallback based on collection size, set this to nil."
-  :type '(choice (const :tag "No limit" nil)
-                 (integer
-                  :tag "Limit" :value 30000
-                  :validate
-                  (lambda (widget)
-                    (let ((v (widget-value widget)))
-                      (if (and (integerp v)
-                               (> v 0))
-                          nil
-                        (widget-put widget :error "This field should contain a positive integer")
-                        widget)))))
-  :group 'ido-ubiquitous)
-
-(defcustom ido-ubiquitous-fallback-completing-read-function
-  ;; Initialize to the current value of `completing-read-function',
-  ;; unless that is already set to the ido completer, in which case
-  ;; use `completing-read-default'.
-  (if (eq completing-read-function 'completing-read-ido)
-      'completing-read-default
-    completing-read-function)
-  "Alternate completing-read function to use when ido is not wanted.
-
-This will be used for functions that are incompatibile with ido
-or if ido cannot handle the completion arguments.
-
-If you turn off ido-ubiquitous mode, `completing-read-function'
-will be set back to this."
-  :type '(choice (const :tag "Standard emacs completion"
-                        completing-read-default)
-                 (function :tag "Other function"))
-  :group 'ido-ubiquitous)
+;; Variables for functionality that has moved to ido-completing-read+
+(define-obsolete-variable-alias
+  'ido-ubiquitous-max-items
+  'ido-cr+-max-items
+  "ido-ubiquitous 2.17")
+(define-obsolete-variable-alias
+  'ido-ubiquitous-fallback-completing-read-function
+  'ido-cr+-fallback-function
+  "ido-ubiquitous 2.17")
 
 (define-obsolete-variable-alias
   'ido-ubiquitous-enable-compatibility-globally
   'ido-ubiquitous-enable-old-style-default
-  "2.0")
+  "ido-ubiquitous 2.0")
 
-(defcustom ido-ubiquitous-enable-old-style-default t
-  "Allow ido to emulate a quirk of `completing-read'.
+(defcustom ido-ubiquitous-default-state 'enable
+  "Default ido-ubiquitous mode of operation for commands with no override.
 
-From the `completing-read' docstring:
+This can be set to one of three options:
+
+  * `enable': use normal ido completion;
+  * `enable-old': use ido completion, but with emulation of the
+    old-style default selection of `completing-read';
+  * `disable': use non-ido completion.
+
+Command-specific and function-specific overrides are available to
+override this default for specific commands/functions. See
+`ido-ubiquitous-command-overrides' and
+`ido-ubiquitous-function-overrides'.
+
+The `enable-old' option swaps the behavior of RET and C-j but
+only for the first keypress after beginning completion.
+Specifically, on the first keypress, RET will return an empty
+string and C-j will return the first item on the list. The
+purpose of this is to emulate a legacy compatibility quirk of
+`completing-read'. From the `completing-read' docstring:
 
 > If the input is null, `completing-read' returns DEF, or the
 > first element of the list of default values, or an empty string
 > if DEF is nil, regardless of the value of REQUIRE-MATCH.
-
-If this variable is non-nil, then ido-ubiquitous will attempt to
-emulate this behavior. Specifically, if RET is pressed
-immediately upon entering completion, an empty string will be
-returned instead of the first element in the list. This behavior
-is only enabled when ido is being used as a substitute for
-`completing-read', and not when it is used directly.
 
 This odd behavior is required for compatibility with an old-style
 usage pattern whereby the default was requested by returning an
 empty string. In this mode, the caller receives the empty string
 and handles the default case manually, while `completing-read'
 never has any knowledge of the default. This is a problem for
-ido, which always returns the first element in the list when the
-input is empty. Without knowledge of the default, it cannot
-ensure that the default is first on the list, so returning the
-first item is not the correct behavior. Instead, it must return
-an empty string like `completing-read'.
+ido, which normally returns the first element in the list, not an
+empty string, when the input is empty and you press RET. Without
+knowledge of the default, it cannot ensure that the default is
+first on the list, so returning the first item is not the correct
+behavior. Instead, it must return an empty string like
+`completing-read'.
 
-You can termporarily invert this behavior by prefixing \"RET\"
-with \"C-u\".
-
-If you want to enable old-style default selection selectively for
-specific commands or functions, set appropriate overrides in
-`ido-ubiquitous-command-overrides' or
-`ido-ubiquitous-function-overrides'."
-  :type 'boolean
+The `disable' mode is available as a default, which seems
+counterintuitive. But this allows you, if you so desire, to
+enable ido-ubiquitous selectively for only a few specifc commands
+using overrides and disable it for everything else."
+  :type '(choice :tag "Default mode"
+                 (const :menu-tag "Disable"
+                        :tag "Disable ido-ubiquitous"
+                        disable)
+                 (const :menu-tag "Enable"
+                        :tag "Enable ido-ubiquitous in normal default mode"
+                        enable)
+                 (const :menu-tag "Enable old-style default"
+                        :tag "Enable ido-ubiquitous in old-style default mode"
+                        enable-old))
   :group 'ido-ubiquitous)
+
+(make-obsolete-variable
+ 'ido-ubiquitous-enable-old-style-default
+ "This variable no longer has any effect. Set
+`ido-ubiquitous-default-state' to `enable-old' instead."
+ "ido-ubiquitous 2.17")
 
 (defconst ido-ubiquitous-default-command-overrides
   '(;; If you want ido for M-x, install smex
@@ -391,11 +378,10 @@ The OVERRIDE argument is evaluated normally, so if it is a
 literal symbol, it must be quoted.
 
 See `ido-ubiquitous-command-overrides' for valid override types."
+  (declare (indent 1))
   ;; Eval override
   `(let ((ido-ubiquitous-next-override ,override))
      ,@body))
-(put 'ido-ubiquitous-with-override 'lisp-indent-function
-     (get 'prog1 'lisp-indent-function))
 
 (defun ido-ubiquitous-apply-function-override (func override)
   "Set the override property on FUNC to OVERRIDE and set up advice to apply the override."
@@ -462,7 +448,7 @@ in incorrect behavior if used with ido. Since there is no way to
 tell the difference, this preference defaults to nil, which means
 that ido-ubiquitous will not work when COLLECTION is a function
 unless there is a specific override in effect. To disable this
-safeguard and guarantee breakage on some functions, you may set
+safeguard and GUARANTEE ERRORS on some functions, you may set
 this to non-nil, but this is not recommended."
   :type 'boolean
   :group 'ido-ubiquitous)
@@ -472,89 +458,53 @@ this to non-nil, but this is not recommended."
 ;; These variable are used to make ido-ubiquitous work properly in the
 ;; case that `completing-read' is called recursively (which is
 ;; possible when `enable-recursive-minibuffers' is non-nil.)
-(defvar ido-ubiquitous-next-call-replaces-completing-read nil
+(defvar ido-ubiquitous-enable-next-call nil
   "If non-nil, then the next call to `ido-completing-read' is by ido-ubiquitous.")
-(defvar ido-ubiquitous-this-call-replaces-completing-read nil
+(defvar ido-ubiquitous-enable-this-call nil
   "If non-nil, then the current call to `ido-completing-read' is by ido-ubiquitous.")
 (defvar ido-ubiquitous-next-override nil
   "This holds the override to be applied on the next call to `completing-read'.
 
-It's value can be nil or one of the symbols `disable', `enable', or `enable-old'.
+It's value can be nil or one of the symbols `disable', `enable', or
+`enable-old'.
 
-You should not modify this variable directly. Instead use the macro `ido-ubiquitous-with-override'.")
+You should not modify this variable directly. Instead use the
+macro `ido-ubiquitous-with-override'.")
 (defvar ido-ubiquitous-active-override nil
   "This holds the override being applied to the current call to `completing-read'.
 
-It's value can be nil or one of the symbols `disable', `enable', or `enable-old'.
+It's value can be nil or one of the symbols `disable', `enable', or
+`enable-old'.
 
-You should not modify this variable directly. Instead use the macro `ido-ubiquitous-with-override'.")
+You should not modify this variable directly. Instead use the
+macro `ido-ubiquitous-with-override'.")
+(defvar ido-ubiquitous-active-state nil
+  "This holds the ido-ubiquitous mode of operation for the current call to `completing-read'.
 
-(defun ido-ubiquitous-completing-read (&rest args)
-  "Wrapper for `ido-completing-read' that enables ido-ubiquitous features.
+It's value can be nil or one of the symbols `disable', `enable', or
+`enable-old'.
 
-Unlike `ido-completing-read', this function can return with
-`ido-exit' set to `fallback', and any function that calls this
-should check the value of `ido-exit' and handle this case
-appropriately. For example, see `completing-read-ido'."
-  (let ((ido-ubiquitous-next-call-replaces-completing-read t))
-    (apply 'ido-completing-read args)))
+You should not modify this variable directly.")
 
-(defadvice ido-completing-read (around detect-replacing-cr activate)
-  "Enable workarounds if this call was done through ido-ubiquitous.
+(defadvice ido-completing-read (around ido-ubiquitous activate)
+  "Enable ido-ubiquitous features if this call was done through ido-ubiquitous.
 
-This advice implements the logic required for
-`ido-completing-read' to handle a number of special cases that
-`completing-read' can handle. It only has an effect if
-`ido-completing-read' is called through
-`ido-ubiquitous-completing-read', so other packages that use
-`ido-completing-read', such as `smex', will not be affected."
-  (let* ((orig-args (ad-get-args 0))
-         (ido-ubiquitous-this-call-replaces-completing-read
-          ido-ubiquitous-next-call-replaces-completing-read)
-         (ido-ubiquitous-next-call-replaces-completing-read nil)
-         (error-during-setup nil))
-    (when ido-ubiquitous-this-call-replaces-completing-read
-      (condition-case nil
-          (progn
-            ;; ido doesn't natively handle DEF being a list. If DEF is
-            ;; a list, prepend it to CHOICES and set DEF to just the
-            ;; car of the default list.
-            (when (and def (listp def))
-              (setq choices
-                    (append def
-                            (nreverse (cl-set-difference choices def)))
-                    def (car def)))
-            ;; Work around a bug in ido when both INITIAL-INPUT and
-            ;; DEF are provided More info:
-            ;; https://github.com/technomancy/ido-ubiquitous/issues/18
-            (let ((initial (cond ((null initial-input) "")
-                                 ((stringp initial-input) initial-input)
-                                 ((consp initial-input) (car initial-input))
-                                 (t initial-input))))
-              (when (and def initial
-                         (stringp initial)
-                         (not (string= initial "")))
-                ;; Both default and initial input were provided. So
-                ;; keep the initial input and preprocess the choices
-                ;; list to put the default at the head, then proceed
-                ;; with default = nil.
-                (setq choices (cons def (remove def choices))
-                      def nil))))
-        (error
-         (progn
-           (warn "ido-ubiquitous: failed during setup. Falling back to standard completion")
-           (setq error-during-setup t)))))
-    ;; For ido-ubiquitous, only attempt ido completion if setup
-    ;; completed without error
-    (if (not error-during-setup)
-        ad-do-it
-      (setq ad-return-value
-            (apply ido-ubiquitous-fallback-completing-read-function
-                   orig-args)))))
+This advice ensures that `ido-ubiquitous-enable-this-call' is set
+properly while `ido-completing-read' is executing. This variable
+is used to determine whether to enable certain behaviors only for
+ido-ubiquitous, not for ordinary ido completion."
+  ;; Set "this" and clear "next" so it doesn't apply to nested calls.
+  (let* ((ido-ubiquitous-enable-this-call ido-ubiquitous-enable-next-call)
+         (ido-ubiquitous-enable-next-call nil))
+    ad-do-it))
 
-(defun completing-read-ido (prompt collection &optional predicate
-                                   require-match initial-input
-                                   hist def inherit-input-method)
+;; Signal used to trigger fallback
+(define-error 'ido-ubiquitous-fallback "ido-ubiquitous-fallback")
+
+(defun completing-read-ido-ubiquitous
+    (prompt collection &optional predicate
+            require-match initial-input
+            hist def inherit-input-method)
   "ido-based method for reading from the minibuffer with completion.
 
 See `completing-read' for the meaning of the arguments.
@@ -563,86 +513,47 @@ This function is a wrapper for `ido-completing-read' designed to
 be used as the value of `completing-read-function'. Importantly,
 it detects edge cases that ido cannot handle and uses normal
 completion for them."
-  (let* (;; Save the original arguments in case we need to do the
-         ;; fallback
-         (orig-args
-          (list prompt collection predicate require-match
-                initial-input hist def inherit-input-method))
-         ;; Set the active override and clear the "next" one so it
-         ;; doesn't apply to nested calls.
-         (ido-ubiquitous-active-override ido-ubiquitous-next-override)
-         (ido-ubiquitous-next-override nil)
-         ;; Check for conditions that ido can't or shouldn't handle
-         (ido-allowed
-          (and ido-ubiquitous-mode
-               ;; Check for disable override
-               (not (eq ido-ubiquitous-active-override 'disable))
-               ;; Can't handle this arg
-               (not inherit-input-method)
-               ;; Can't handle this being set
-               (not (bound-and-true-p completion-extra-properties))))
-         ;; Check if ido can handle this collection. If collection is
-         ;; a function, require an override to be ok. Also,
-         ;; collection-ok should never be true when ido-allowed is
-         ;; false.
-         (collection-ok
-          (and ido-allowed
-               (or ido-ubiquitous-allow-on-functional-collection
-                   (not (functionp collection))
-                   (memq ido-ubiquitous-active-override '(enable enable-old)))))
-         ;; Pre-expand list of possible completions, but only if we
-         ;; have a chance of using ido. This is executed after the
-         ;; ido-allowed check to avoid unnecessary work if ido isn't
-         ;; going to used.
-         (_ignore ;; (Return value doesn't matter).
-          (when (and ido-allowed collection-ok)
-            (setq collection (all-completions "" collection predicate)
-                  ;; Don't need this any more
-                  predicate nil)))
-         (collection-ok
-          ;; Don't use ido if the collection is empty or too large.
-          (and collection-ok
-               collection
-               (or (null ido-ubiquitous-max-items)
-                   (<= (length collection) ido-ubiquitous-max-items))))
-         ;; Final check for everything
-         (ido-allowed (and ido-allowed collection-ok))
-         (result
-          (if ido-allowed
-              (ido-ubiquitous-completing-read
-               prompt collection
-               predicate require-match initial-input hist def
-               inherit-input-method)
-            (setq ido-exit 'fallback))))
-    ;; (message "Result: %S" result)
-    ;; (message "ido-exit: %S" ido-exit)
-    ;; Do the fallback if necessary. This could either be because ido
-    ;; can't handle the arguments, or the user indicated during
-    ;; completion that they wanted to fall back to non-ido completion.
-    (if (memq 'fallback (list ido-exit result))
-        (apply ido-ubiquitous-fallback-completing-read-function
-               orig-args)
-      result)))
-
-;; Fallback on magic C-f and C-b
-(defadvice ido-magic-forward-char (before ido-ubiquitous-fallback activate)
-  "Allow falling back in ido-ubiquitous."
-  (when ido-ubiquitous-this-call-replaces-completing-read
-    ;; `ido-context-switch-command' is already let-bound at this
-    ;; point.
-    (setq ido-context-switch-command #'ido-fallback-command)))
-
-(defadvice ido-magic-backward-char (before ido-ubiquitous-fallback activate)
-  "Allow falling back in ido-ubiquitous."
-  (when ido-ubiquitous-this-call-replaces-completing-read
-    ;; `ido-context-switch-command' is already let-bound at this
-    ;; point.
-    (setq ido-context-switch-command #'ido-fallback-command)))
+  (let (;; Save the original arguments in case we need to do the
+        ;; fallback
+        (orig-args
+         (list prompt collection predicate require-match
+               initial-input hist def inherit-input-method)))
+    (condition-case nil
+        (let* (;; Set the active override and clear the "next" one so it
+               ;; doesn't apply to nested calls.
+               (ido-ubiquitous-active-override ido-ubiquitous-next-override)
+               (ido-ubiquitous-next-override nil)
+               ;; Apply the active override, if any
+               (ido-ubiquitous-active-state
+                (or ido-ubiquitous-active-override
+                    ido-ubiquitous-default-state
+                    'enable)))
+          ;; If ido-ubiquitous is disabled this time, fall back
+          (when (eq ido-ubiquitous-active-state 'disable)
+            (signal 'ido-ubiquitous-fallback nil))
+          ;; Handle a collection that is a function: either expand
+          ;; completion list now or fall back
+          (when (functionp collection)
+            (if (or ido-ubiquitous-allow-on-functional-collection
+                    (memq ido-ubiquitous-active-override
+                          '(enable enable-old)))
+                (setq collection (all-completions "" collection predicate))
+              (signal 'ido-ubiquitous-fallback nil)))
+          (let ((ido-ubiquitous-enable-next-call t))
+            (ido-completing-read+
+             prompt collection predicate require-match
+             initial-input hist def inherit-input-method)))
+      ;; Handler for ido-ubiquitous-fallback signal
+      (ido-ubiquitous-fallback
+       (message "Ido-ubiquitous falling back")
+       (apply ido-cr+-fallback-function orig-args)))))
 
 ;;; Old-style default support
 
 (defvar ido-ubiquitous-initial-item nil
   "The first item selected when ido starts.
+
+TODO Rewrite this
 
 This is initialized to the first item in the list of completions
 when ido starts, and is cleared when any character is entered
@@ -656,8 +567,9 @@ the list.")
   (setq ido-ubiquitous-initial-item nil))
 
 (defadvice ido-make-choice-list (after set-initial-item activate)
-  (when (and ad-return-value (listp ad-return-value))
-    (setq ido-ubiquitous-initial-item (car ad-return-value))))
+  (setq ido-ubiquitous-initial-item
+        (when (and ad-return-value (listp ad-return-value))
+          (car ad-return-value))))
 
 (defadvice ido-next-match (after clear-initial-item activate)
   (setq ido-ubiquitous-initial-item nil))
@@ -665,40 +577,58 @@ the list.")
 (defadvice ido-prev-match (after clear-initial-item activate)
   (setq ido-ubiquitous-initial-item nil))
 
-(defadvice ido-exit-minibuffer (around compatibility activate)
+(defun ido-ubiquitous-should-use-old-style-default ()
+  "Returns non nil if ido-ubiquitous should emulate old-style default.
+
+This function simply encapsulates all the checks that need to be
+done in order to decide whether to swap RET and C-j. See
+`ido-ubiquitous-default-state' for more information."
+  (and
+   ;; Only if completing a list, not a buffer or file
+   (eq ido-cur-item 'list)
+   ;; Only if this call was done through ido-ubiquitous
+   ido-ubiquitous-enable-this-call
+   ;; Only if default is nil
+   (null ido-default-item)
+   ;; Only if input is empty
+   (string= ido-text "")
+   ;; Only if old-style default enabled
+   (eq ido-ubiquitous-active-state 'enable-old)
+   ;; Only if `ido-ubiquitous-initial-item' hasn't been cleared
+   ido-ubiquitous-initial-item
+   ;; Only if initial item hasn't changed
+   (string= (car ido-cur-list)
+            ido-ubiquitous-initial-item)))
+
+(defadvice ido-exit-minibuffer (around old-style-default-compat activate)
   "Emulate a quirk of `completing-read'.
 
 > If the input is null, `completing-read' returns DEF, or the
 > first element of the list of default values, or an empty string
 > if DEF is nil, regardless of the value of REQUIRE-MATCH.
 
-See `ido-ubiquitous-enable-old-style-default', which
-controls whether this advice has any effect."
+See `ido-ubiquitous-default-state', which controls whether this
+advice has any effect."
   (condition-case nil
-      (let* ((enable-oldstyle
-              (and
-               ;; Completing a list, not a buffer or file
-               (eq ido-cur-item 'list)
-               ;; Only enable if we are replacing `completing-read'
-               ido-ubiquitous-this-call-replaces-completing-read
-               ;; Default is nil
-               (null ido-default-item)
-               ;; Input is empty
-               (string= ido-text "")
-               ;; Old-style default enabled
-               (if ido-ubiquitous-active-override
-                   (eq ido-ubiquitous-active-override 'enable-old)
-                 ido-ubiquitous-enable-old-style-default)
-               ;; First item on the list hasn't changed
-               (string= (car ido-cur-list)
-                        ido-ubiquitous-initial-item)))
-             ;; Prefix inverts oldstyle behavior
-             (should-invert current-prefix-arg)
-             (actually-enable-oldstyle
-              (if should-invert (not enable-oldstyle) enable-oldstyle)))
-        (if actually-enable-oldstyle
-            (ido-select-text)
-          ad-do-it))
+      (if (ido-ubiquitous-should-use-old-style-default)
+          (ido-select-text)
+        ad-do-it)
+    (error ad-do-it))
+  (setq ido-ubiquitous-initial-item nil))
+
+(defadvice ido-select-text (around old-style-default-compat activate)
+  "Emulate a quirk of `completing-read'.
+
+> If the input is null, `completing-read' returns DEF, or the
+> first element of the list of default values, or an empty string
+> if DEF is nil, regardless of the value of REQUIRE-MATCH.
+
+See `ido-ubiquitous-default-state', which controls whether this
+advice has any effect."
+  (condition-case nil
+      (if (ido-ubiquitous-should-use-old-style-default)
+          (ido-exit-minibuffer)
+        ad-do-it)
     (error ad-do-it))
   (setq ido-ubiquitous-initial-item nil))
 
@@ -906,12 +836,13 @@ This advice completely overrides the original definition."
   "Do initial setup for ido-ubiquitous.
 
 This only needs to be called once when the file is first loaded."
-  ;; Clean up old versions of ido-ubiquitous that defined advice on
-  ;; `completing-read' instead of modifying
-  ;; `completing-read-function'.
-  (when (ad-find-advice 'completing-read 'around 'ido-ubiquitous)
-    (ad-remove-advice 'completing-read 'around 'ido-ubiquitous)
-    (ad-activate 'completing-read))
+  ;; Clean up old versions of ido-ubiquitous advice if they exist
+  (ignore-errors (ad-remove-advice 'completing-read 'around 'ido-ubiquitous))
+  (ignore-errors (ad-remove-advice 'ido-completing-read 'around 'detect-replacing-cr))
+  (ignore-errors (ad-remove-advice 'ido-magic-forward-char 'before 'ido-ubiquitous-fallback))
+  (ignore-errors (ad-remove-advice 'ido-magic-backward-char 'before 'ido-ubiquitous-fallback))
+  (ignore-errors (ad-remove-advice 'ido-exit-minibuffer 'around 'compatibility))
+  (ad-activate-all)
   ;; Make sure the mode is turned on/off as specified by the value of
   ;; the mode variable
   (ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0)))
