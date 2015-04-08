@@ -4,7 +4,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 2.17
+;; Version: 3.0
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
@@ -62,7 +62,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-ubiquitous-version "2.17"
+(defconst ido-ubiquitous-version "3.0"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
@@ -198,11 +198,11 @@ when ido completion is or is not used by customizing
 (define-obsolete-variable-alias
   'ido-ubiquitous-max-items
   'ido-cr+-max-items
-  "ido-ubiquitous 2.17")
+  "ido-ubiquitous 3.0")
 (define-obsolete-variable-alias
   'ido-ubiquitous-fallback-completing-read-function
   'ido-cr+-fallback-function
-  "ido-ubiquitous 2.17")
+  "ido-ubiquitous 3.0")
 
 (define-obsolete-variable-alias
   'ido-ubiquitous-enable-compatibility-globally
@@ -267,7 +267,7 @@ using overrides and disable it for everything else."
  'ido-ubiquitous-enable-old-style-default
  "This variable no longer has any effect. Set
 `ido-ubiquitous-default-state' to `enable-old' instead."
- "ido-ubiquitous 2.17")
+ "ido-ubiquitous 3.0")
 
 (defconst ido-ubiquitous-default-command-overrides
   '(;; If you want ido for M-x, install smex
