@@ -2,7 +2,7 @@
 ;;
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 2.16
+;; Version: 2.17
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
@@ -79,7 +79,8 @@ be updated until you restart Emacs.")
 ;; versions.
 (require 'nadvice nil 'noerror)
 
-;; Declare this ahead of time to quiet the compiler
+;; Declare this ahead of time to quiet the compiler; it is actually
+;; defined later.
 (defvar ido-ubiquitous-fallback-completing-read-function)
 
 ;;; Internal utility functions
@@ -91,7 +92,7 @@ be updated until you restart Emacs.")
     sym-or-str))
 
 (defun ido-ubiquitous--as-symbol (sym-or-str)
-  "Return name of symbol, return string as is."
+  "Return string as symbol, return symbol as is."
   (if (symbolp sym-or-str)
       sym-or-str
     (intern sym-or-str)))

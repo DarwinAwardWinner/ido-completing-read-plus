@@ -1,45 +1,47 @@
 ;;; ido-completing-read+.el --- A completing-read-function using ido  -*- "lexical-binding": t -*-
-;; 
+
+;; Copyright (C) 2015 Ryan C. Thompson
+
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 0.1
+;; Version: 2.17
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
-;;
+
 ;; This file is NOT part of GNU Emacs.
-;;
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;;; Commentary: 
-;; 
+;;
+;;; Commentary:
+
 ;; This package implments the `ido-completing-read+' function, which
 ;; is a wrapper for `ido-completing-read'. Importantly, it detects
 ;; edge cases that ordinary ido cannot handle and either adjusts them
 ;; so ido *can* handle them, or else simply falls back to Emacs'
 ;; standard completion instead.
-;;
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or (at
 ;; your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-;; 
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;;
 ;;; Code:
 
-;; TODO: Cleanup custom vars, version variable, defgroup, autoloads?
+;; TODO: autoloads, obsolete aliases
 
 (require 'ido)
 
@@ -47,6 +49,10 @@
   "If non-nil, then the next call to `ido-completing-read' is by `ido-completing-read+'.")
 (defvar ido-cr+-enable-this-call nil
   "If non-nil, then the current call to `ido-completing-read' is by `ido-completing-read+'")
+
+(defgroup ido-completing-read-plus nil
+  "Extra features and compatibility for `ido-completing-read'."
+  :group 'ido)
 
 (defcustom ido-cr+-fallback-function
   ;; Initialize to the current value of `completing-read-function',
@@ -65,7 +71,7 @@ or C-b."
   :type '(choice (const :tag "Standard emacs completion"
                         completing-read-default)
                  (function :tag "Other function"))
-  :group 'ido-completing-read+)
+  :group 'ido-completing-read-plus)
 
 (defcustom ido-cr+-max-items 30000
   "Max collection size to use ido-cr+ on.
@@ -84,7 +90,8 @@ disable fallback based on collection size, set this to nil."
                           nil
                         (widget-put widget :error "This field should contain a positive integer")
                         widget)))))
-  :group 'ido-completing-read+)
+  :group 'ido-completing-read-plus)
+(define-obsolete-variable-alias 'ido-ubiquitous-max-items 'ido-cr+-max-items "2.17")
 
 ;; Signal used to trigger fallback
 (define-error 'ido-cr+-fallback "ido-cr+-fallback")
