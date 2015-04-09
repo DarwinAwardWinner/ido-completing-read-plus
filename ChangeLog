@@ -1,6 +1,15 @@
-2015-01-25  Ryan Thompson  <rct@thompsonclan.org>
+2015-04-08  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Fix indentation issues (https://github.com/DarwinAwardWinner/ido-ubiquitous/pull/62)
+	* Major refactor: split into two packages: ido-completing-read+.el
+	and ido-ubiquitous.el that depends on it. Additionally, some of
+	the customization variables for ido-ubiquitous have been changed
+	for increased flexibility in configuration, and the internals have
+	been rearchitected significantly.
+
+2015-01-25  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* Fix indentation issues
+	(https://github.com/DarwinAwardWinner/ido-ubiquitous/pull/62)
 
 2014-09-04  Ryan C. Thompson  <rct@thompsonclan.org>
 
