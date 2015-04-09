@@ -555,15 +555,12 @@ completion for them."
 (defvar ido-ubiquitous-initial-item nil
   "The first item selected when ido starts.
 
-TODO Rewrite this
-
 This is initialized to the first item in the list of completions
 when ido starts, and is cleared when any character is entered
 into the prompt or the list is cycled. If it is non-nil and still
 equal to the first item in the completion list when ido exits,
-then if `ido-ubiquitous-enable-old-style-default' is
-non-nil, ido returns an empty string instead of the first item on
-the list.")
+then if `ido-ubiquitous-active-state' is `enable-old', ido
+returns an empty string instead of the first item on the list.")
 
 (defadvice ido-read-internal (before clear-initial-item activate)
   (setq ido-ubiquitous-initial-item nil))
