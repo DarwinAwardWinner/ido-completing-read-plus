@@ -57,7 +57,11 @@
   ;; unless that is already set to the ido completer, in which case
   ;; use `completing-read-default'.
   (if (memq completing-read-function
-            '(ido-completing-read+ ido-completing-read))
+            '(ido-completing-read+
+              ido-completing-read
+              ;; Old ido-ubiquitous functions that shouldn't be used
+              completing-read-ido
+              ido-ubiquitous-completing-read))
       'completing-read-default
     completing-read-function)
   "Alternate completing-read function to use when ido is not wanted.
