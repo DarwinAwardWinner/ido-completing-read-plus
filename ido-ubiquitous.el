@@ -547,6 +547,8 @@ completion for them."
       (ido-ubiquitous-fallback
        (message "Ido-ubiquitous falling back")
        (apply ido-cr+-fallback-function orig-args)))))
+(define-obsolete-function-alias #'completing-read-ido #'completing-read-ido-ubiquitous
+  "ido-ubiquitous 3.0")
 
 ;;; Old-style default support
 
