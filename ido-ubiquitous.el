@@ -495,7 +495,8 @@ is used to determine whether to enable certain behaviors only for
 ido-ubiquitous, not for ordinary ido completion."
   ;; Set "this" and clear "next" so it doesn't apply to nested calls.
   (let* ((ido-ubiquitous-enable-this-call ido-ubiquitous-enable-next-call)
-         (ido-ubiquitous-enable-next-call nil))
+         (ido-ubiquitous-enable-next-call nil)
+         (ido-ubiquitous-initial-item nil))
     ad-do-it))
 
 ;; Signal used to trigger fallback
