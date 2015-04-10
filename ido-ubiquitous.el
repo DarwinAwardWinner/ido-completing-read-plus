@@ -394,9 +394,14 @@ See `ido-ubiquitous-command-overrides' for valid override types."
       (eval
        `(defadvice ,func (around ido-ubiquitous-override activate)
           ,docstring
-          (ido-ubiquitous-with-override
-           (get ',func 'ido-ubiquitous-override)
-           ad-do-it))))))
+          (let* ((func ',func)
+                 (override (get func 'ido-ubiquitous-override)))
+            (when override
+              (ido-ubiquitous--debug-message
+               "Using override `%s' for function `%s'"
+               override func))
+            (ido-ubiquitous-with-override override
+              ad-do-it)))))))
 
 (defun ido-ubiquitous-set-function-overrides (sym newval)
   "Custom setter function for `ido-ubiquitous-function-overrides'.
@@ -844,9 +849,13 @@ See the C source for the logic behind this function."
 
 (defadvice call-interactively (around ido-ubiquitous activate)
   "Implements the behavior specified in `ido-ubiquitous-command-overrides'."
-  (ido-ubiquitous-with-override
-   (ido-ubiquitous-get-command-override (ad-get-arg 0))
-   ad-do-it))
+  (let* ((cmd (ad-get-arg 0))
+         (override (ido-ubiquitous-get-command-override cmd)))
+    (when override
+      (ido-ubiquitous--debug-message "Using override `%s' for command `%s'"
+                                     override cmd))
+    (ido-ubiquitous-with-override override
+        ad-do-it)))
 
 ;; Work around `called-interactively-p' in Emacs 24.3 and earlier,
 ;; which always returns nil when `call-interactively' is advised.
@@ -901,7 +910,7 @@ Debug info is printed to the *Messages* buffer."
     (when (and (listp arg)
                (eq (car arg) 'ido-ubiquitous-fallback))
       (setq arg (cdr arg)))
-    (ido-ubiquitous--debug-message "Falling back to `%s' because %s"
+    (ido-ubiquitous--debug-message "Falling back to `%s' because %s."
                                    ido-cr+-fallback-function arg)))
 
 ;;; Other
