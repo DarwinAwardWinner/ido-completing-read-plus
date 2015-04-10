@@ -123,22 +123,27 @@ completion for them."
         (orig-args
          (list prompt collection predicate require-match
                initial-input hist def inherit-input-method)))
-    (condition-case nil
+    (condition-case sig
         (progn
-          (when (or
-                 ;; Can't handle this arg
-                 inherit-input-method
-                 ;; Can't handle this being set
-                 (bound-and-true-p completion-extra-properties)
-                 ;; Can't handle functional collection
-                 (functionp collection))
-            (signal 'ido-cr+-fallback nil))
+          (cond
+           (inherit-input-method
+            (signal 'ido-cr+-fallback
+                    "ido cannot handle non-nil INHERIT-INPUT-METHOD"))
+           ((bound-and-true-p completion-extra-properties)
+            (signal 'ido-cr+-fallback
+                    "ido cannot handle non-nil `completion-extra-properties'"))
+           ((functionp collection)
+            (signal 'ido-cr+-fallback
+                    "ido cannot handle COLLECTION being a function")))
           ;; Expand all possible completions
           (setq collection (all-completions "" collection predicate))
           ;; Check for excessively large collection
           (when (and ido-cr+-max-items
                      (> (length collection) ido-cr+-max-items))
-            (signal 'ido-cr+-fallback nil))
+            (signal 'ido-cr+-fallback
+                    (format
+                     "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
+                     ido-cr+-max-items)))
           ;; ido doesn't natively handle DEF being a list. If DEF is
           ;; a list, prepend it to CHOICES and set DEF to just the
           ;; car of the default list.
@@ -173,9 +178,10 @@ completion for them."
             ;; This detects when the user triggered fallback mode
             ;; manually.
             (when (eq ido-exit 'fallback)
-              (signal 'ido-cr+-fallback nil))))
+              (signal 'ido-cr+-fallback "user manually triggered fallback"))))
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
+       (ido-cr+--explain-fallback sig)
        (apply ido-cr+-fallback-function orig-args)))))
 
 ;;;###autoload
@@ -206,7 +212,6 @@ advice completely replaces `ido-completing-read' with
 ;; Fallback on magic C-f and C-b
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
-  (message "ido-cr+-enable-this-call is %S" ido-cr+-enable-this-call)
   (when ido-cr+-enable-this-call
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
@@ -218,6 +223,32 @@ advice completely replaces `ido-completing-read' with
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
+
+;;; Debug messages
+
+(define-minor-mode ido-cr+-debug-mode
+  "If non-nil, ido-cr+ will print debug info.
+
+Debug info is printed to the *Messages* buffer."
+  nil
+  :global t
+  :group 'ido-cr+)
+
+;; Defined as a macro for efficiency (args are not evaluated unless
+;; debug mode is on)
+(defmacro ido-cr+--debug-message (format-string &rest args)
+  `(when ido-cr+-debug-mode
+     (message (concat "ido-completing-read+: " ,format-string) ,@args)))
+
+(defun ido-cr+--explain-fallback (arg)
+  ;; This function accepts a string, or an ido-cr+-fallback
+  ;; signal.
+  (when ido-cr+-debug-mode
+    (when (and (listp arg)
+               (eq (car arg) 'ido-cr+-fallback))
+      (setq arg (cdr arg)))
+    (ido-cr+--debug-message "Falling back to `%s' because %s."
+                                   ido-cr+-fallback-function arg)))
 
 (provide 'ido-completing-read+)
 
