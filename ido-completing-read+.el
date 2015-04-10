@@ -43,6 +43,28 @@
 
 (require 'ido)
 
+;;; Debug messages
+
+(defvar ido-cr+-debug-mode)
+
+;; Defined as a macro for efficiency (args are not evaluated unless
+;; debug mode is on)
+(defmacro ido-cr+--debug-message (format-string &rest args)
+  `(when ido-cr+-debug-mode
+     (message (concat "ido-completing-read+: " ,format-string) ,@args)))
+
+(defun ido-cr+--explain-fallback (arg)
+  ;; This function accepts a string, or an ido-cr+-fallback
+  ;; signal.
+  (when ido-cr+-debug-mode
+    (when (and (listp arg)
+               (eq (car arg) 'ido-cr+-fallback))
+      (setq arg (cdr arg)))
+    (ido-cr+--debug-message "Falling back to `%s' because %s."
+                                   ido-cr+-fallback-function arg)))
+
+;;; Core code
+
 (defvar ido-cr+-enable-next-call nil
   "If non-nil, then the next call to `ido-completing-read' is by `ido-completing-read+'.")
 (defvar ido-cr+-enable-this-call nil
@@ -224,8 +246,10 @@ advice completely replaces `ido-completing-read' with
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
 
-;;; Debug messages
+;;; Debug mode
 
+;; This is defined at the end so it goes at the bottom of the
+;; customization group
 (define-minor-mode ido-cr+-debug-mode
   "If non-nil, ido-cr+ will print debug info.
 
@@ -233,22 +257,6 @@ Debug info is printed to the *Messages* buffer."
   nil
   :global t
   :group 'ido-cr+)
-
-;; Defined as a macro for efficiency (args are not evaluated unless
-;; debug mode is on)
-(defmacro ido-cr+--debug-message (format-string &rest args)
-  `(when ido-cr+-debug-mode
-     (message (concat "ido-completing-read+: " ,format-string) ,@args)))
-
-(defun ido-cr+--explain-fallback (arg)
-  ;; This function accepts a string, or an ido-cr+-fallback
-  ;; signal.
-  (when ido-cr+-debug-mode
-    (when (and (listp arg)
-               (eq (car arg) 'ido-cr+-fallback))
-      (setq arg (cdr arg)))
-    (ido-cr+--debug-message "Falling back to `%s' because %s."
-                                   ido-cr+-fallback-function arg)))
 
 (provide 'ido-completing-read+)
 

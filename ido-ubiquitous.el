@@ -82,6 +82,26 @@ be updated until you restart Emacs.")
 ;; because if it isn't we need enable a workaround.
 (require 'nadvice nil 'noerror)
 
+;;; Debug messages
+
+(defvar ido-ubiquitous-debug-mode)
+
+;; Defined as a macro for efficiency (args are not evaluated unless
+;; debug mode is on)
+(defmacro ido-ubiquitous--debug-message (format-string &rest args)
+  `(when ido-ubiquitous-debug-mode
+     (message (concat "ido-ubiquitous: " ,format-string) ,@args)))
+
+(defun ido-ubiquitous--explain-fallback (arg)
+  ;; This function accepts a string, or an ido-ubiquitous-fallback
+  ;; signal.
+  (when ido-ubiquitous-debug-mode
+    (when (and (listp arg)
+               (eq (car arg) 'ido-ubiquitous-fallback))
+      (setq arg (cdr arg)))
+    (ido-ubiquitous--debug-message "Falling back to `%s' because %s."
+                                   ido-cr+-fallback-function arg)))
+
 ;;; Internal utility functions
 
 (defun ido-ubiquitous--as-string (sym-or-str)
@@ -604,14 +624,18 @@ appropriate debug messages."
   (ido-ubiquitous-set-initial-item nil))
 
 ;; Clear initial item after `self-insert-command'
-(add-hook
- 'ido-minibuffer-setup-hook
- (lambda ()
-   (add-hook
-    'post-self-insert-hook
-    (lambda () (ido-ubiquitous-set-initial-item nil))
-    nil
-    'local)))
+(defun ido-ubiquitous-post-insert-hook ()
+  (eval '(ido-ubiquitous-set-initial-item nil)))
+
+(defun ido-ubiquitous-ido-minibuffer-setup-hook ()
+  (add-hook
+   'post-self-insert-hook
+   #'ido-ubiquitous-post-insert-hook
+   nil
+   'local))
+
+(add-hook 'ido-minibuffer-setup-hook
+          #'ido-ubiquitous-ido-minibuffer-setup-hook)
 
 (defun ido-ubiquitous-should-use-old-style-default ()
   "Returns non nil if ido-ubiquitous should emulate old-style default.
@@ -621,18 +645,18 @@ done in order to decide whether to swap RET and C-j. See
 `ido-ubiquitous-default-state' for more information."
   ;; These checks outside the loop don't produce debug messages
   (and
-   (bound-and-true-p ido-cur-item)
-   ;; Only if completing a list, not a buffer or file
-   (eq ido-cur-item 'list)
-   ;; Only if this call was done through ido-ubiquitous
-   ido-ubiquitous-enable-this-call
    ;; Only if old-style default enabled
    (eq ido-ubiquitous-active-state 'enable-old)
    ;; This loop is just an implementation of `and' that reports which
    ;; arg was nil for debugging purposes.
-   (loop
+   (cl-loop
     for test in
-    '(;; Only if default is nil
+    '((bound-and-true-p ido-cur-item)
+      ;; Only if completing a list, not a buffer or file
+      (eq ido-cur-item 'list)
+      ;; Only if this call was done through ido-ubiquitous
+      ido-ubiquitous-enable-this-call
+      ;; Only if default is nil
       (null ido-default-item)
       ;; Only if input is empty
       (string= ido-text "")
@@ -665,7 +689,9 @@ advice has any effect."
           (let ((ido-ubiquitous-active-state 'enable))
             (ido-select-text))
         ad-do-it)
-    (error ad-do-it))
+    (error
+     (display-warning 'ido-ubiquitous "Advice on `ido-exit-minibuffer' failed." :warning)
+     ad-do-it))
   (ido-ubiquitous-set-initial-item nil))
 
 (defadvice ido-select-text (around old-style-default-compat activate)
@@ -682,7 +708,9 @@ advice has any effect."
           (let ((ido-ubiquitous-active-state 'enable))
             (ido-exit-minibuffer))
         ad-do-it)
-    (error ad-do-it))
+    (error
+     (display-warning 'ido-ubiquitous "Advice on `ido-select-text' failed." :warning)
+     ad-do-it))
   (ido-ubiquitous-set-initial-item nil))
 
 ;;; Overrides
@@ -887,8 +915,10 @@ This advice completely overrides the original definition."
       ;; implementation
       (error ad-do-it))))
 
-;;; Debug messages
+;;; Other
 
+;; This is defined at the end so it goes at the bottom of the
+;; customization group
 (define-minor-mode ido-ubiquitous-debug-mode
   "If non-nil, ido-ubiquitous will print debug info.
 
@@ -896,24 +926,6 @@ Debug info is printed to the *Messages* buffer."
   nil
   :global t
   :group 'ido-ubiquitous)
-
-;; Defined as a macro for efficiency (args are not evaluated unless
-;; debug mode is on)
-(defmacro ido-ubiquitous--debug-message (format-string &rest args)
-  `(when ido-ubiquitous-debug-mode
-     (message (concat "ido-ubiquitous: " ,format-string) ,@args)))
-
-(defun ido-ubiquitous--explain-fallback (arg)
-  ;; This function accepts a string, or an ido-ubiquitous-fallback
-  ;; signal.
-  (when ido-ubiquitous-debug-mode
-    (when (and (listp arg)
-               (eq (car arg) 'ido-ubiquitous-fallback))
-      (setq arg (cdr arg)))
-    (ido-ubiquitous--debug-message "Falling back to `%s' because %s."
-                                   ido-cr+-fallback-function arg)))
-
-;;; Other
 
 (defun ido-ubiquitous-initialize ()
   "Do initial setup for ido-ubiquitous.
