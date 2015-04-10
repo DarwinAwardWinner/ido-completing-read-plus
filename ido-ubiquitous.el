@@ -519,7 +519,7 @@ completion for them."
         (orig-args
          (list prompt collection predicate require-match
                initial-input hist def inherit-input-method)))
-    (condition-case nil
+    (condition-case sig
         (let* (;; Set the active override and clear the "next" one so it
                ;; doesn't apply to nested calls.
                (ido-ubiquitous-active-override ido-ubiquitous-next-override)
@@ -531,7 +531,8 @@ completion for them."
                     'enable)))
           ;; If ido-ubiquitous is disabled this time, fall back
           (when (eq ido-ubiquitous-active-state 'disable)
-            (signal 'ido-ubiquitous-fallback nil))
+            (signal 'ido-ubiquitous-fallback
+                    "`ido-ubiquitous-active-state' is `disable'"))
           ;; Handle a collection that is a function: either expand
           ;; completion list now or fall back
           (when (functionp collection)
@@ -539,14 +540,15 @@ completion for them."
                     (memq ido-ubiquitous-active-override
                           '(enable enable-old)))
                 (setq collection (all-completions "" collection predicate))
-              (signal 'ido-ubiquitous-fallback nil)))
+              (signal 'ido-ubiquitous-fallback
+                      "COLLECTION is a function and there is no override")))
           (let ((ido-ubiquitous-enable-next-call t))
             (ido-completing-read+
              prompt collection predicate require-match
              initial-input hist def inherit-input-method)))
       ;; Handler for ido-ubiquitous-fallback signal
       (ido-ubiquitous-fallback
-       (message "Ido-ubiquitous falling back")
+       (ido-ubiquitous--explain-fallback sig)
        (apply ido-cr+-fallback-function orig-args)))))
 (define-obsolete-function-alias #'completing-read-ido #'completing-read-ido-ubiquitous
   "ido-ubiquitous 3.0")
