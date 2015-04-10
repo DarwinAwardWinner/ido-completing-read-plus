@@ -830,6 +830,32 @@ This advice completely overrides the original definition."
       ;; implementation
       (error ad-do-it))))
 
+;;; Debug messages
+
+(define-minor-mode ido-ubiquitous-debug-mode
+  "If non-nil, ido-ubiquitous will print debug info.
+
+Debug info is printed to the *Messages* buffer."
+  nil
+  :global t
+  :group 'ido-ubiquitous)
+
+;; Defined as a macro for efficiency (args are not evaluated unless
+;; debug mode is on)
+(defmacro ido-ubiquitous--debug-message (format-string &rest args)
+  `(when ido-ubiquitous-debug-mode
+     (message (concat "ido-ubiquitous: " ,format-string) ,@args)))
+
+(defun ido-ubiquitous--explain-fallback (arg)
+  ;; This function accepts a string, or an ido-ubiquitous-fallback
+  ;; signal.
+  (when ido-ubiquitous-debug-mode
+    (when (and (listp arg)
+               (eq (car arg) 'ido-ubiquitous-fallback))
+      (setq arg (cdr arg)))
+    (ido-ubiquitous--debug-message "Falling back to `%s' because %s"
+                                   ido-cr+-fallback-function arg)))
+
 ;;; Other
 
 (defun ido-ubiquitous-initialize ()
