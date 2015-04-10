@@ -563,19 +563,48 @@ equal to the first item in the completion list when ido exits,
 then if `ido-ubiquitous-active-state' is `enable-old', ido
 returns an empty string instead of the first item on the list.")
 
+(defmacro ido-ubiquitous-set-initial-item (item)
+  "Wrapper for `(setq ido-ubiquitous-initial-item ITEM)'.
+
+This wrapper differs from simply doing `(setq
+ido-ubiquitous-initial-item ITEM)' in several ways. First, it has
+no effect (and does not evaluate ITEM) unless
+`ido-ubiquitous-active-state' is `enable-old'. Second, it emits
+appropriate debug messages."
+  `(when (eq ido-ubiquitous-active-state 'enable-old)
+     (let ((item ,item))
+       (cond
+        (item
+         (ido-ubiquitous--debug-message
+          "Setting `ido-ubiquitous-initial-item' to `%S'."
+          item))
+        (ido-ubiquitous-initial-item
+         (ido-ubiquitous--debug-message "Clearing `ido-ubiquitous-initial-item'.")))
+       (setq ido-ubiquitous-initial-item item))))
+
 (defadvice ido-read-internal (before clear-initial-item activate)
-  (setq ido-ubiquitous-initial-item nil))
+  (ido-ubiquitous-set-initial-item nil))
 
 (defadvice ido-make-choice-list (after set-initial-item activate)
-  (setq ido-ubiquitous-initial-item
-        (when (and ad-return-value (listp ad-return-value))
-          (car ad-return-value))))
+  (ido-ubiquitous-set-initial-item
+   (when (and ad-return-value (listp ad-return-value))
+     (car ad-return-value))))
 
 (defadvice ido-next-match (after clear-initial-item activate)
-  (setq ido-ubiquitous-initial-item nil))
+  (ido-ubiquitous-set-initial-item nil))
 
 (defadvice ido-prev-match (after clear-initial-item activate)
-  (setq ido-ubiquitous-initial-item nil))
+  (ido-ubiquitous-set-initial-item nil))
+
+;; Clear initial item after `self-insert-command'
+(add-hook
+ 'ido-minibuffer-setup-hook
+ (lambda ()
+   (add-hook
+    'post-self-insert-hook
+    (lambda () (ido-ubiquitous-set-initial-item nil))
+    nil
+    'local)))
 
 (defun ido-ubiquitous-should-use-old-style-default ()
   "Returns non nil if ido-ubiquitous should emulate old-style default.
@@ -583,22 +612,37 @@ returns an empty string instead of the first item on the list.")
 This function simply encapsulates all the checks that need to be
 done in order to decide whether to swap RET and C-j. See
 `ido-ubiquitous-default-state' for more information."
+  ;; These checks outside the loop don't produce debug messages
   (and
+   (bound-and-true-p ido-cur-item)
    ;; Only if completing a list, not a buffer or file
    (eq ido-cur-item 'list)
    ;; Only if this call was done through ido-ubiquitous
    ido-ubiquitous-enable-this-call
-   ;; Only if default is nil
-   (null ido-default-item)
-   ;; Only if input is empty
-   (string= ido-text "")
    ;; Only if old-style default enabled
    (eq ido-ubiquitous-active-state 'enable-old)
-   ;; Only if `ido-ubiquitous-initial-item' hasn't been cleared
-   ido-ubiquitous-initial-item
-   ;; Only if initial item hasn't changed
-   (string= (car ido-cur-list)
-            ido-ubiquitous-initial-item)))
+   ;; This loop is just an implementation of `and' that reports which
+   ;; arg was nil for debugging purposes.
+   (loop
+    for test in
+    '(;; Only if default is nil
+      (null ido-default-item)
+      ;; Only if input is empty
+      (string= ido-text "")
+      ;; Only if `ido-ubiquitous-initial-item' hasn't been cleared
+      ido-ubiquitous-initial-item
+      ;; Only if initial item hasn't changed
+      (string= (car ido-cur-list)
+               ido-ubiquitous-initial-item))
+    for test-result = (eval test)
+    if (not test-result)
+    do (ido-ubiquitous--debug-message
+        "Not enabling old-style default selection because `%S' is nil"
+        test)
+    and return nil
+    finally do (ido-ubiquitous--debug-message
+                "Enabling old-style default selection")
+    finally return t)))
 
 (defadvice ido-exit-minibuffer (around old-style-default-compat activate)
   "Emulate a quirk of `completing-read'.
@@ -611,10 +655,11 @@ See `ido-ubiquitous-default-state', which controls whether this
 advice has any effect."
   (condition-case nil
       (if (ido-ubiquitous-should-use-old-style-default)
-          (ido-select-text)
+          (let ((ido-ubiquitous-active-state 'enable))
+            (ido-select-text))
         ad-do-it)
     (error ad-do-it))
-  (setq ido-ubiquitous-initial-item nil))
+  (ido-ubiquitous-set-initial-item nil))
 
 (defadvice ido-select-text (around old-style-default-compat activate)
   "Emulate a quirk of `completing-read'.
@@ -627,10 +672,11 @@ See `ido-ubiquitous-default-state', which controls whether this
 advice has any effect."
   (condition-case nil
       (if (ido-ubiquitous-should-use-old-style-default)
-          (ido-exit-minibuffer)
+          (let ((ido-ubiquitous-active-state 'enable))
+            (ido-exit-minibuffer))
         ad-do-it)
     (error ad-do-it))
-  (setq ido-ubiquitous-initial-item nil))
+  (ido-ubiquitous-set-initial-item nil))
 
 ;;; Overrides
 
