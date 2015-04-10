@@ -1,4 +1,4 @@
-;;; ido-completing-read+.el --- A completing-read-function using ido  -*- "lexical-binding": t -*-
+;;; ido-completing-read+.el --- A completing-read-function using ido  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015 Ryan C. Thompson
 
