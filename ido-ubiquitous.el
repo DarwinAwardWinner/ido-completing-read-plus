@@ -283,7 +283,6 @@ using overrides and disable it for everything else."
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
     ;; Org and Magit already support ido natively
     (disable prefix "org-")
-    (disable prefix "magit-")
     ;; https://github.com/bbatsov/prelude/issues/488
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
     ;; tmm implements its own non-standard completion mechanics
@@ -303,6 +302,7 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (disable exact "gnus-emacs-completing-read")
     (disable exact "gnus-iswitchb-completing-read")
     (disable exact "grep-read-files")
+    (disable exact "magit-builtin-completing-read")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/36
     (enable exact "bookmark-completing-read")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
