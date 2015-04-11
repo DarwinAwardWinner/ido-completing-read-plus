@@ -301,7 +301,7 @@ using overrides and disable it for everything else."
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/28
     (enable regexp "\\`\\(find\\|load\\|locate\\)-library\\'")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
-    ;; Org and Magit already support ido natively
+    ;; Org already supports ido natively
     (disable prefix "org-")
     ;; https://github.com/bbatsov/prelude/issues/488
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
@@ -927,17 +927,46 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-ubiquitous)
 
-(defun ido-ubiquitous-initialize ()
-  "Do initial setup for ido-ubiquitous.
-
-This only needs to be called once when the file is first loaded."
+(defsubst ido-ubiquitous--fixup-old-advice ()
   ;; Clean up old versions of ido-ubiquitous advice if they exist
   (ignore-errors (ad-remove-advice 'completing-read 'around 'ido-ubiquitous))
   (ignore-errors (ad-remove-advice 'ido-completing-read 'around 'detect-replacing-cr))
   (ignore-errors (ad-remove-advice 'ido-magic-forward-char 'before 'ido-ubiquitous-fallback))
   (ignore-errors (ad-remove-advice 'ido-magic-backward-char 'before 'ido-ubiquitous-fallback))
   (ignore-errors (ad-remove-advice 'ido-exit-minibuffer 'around 'compatibility))
-  (ad-activate-all)
+  (ad-activate-all))
+
+(defsubst ido-ubiquitous--fixup-old-magit-overrides ()
+  (let ((old-override '(disable prefix "magit-"))
+        (new-override '(disable exact "magit-builtin-completing-read")))
+    (when (member old-override
+                  ido-ubiquitous-command-overrides)
+      (customize-set-variable
+       'ido-ubiquitous-command-overrides
+       (remove old-override ido-ubiquitous-command-overrides))
+      (unless (member new-override ido-ubiquitous-function-overrides)
+        (customize-set-variable 'ido-ubiquitous-function-overrides
+                                (append ido-ubiquitous-function-overrides
+                                        (list new-override))))
+      (display-warning
+       'ido-ubiquitous
+       "Fixing obsolete magit overrides.
+
+Magit has changed recently such that the old override that
+ido-ubiquitous defined for it now causes problems. This old
+override has been automatically removed and the new one added.
+Please use `M-x customize-group ido-ubiquitous' and review the
+override variables and save them to your customization file."
+       :warning))))
+
+(defun ido-ubiquitous-initialize ()
+  "Do initial setup for ido-ubiquitous.
+
+This only needs to be called once when the file is first loaded.
+It cleans up any traces of old versions of ido-ubiquitous and
+then sets up the mode."
+  (ido-ubiquitous--fixup-old-advice)
+  (ido-ubiquitous--fixup-old-magit-overrides)
   ;; Make sure the mode is turned on/off as specified by the value of
   ;; the mode variable
   (ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0)))
