@@ -43,6 +43,14 @@
 ;; ido-ubiquitous' and read about the override variables for more
 ;; information.
 
+;; ido-ubiquitous version 3.0 is a major update, including a split
+;; into two packages, and some of the configuration options have
+;; changed in non-backwards-compatible ways. If you have customized
+;; ido-ubiquitous, be sure to check out `M-x customize-group
+;; ido-ubiquitous' and `M-x customize-group ido-completing-read+'
+;; after updating to 3.0 and make sure the new settings are to your
+;; liking.
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; This program is free software: you can redistribute it and/or modify
