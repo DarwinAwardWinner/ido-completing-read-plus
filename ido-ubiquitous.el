@@ -8,7 +8,7 @@
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.0"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
