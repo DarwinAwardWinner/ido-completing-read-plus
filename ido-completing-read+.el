@@ -126,7 +126,8 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :type 'boolean)
 
 ;; Signal used to trigger fallback
-(define-error 'ido-cr+-fallback "ido-cr+-fallback")
+(put 'ido-cr+-fallback 'error-conditions '(ido-cr+-fallback error))
+(put 'ido-cr+-fallback 'error-message "ido-cr+-fallback")
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate

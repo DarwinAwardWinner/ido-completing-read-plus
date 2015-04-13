@@ -533,7 +533,8 @@ ido-ubiquitous, not for ordinary ido completion."
     ad-do-it))
 
 ;; Signal used to trigger fallback
-(define-error 'ido-ubiquitous-fallback "ido-ubiquitous-fallback")
+(put 'ido-ubiquitous-fallback 'error-conditions '(ido-ubiquitous-fallback error))
+(put 'ido-ubiquitous-fallback 'error-message "ido-ubiquitous-fallback")
 
 (defun completing-read-ido-ubiquitous
     (prompt collection &optional predicate
