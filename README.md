@@ -6,10 +6,7 @@ without breaking things.
 
 Get it from http://marmalade-repo.org/packages/ido-ubiquitous
 
-Note that ido-ubiquitous is not enabled for org mode or magit mode,
-because those modes have their own built-in support for ido, which you
-should enable instead. Also, to enable ido for all file and buffer
-completion, customize `ido-everywhere`.
+## Version 3.0 changes
 
 ido-ubiquitous version 3.0 is a major update, including a split into
 two packages, and some of the configuration options have changed in
@@ -21,7 +18,7 @@ sure the new settings are to your liking.
 # How to enable ido in as many places as possible
 
 If you are using this package, you probably want to enable ido
-everywhere that it is possible to do so. Here are all the place to
+everywhere that it is possible to do so. Here are all the places to
 enable ido that I'm aware of.
 
 ## Ido itself
@@ -48,4 +45,5 @@ Org-mode and magit have their own support for ido:
 
 Install this package and then turn on `ido-ubiquitous-mode`:
 
+    (require 'ido-ubiquitous)
     (ido-ubiquitous-mode 1)
