@@ -1,6 +1,6 @@
 # ido-ubiquitous
 
-Gimme some ido... everywhere! This pacakge replaces stock emacs
+Gimme some ido... everywhere! This package replaces stock emacs
 completion with ido completion wherever it is possible to do so
 without breaking things.
 
