@@ -1,3 +1,8 @@
+2015-04-23  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el: Fix obsolete reference to "choices"
+	instead of "collection"
+
 2015-04-08  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* Major refactor: split into two packages: ido-completing-read+.el
@@ -8,120 +13,130 @@
 
 2015-01-25  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Fix indentation issues
+	* ido-ubiquitous: Fix indentation issues
 	(https://github.com/DarwinAwardWinner/ido-ubiquitous/pull/62)
 
 2014-09-04  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Enable fallbacks to non-ido-completion using C-f and C-b
+	* ido-ubiquitous: Enable fallbacks to non-ido-completion using C-f
+	and C-b
 
 2014-05-26  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Disable in tmm when called as a function as well as a command
+	* ido-ubiquitous: Disable in tmm when called as a function as well
+	as a command
 
 2014-03-27  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Add override for "*-theme" functions
+	* ido-ubiquitous: Add override for "*-theme" functions
 
 2014-03-24  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Fix a bug related to
+	* ido-ubiquitous: Fix a bug related to
 	"ido-ubiquitous-allow-on-functional-collection"
 	(#46)
 
 2014-02-25  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Disable in tmm-menubar
+	* ido-ubiquitous: Disable in tmm-menubar
 
 2013-11-19  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Add new custom variable
+	* ido-ubiquitous: Add new custom variable
 	"ido-ubiquitous-allow-on-functional-collection"
 
 2013-10-02  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Enable in "read-char-by-name"
+	* ido-ubiquitous: Enable in "read-char-by-name"
 
 2013-09-27  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Disable in org and magit since they already support ido
+	* ido-ubiquitous: Disable in org and magit since they already
+	support ido
 
 2013-09-26  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Make ido-ubiquitous work with Emacs trunk (pre-24.4)
+	* ido-ubiquitous: Make ido-ubiquitous work with Emacs trunk
+	(pre-24.4)
 
-	* Fix a few minor and unlikely-to-ever-occur bugs
+	* ido-ubiquitous: Fix a few minor and unlikely-to-ever-occur bugs
 
-	* Replace collection function whitelist with overrides (overrides
-	can now force ido completion when collection is a function)
+	* ido-ubiquitous: Replace collection function whitelist with
+	overrides (overrides can now force ido completion when collection
+	is a function)
 
 2013-09-23  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Implement collection function whitelist
+	* ido-ubiquitous: Implement collection function whitelist
 
-	* Implement collection size limit for ido completion
+	* ido-ubiquitous: Implement collection size limit for ido
+	completion
 
 2013-09-17  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Eliminate use of "macroexp--backtrace", which doesn't exist in
-	Emacs 24.2.
+	* ido-ubiquitous: Eliminate use of "macroexp--backtrace", which
+	doesn't exist in Emacs 24.2.
 
 2013-09-11  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Fix handling of collection being a function (issues #23 and
-	#25).
+	* ido-ubiquitous: Fix handling of collection being a function
+	(issues #23 and #25).
 
 2013-09-10  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Fix the issue where `called-interactively-p' always returns
-	false
+	* ido-ubiquitous: Fix the issue where `called-interactively-p'
+	always returns false
 	https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/24
 
 2013-09-05  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Ido-ubiquitous now works better with interactive
+	* ido-ubiquitous: Ido-ubiquitous now works better with interactive
 	commands. Specifically, it now works when the completion happens
 	inside the "interactive" form of the command instead of the
 	function body.
 
-	* Functions and commands that need non-standard behavior are now
-	controlled through the variables
+	* ido-ubiquitous: Functions and commands that need non-standard
+	behavior are now controlled through the variables
 	"ido-ubiquitous-command-overrides" and
 	"ido-ubiquitous-function-overrides".
 
-	* Major rewrite of a significant portions of ido-ubiquitous.
+	* ido-ubiquitous: Major rewrite of a significant portions of
+	ido-ubiquitous.
 
 2013-05-31  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Officially drop support for Emacs 23 and lower. ido-ubiquitous
-	now uses the `completing-read-function' variable instead of
-	advising `completing-read'.
+	* ido-ubiquitous: Officially drop support for Emacs 23 and lower.
+	ido-ubiquitous now uses the `completing-read-function' variable
+	instead of advising `completing-read'.
 
-	* Make ido-ubiquitous work more reliably in interactive commands.
+	* ido-ubiquitous: Make ido-ubiquitous work more reliably in
+	interactive commands.
 
-	* Avoid spurious warning when loaded before ido.
+	* ido-ubiquitous: Avoid spurious warning when loaded before ido.
 
-	* Disable ido when completion-extra-properties is non-nil
+	* ido-ubiquitous: Disable ido when completion-extra-properties is
+	non-nil
 
-	* The interface for setting old-style completion compatibility has
-	changed. If you have customized these settings, you should review
-	them after upgrading.
+	* ido-ubiquitous: The interface for setting old-style completion
+	compatibility has changed. If you have customized these settings,
+	you should review them after upgrading.
 
 2012-09-07  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Restore compatibility with Emacs 23 and earlier
+	* ido-ubiquitous: Restore compatibility with Emacs 23 and earlier
 
-	* Work around an ido bug where providing both an initial input and
-	a default would break things
+	* ido-ubiquitous: Work around an ido bug where providing both an
+	initial input and a default would break things
 
-	* Most modifications to ido behavior are now activated only when
-	ido is acting as a completing-read replacement, and not when it is
-	used directly. This shoud prevent ido-ubiquitous from interfering
-	with normal usage of ido.
+	* ido-ubiquitous: Most modifications to ido behavior are now
+	activated only when ido is acting as a completing-read
+	replacement, and not when it is used directly. This shoud prevent
+	ido-ubiquitous from interfering with normal usage of ido.
 
-	* Add Custom interface for compatibility exceptions.
+	* ido-ubiquitous: Add Custom interface for compatibility
+	exceptions.
 
 2012-09-03  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* New implementation: Switch from defining advice on
-	"completing-read" to setting "completing-read-function"
+	* ido-ubiquitous: New implementation: Switch from defining advice
+	on "completing-read" to setting "completing-read-function"
