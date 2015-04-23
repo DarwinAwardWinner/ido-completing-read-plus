@@ -167,13 +167,13 @@ completion for them."
                     (format
                      "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
                      ido-cr+-max-items)))
-          ;; ido doesn't natively handle DEF being a list. If DEF is
-          ;; a list, prepend it to CHOICES and set DEF to just the
+          ;; ido doesn't natively handle DEF being a list. If DEF is a
+          ;; list, prepend it to COLLECTION and set DEF to just the
           ;; car of the default list.
           (when (and def (listp def))
-            (setq choices
+            (setq collection
                   (append def
-                          (nreverse (cl-set-difference choices def)))
+                          (nreverse (cl-set-difference collection def)))
                   def (car def)))
           ;; Work around a bug in ido when both INITIAL-INPUT and
           ;; DEF are provided.
@@ -185,11 +185,11 @@ completion for them."
             (when (and def initial
                        (stringp initial)
                        (not (string= initial "")))
-              ;; Both default and initial input were provided. So
-              ;; keep the initial input and preprocess the choices
-              ;; list to put the default at the head, then proceed
-              ;; with default = nil.
-              (setq choices (cons def (remove def choices))
+              ;; Both default and initial input were provided. So keep
+              ;; the initial input and preprocess the collection list
+              ;; to put the default at the head, then proceed with
+              ;; default = nil.
+              (setq collection (cons def (remove def collection))
                     def nil)))
           ;; Ready to do actual ido completion
           (prog1
