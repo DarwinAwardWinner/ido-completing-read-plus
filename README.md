@@ -4,7 +4,7 @@ Gimme some ido... everywhere! This package replaces stock emacs
 completion with ido completion wherever it is possible to do so
 without breaking things.
 
-Get it from http://marmalade-repo.org/packages/ido-ubiquitous
+Get it from MELPA: http://melpa.org/#/ido-ubiquitous
 
 ## Version 3.0 changes
 
