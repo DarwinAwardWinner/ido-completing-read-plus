@@ -130,7 +130,7 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
 (put 'ido-cr+-fallback 'error-message "ido-cr+-fallback")
 
 ;;;###autoload
-(defun ido-completing-read+ (prompt collection &optional predicate
+(defun ido-completing-read+ (prompt choices &optional predicate
                                     require-match initial-input
                                     hist def inherit-input-method)
   "ido-based method for reading from the minibuffer with completion.
@@ -144,7 +144,7 @@ completion for them."
   (let (;; Save the original arguments in case we need to do the
         ;; fallback
         (orig-args
-         (list prompt collection predicate require-match
+         (list prompt choices predicate require-match
                initial-input hist def inherit-input-method)))
     (condition-case sig
         (progn
@@ -155,17 +155,17 @@ completion for them."
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
                     "ido cannot handle non-nil `completion-extra-properties'"))
-           ((functionp collection)
+           ((functionp choices)
             (signal 'ido-cr+-fallback
-                    "ido cannot handle COLLECTION being a function")))
+                    "ido cannot handle CHOICES being a function")))
           ;; Expand all possible completions
-          (setq collection (all-completions "" collection predicate))
-          ;; Check for excessively large collection
+          (setq choices (all-completions "" choices predicate))
+          ;; Check for excessively large choices
           (when (and ido-cr+-max-items
-                     (> (length collection) ido-cr+-max-items))
+                     (> (length choices) ido-cr+-max-items))
             (signal 'ido-cr+-fallback
                     (format
-                     "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
+                     "there are more than %i items in CHOICES (see `ido-cr+-max-items')"
                      ido-cr+-max-items)))
           ;; ido doesn't natively handle DEF being a list. If DEF is a
           ;; list, prepend it to COLLECTION and set DEF to just the
@@ -195,7 +195,7 @@ completion for them."
           (prog1
               (let ((ido-cr+-enable-next-call t))
                 (ido-completing-read
-                 prompt collection
+                 prompt choices
                  predicate require-match initial-input hist def
                  inherit-input-method))
             ;; This detects when the user triggered fallback mode
