@@ -318,6 +318,9 @@ using overrides and disable it for everything else."
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/47
     ;; theme functions don't need old-style compatibility
     (enable regexp "\\`\\(load\\|enable\\|disable\\|describe\\|custom-theme-visit\\)-theme\\'")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/79
+    ;; BBDB uses old-style default
+    (enable-old prefic "bbdb-")
     )
   "Default value of `ido-ubiquitous-command-overrides'.
 
