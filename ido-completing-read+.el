@@ -41,6 +41,12 @@
 ;;
 ;;; Code:
 
+(defconst ido-ubiquitous-version "3.2"
+  "Currently running version of ido-ubiquitous.
+
+Note that when you update ido-ubiquitous, this variable may not
+be updated until you restart Emacs.")
+
 (require 'ido)
 
 ;;; Debug messages
