@@ -5,7 +5,7 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 3.1
+;; Version: 3.2
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
