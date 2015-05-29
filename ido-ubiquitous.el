@@ -623,18 +623,18 @@ appropriate debug messages."
          (ido-ubiquitous--debug-message "Clearing `ido-ubiquitous-initial-item'.")))
        (setq ido-ubiquitous-initial-item item))))
 
-(defadvice ido-read-internal (before clear-initial-item activate)
+(defadvice ido-read-internal (before ido-ubiquitous-clear-initial-item activate)
   (ido-ubiquitous-set-initial-item nil))
 
-(defadvice ido-make-choice-list (after set-initial-item activate)
+(defadvice ido-make-choice-list (after ido-ubiquitous-set-initial-item activate)
   (ido-ubiquitous-set-initial-item
    (when (and ad-return-value (listp ad-return-value))
      (car ad-return-value))))
 
-(defadvice ido-next-match (after clear-initial-item activate)
+(defadvice ido-next-match (after ido-ubiquitous-clear-initial-item activate)
   (ido-ubiquitous-set-initial-item nil))
 
-(defadvice ido-prev-match (after clear-initial-item activate)
+(defadvice ido-prev-match (after ido-ubiquitous-clear-initial-item activate)
   (ido-ubiquitous-set-initial-item nil))
 
 ;; Clear initial item after `self-insert-command'
@@ -689,7 +689,7 @@ done in order to decide whether to swap RET and C-j. See
                 "Enabling old-style default selection")
     finally return t)))
 
-(defadvice ido-exit-minibuffer (around old-style-default-compat activate)
+(defadvice ido-exit-minibuffer (around ido-ubiquitous-old-style-default-compat activate)
   "Emulate a quirk of `completing-read'.
 
 > If the input is null, `completing-read' returns DEF, or the
@@ -708,7 +708,7 @@ advice has any effect."
      ad-do-it))
   (ido-ubiquitous-set-initial-item nil))
 
-(defadvice ido-select-text (around old-style-default-compat activate)
+(defadvice ido-select-text (around ido-ubiquitous-old-style-default-compat activate)
   "Emulate a quirk of `completing-read'.
 
 > If the input is null, `completing-read' returns DEF, or the
