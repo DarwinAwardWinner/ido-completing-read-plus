@@ -321,6 +321,7 @@ using overrides and disable it for everything else."
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/79
     ;; BBDB uses old-style default
     (enable-old prefix "bbdb-")
+    (enable-old exact "where-is")
     )
   "Default value of `ido-ubiquitous-command-overrides'.
 
