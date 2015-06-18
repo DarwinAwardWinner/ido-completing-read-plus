@@ -48,6 +48,7 @@ Note that when you update ido-ubiquitous, this variable may not
 be updated until you restart Emacs.")
 
 (require 'ido)
+(require 'cl-macs)
 
 ;;; Debug messages
 
