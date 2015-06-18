@@ -59,16 +59,6 @@ be updated until you restart Emacs.")
   `(when ido-cr+-debug-mode
      (message (concat "ido-completing-read+: " ,format-string) ,@args)))
 
-(defun ido-cr+--explain-fallback (arg)
-  ;; This function accepts a string, or an ido-cr+-fallback
-  ;; signal.
-  (when ido-cr+-debug-mode
-    (when (and (listp arg)
-               (eq (car arg) 'ido-cr+-fallback))
-      (setq arg (cdr arg)))
-    (ido-cr+--debug-message "Falling back to `%s' because %s."
-                                   ido-cr+-fallback-function arg)))
-
 ;;; Core code
 
 (defvar ido-cr+-enable-next-call nil
@@ -134,6 +124,16 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
 ;; Signal used to trigger fallback
 (put 'ido-cr+-fallback 'error-conditions '(ido-cr+-fallback error))
 (put 'ido-cr+-fallback 'error-message "ido-cr+-fallback")
+
+(defun ido-cr+--explain-fallback (arg)
+  ;; This function accepts a string, or an ido-cr+-fallback
+  ;; signal.
+  (when ido-cr+-debug-mode
+    (when (and (listp arg)
+               (eq (car arg) 'ido-cr+-fallback))
+      (setq arg (cdr arg)))
+    (ido-cr+--debug-message "Falling back to `%s' because %s."
+                                   ido-cr+-fallback-function arg)))
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
