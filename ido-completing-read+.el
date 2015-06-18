@@ -240,6 +240,11 @@ advice completely replaces `ido-completing-read' with
     (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0))))))
 
 ;; Fallback on magic C-f and C-b
+
+;; Need to defvar this to avoid bytecomp warnings. This makes sense
+;; since we are relying on ido dynamically let-binding it.
+(defvar ido-context-switch-command)
+
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
   (when ido-cr+-enable-this-call
