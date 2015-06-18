@@ -1,3 +1,13 @@
+2015-06-18  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el: Ignore and warn about invalid overrides
+	instead of crashing
+
+	* ido-completing-read+.el: Fix some variable declaration warnings
+
+	* ido-ubiquitous.el (ido-ubiquitous-default-command-overrides):
+	Add override for "where-is" command
+
 2015-05-28  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el (ido-ubiquitous-version): Fix a typo in the previous version
