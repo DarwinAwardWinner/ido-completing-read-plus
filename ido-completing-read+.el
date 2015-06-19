@@ -62,8 +62,10 @@ not be updated until you restart Emacs.")
 
 ;;; Core code
 
+;;;###autoload
 (defvar ido-cr+-enable-next-call nil
   "If non-nil, then the next call to `ido-completing-read' is by `ido-completing-read+'.")
+;;;###autoload
 (defvar ido-cr+-enable-this-call nil
   "If non-nil, then the current call to `ido-completing-read' is by `ido-completing-read+'")
 
@@ -113,6 +115,7 @@ disable fallback based on collection size, set this to nil."
                         widget)))))
   :group 'ido-completing-read-plus)
 
+;;;###autoload
 (defcustom ido-cr+-replace-completely nil
   "If non-nil, replace `ido-completeing-read' completely with ido-cr+.
 
@@ -243,6 +246,7 @@ advice completely replaces `ido-completing-read' with
 
 ;; Need to defvar this to avoid bytecomp warnings. This makes sense
 ;; since we are relying on ido dynamically let-binding it.
+;;;###autoload
 (defvar ido-context-switch-command)
 
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)

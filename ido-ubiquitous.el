@@ -970,6 +970,7 @@ This advice completely overrides the original definition."
 
 ;; This is defined at the end so it goes at the bottom of the
 ;; customization group
+;;;###autoload
 (define-minor-mode ido-ubiquitous-debug-mode
   "If non-nil, ido-ubiquitous will print debug info.
 
