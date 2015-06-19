@@ -1,3 +1,8 @@
+2015-06-19  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el: Fix some byte-compile warnings in autoloads
+	by also autoloading the associated variable declarations
+
 2015-06-18  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el: Ignore and warn about invalid overrides
