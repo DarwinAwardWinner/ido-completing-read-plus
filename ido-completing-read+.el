@@ -243,11 +243,18 @@ advice completely replaces `ido-completing-read' with
     (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0))))))
 
 ;; Fallback on magic C-f and C-b
-
-;; Need to defvar this to avoid bytecomp warnings. This makes sense
-;; since we are relying on ido dynamically let-binding it.
 ;;;###autoload
-(defvar ido-context-switch-command)
+(defvar ido-context-switch-command nil
+  "Variable holding the command used for switching to another completion mode.
+
+This variable is originally declared in `ido.el', but it is not
+given a value (or a docstring). This documentation comes from a
+re-declaration in `ido-completing-read+.el' that initializes it
+to nil, which should suppress some byte-compilation warnings in
+Emacs 25. Setting another package's variable is not safe in
+general, but in this case it should be, because ido always
+let-binds this variable before using it, so the initial value
+shouldn't matter.")
 
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
