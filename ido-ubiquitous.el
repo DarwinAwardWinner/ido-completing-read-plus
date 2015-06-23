@@ -319,10 +319,12 @@ using overrides and disable it for everything else."
     ;; theme functions don't need old-style compatibility
     (enable regexp "\\`\\(load\\|enable\\|disable\\|describe\\|custom-theme-visit\\)-theme\\'")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/79
-    ;; BBDB uses old-style default
     (enable-old prefix "bbdb-")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/83
     (enable-old exact "where-is")
-    )
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/85
+    (enable prefix "xref-")
+    ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-command-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
