@@ -19,7 +19,8 @@ sure the new settings are to your liking.
 
 If you are using this package, you probably want to enable ido
 everywhere that it is possible to do so. Here are all the places to
-enable ido that I'm aware of.
+enable ido that I'm aware of. (Note that most of these variables can
+also be set via `M-x customize-variable` if you prefer that.)
 
 ## Ido itself
 
@@ -28,22 +29,26 @@ First, enable `ido-mode` and `ido-everywhere`.
     (ido-mode 1)
     (ido-everywhere 1)
 
-## Smex
-
-Smex allows you to use ido for completion of commands in M-x. First
-install the [smex](https://github.com/nonsequitur/smex) package, then
-follow the directions to set up key-bindings for it.
-
-## ido completion in org-mode and magit
-
-Org-mode and magit have their own support for ido:
-
-    (setq org-completion-use-ido t)
-    (setq magit-completing-read-function 'magit-ido-completing-read)
-
 ## ido-ubiquitous (this package)
 
 Install this package and then turn on `ido-ubiquitous-mode`:
 
     (require 'ido-ubiquitous)
     (ido-ubiquitous-mode 1)
+
+## Smex
+
+Smex allows you to use ido for completion of commands in M-x, with
+enhancements like putting your most-used commands at the front of the
+list. First install the [smex](https://github.com/nonsequitur/smex)
+package, then follow the directions to set up key-bindings for it.
+
+## Packages with their own completion customizations
+
+Finally, some packages implement their own completion customizations,
+and ido-ubiquitous avoids interfering with these, so you need to
+enable them separately.
+
+* Org Mode: `(setq org-completion-use-ido t)`
+* Magit: `(setq magit-completing-read-function 'magit-ido-completing-read)`
+* Gnus: `(setq gnus-completing-read-function 'gnus-ido-completing-read)`
