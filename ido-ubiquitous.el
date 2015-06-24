@@ -326,6 +326,8 @@ using overrides and disable it for everything else."
     (enable prefix "xref-")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/60
     (disable exact "todo-add-category")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/51
+    (enable exact "find-tag")
     ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-command-overrides'.
 
