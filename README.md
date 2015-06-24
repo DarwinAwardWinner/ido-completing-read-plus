@@ -59,7 +59,7 @@ There are some features of `completing-read` that ido cannot handle,
 and by default ido-ubiquitous tries to get out of the way whenever it
 detects that these features might be used. But the detection is not
 perfect and errs on the side of caution, so ido may be disabled for
-commands where it is actually perfectly save. If you find a command
+commands where it is actually perfectly safe. If you find a command
 that you think should be using ido but isn't, you can try customizing
 `ido-ubiquitous-command-overrides` to tell ido-ubiquitous that certain
 commands are safe for ido completion, or you can customize
@@ -101,11 +101,11 @@ using ido would interfere with this new completion system (for an
 example of this, see the `tmm` command). But ido-ubiquitous cannot
 tell by looking at the function which kind it is, so it errs on the
 side of caution and disables itself whenever the collection is a
-function, unless an override exists telling is that a command is safe
-for ido completion. You can turn off this safeguard by customizing
-`ido-ubiquitous-allow-on-functional-collection`. Be aware that
-enabling this will likely break completion entirely in any command
-that uses this feature to implement non-standard completion.
+function, unless an override exists telling it that the command is
+safe for ido completion. You can turn off this safeguard by
+customizing `ido-ubiquitous-allow-on-functional-collection`. Be aware
+that enabling this will likely break completion entirely in any
+command that uses this feature to implement non-standard completion.
 
 If you run across a command that unexpectedly uses normal Emacs
 completion instead of ido completion, it's likely that either this or
@@ -131,20 +131,22 @@ The `enable-old` mode enables ido completion, but swaps the meaning of
 C-j and RET if you haven't entered any text or cycled the options yet
 (once you do either of those, C-j and RET regain their standard
 meanings). This allows you to select the default by pressing RET as
-soon as the ompletion prompt appears, as intended (C-j would select
+soon as the completion prompt appears, as intended (C-j would select
 the first item).
 
-Unfortuantely, there is no way for ido-ubiquitous to detect when this
-old-style default selection is being used, so instead it uses a
-built-in set of overrides telling it about commands that are known to
-use old-style defaults. If you discover a command where pressing RET
-or C-j at an empty prompt is not doing what you expect it to, there's
-a good chance that you need to add an `enable-old` override for that
-command.
+Unfortuantely, there is no way for ido-ubiquitous to detect when a
+command is using this old-style default selection, so instead it uses
+a built-in set of overrides telling it about commands that are known
+to use old-style defaults. If you discover a command where pressing
+RET or C-j at an empty prompt is not doing what you expect it to,
+there's a good chance that you need to add an `enable-old` override
+for that command. Luckily, since this is an obsolete usage pattern, it
+is unlikely that any Elisp functions written since 1990 or so will
+need to be added to this list.
 
 ## "A command is not working the way I expect it to! What should I do?"
 
-First, run the `ido-ubiquitous-debug-mode` and `ido-cr+-debug-mode`
+First, invoke the `ido-ubiquitous-debug-mode` and `ido-cr+-debug-mode`
 commands (ido-cr+ is a lower-level package underlying ido-ubiquitous
 and implementing generic improvements to `ido-completing-read`). Then,
 with these two modes active, run the offending command. Then examine
@@ -159,7 +161,7 @@ nil if your computer is fast enough to handle any size of collection.
 
 New versions often include new overrides, but Emacs will not edit your
 override variables if you have already customized them. So, if you
-have recently upgraded ido-ubiquitous, remember to run
+have recently upgraded ido-ubiquitous, remember to invoke
 `ido-ubiquitous-restore-default-overrides` to add in any new
 overrides.
 
