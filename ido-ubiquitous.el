@@ -79,7 +79,7 @@ be updated until you restart Emacs.")
 (eval-when-compile
   (when (or (not (boundp 'completing-read-function))
             (< emacs-major-version 24))
-    (error "Could not find required variable `completing-read-function'. Are you using Emacs version 24 or higher? If you have Emacs 23 or lower, please downgrade to ido-ubiquitous version 1.7.")))
+    (error "Could not find required variable `completing-read-function'. Are you using Emacs version 24 or higher? If you have Emacs 23 or lower, please downgrade to ido-ubiquitous version 1.7 (or upgrade Emacs).")))
 
 (require 'ido)
 (require 'advice)
