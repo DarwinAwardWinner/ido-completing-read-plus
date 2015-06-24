@@ -324,6 +324,8 @@ using overrides and disable it for everything else."
     (enable-old exact "where-is")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/85
     (enable prefix "xref-")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/60
+    (disable exact "todo-add-category")
     ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-command-overrides'.
 
