@@ -815,7 +815,7 @@ If there is no override set for CMD in
                   (display-warning
                    'ido-ubiquitous
                    (format "Removing invalid override `%S' from `ido-ubiquitous-command-overrides'"
-                           (cons action spec) action)
+                           (cons action spec))
                    :warning)
                   (setq ido-ubiquitous-command-overrides
                         (remove override ido-ubiquitous-command-overrides)))
