@@ -1,6 +1,8 @@
 # ido-ubiquitous
 
-Gimme some ido... everywhere! This package replaces stock emacs
+[![Join the chat at https://gitter.im/DarwinAwardWinner/ido-ubiquitous](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/DarwinAwardWinner/ido-ubiquitous?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+Gimme some ido... everywhere! This pacakge replaces stock emacs
 completion with ido completion wherever it is possible to do so
 without breaking things.
 
