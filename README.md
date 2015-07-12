@@ -45,15 +45,45 @@ enhancements like putting your most-used commands at the front of the
 list. First install the [smex](https://github.com/nonsequitur/smex)
 package, then follow the directions to set up key-bindings for it.
 
-## Packages with their own completion customizations
+## ido-yes-or-no
+
+If you want to use ido for yes-or-no questions, even though it's be
+massive overkill, install the ido-yes-or-no package (soon to be
+available from MELPA):
+https://github.com/DarwinAwardWinner/ido-yes-or-no
+
+## ido for `describe-face` and certain other commands
+
+Some commands, such as `describe-face`, use `completing-read-multiple`
+instead of `completing-read`. You can get ido completion for these
+commands with `crm-custom-mode`, which replaces
+`completing-read-multiple` with repeated calls to `completing-read`,
+which would then use ido thanks to ido-ubiquitous-mode. First, install
+the [crm-custom](https://github.com/DarwinAwardWinner/crm-custom)
+package from MELPA: http://melpa.org/#/crm-custom
+
+Then enable the mode:
+
+    (crm-custom-mode 1)
+
+Rememebr that when using this mode, completion for affected commands
+will continue to read additional items until you use C-j to enter an
+empty input, which terminates the completion. (Due to this quirk, I do
+not find this mode to be very useful in conjunction with ido, but it
+does work.)
+
+## Packages with built-in ido support
 
 Finally, some packages implement their own completion customizations,
-and ido-ubiquitous avoids interfering with these, so you need to
-enable them separately.
+and ido-ubiquitous specifically avoids interfering with these, so you
+need to enable them separately.
 
 * Org Mode: `(setq org-completion-use-ido t)`
 * Magit: `(setq magit-completing-read-function 'magit-ido-completing-read)`
 * Gnus: `(setq gnus-completing-read-function 'gnus-ido-completing-read)`
+
+(You can also use `M-x customize-variable` to set all of these
+options.)
 
 ## "But some commands still aren't using ido! What gives?"
 
