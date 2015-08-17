@@ -47,7 +47,7 @@ package, then follow the directions to set up key-bindings for it.
 
 ## ido-yes-or-no
 
-If you want to use ido for yes-or-no questions, even though it's be
+If you want to use ido for yes-or-no questions, even though it's
 massive overkill, install the ido-yes-or-no package (soon to be
 available from MELPA):
 https://github.com/DarwinAwardWinner/ido-yes-or-no
