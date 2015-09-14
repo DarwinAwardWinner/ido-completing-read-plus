@@ -900,7 +900,7 @@ the stack."
              unless skipping-until collect frame)))
 
 (defsubst ido-ubiquitous--interactive-internal ()
-  "Eqivalent of the INTERACTIVE macro in the Emacs C source.
+  "Equivalent of the INTERACTIVE macro in the Emacs C source.
 
 This is an internal function that should never be called
 directly.
