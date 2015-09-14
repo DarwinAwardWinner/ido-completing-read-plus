@@ -780,6 +780,9 @@ future sessions."
                  "ido-ubiquitous: Restored default command and function overrides and saved for future sessions."
                "ido-ubiquitous: Restored default command and function overrides for current session only. Call again with prefix to save for future sessions."))))
 
+;; TODO: Add notification message for new overrides, and a preference
+;; to disable it. https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/90
+
 (defun ido-ubiquitous-spec-match (spec symbol)
   "Returns t if SPEC matches SYMBOL (which should be a function name).
 
