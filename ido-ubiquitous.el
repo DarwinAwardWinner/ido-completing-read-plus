@@ -328,6 +328,8 @@ using overrides and disable it for everything else."
     (disable exact "todo-add-category")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/51
     (enable exact "find-tag")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/89
+    (enable prefix "etags-select-")
     ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-command-overrides'.
 
