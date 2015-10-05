@@ -217,6 +217,19 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues so I can
 incorporate them into the defaults for future versions. You can also
 report any bugs you find in ido-ubiquitous.
 
+## I'm getting some weird warnings from ido-ubiquitous when Emacs starts. ##
+
+I've gotten numerous reports about nonsensical warnings produced by
+ido-ubiquitous, such as "free variable" warnings about variables that
+are most definitely properly declared, or warnings that only appear
+when ido-ubiquitous is loaded after another unrelated package. For
+many of these warnings, I've never been able to discover the cause,
+and I've given up trying to figure it out. If you are an Emacs expert
+who knows how to fix these warnings, please let me know.
+
+You can see the bug reports about weird warnings
+[here](https://github.com/DarwinAwardWinner/ido-ubiquitous/issues?utf8=%E2%9C%93&q=label%3Abizarre-unexplainable-scoping-issues+).
+
 # ido-completing-read+ #
 
 As of version 3.0, most of the core functionality of ido-ubiquitous
