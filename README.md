@@ -230,6 +230,19 @@ who knows how to fix these warnings, please let me know.
 You can see the bug reports about weird warnings
 [here](https://github.com/DarwinAwardWinner/ido-ubiquitous/issues?utf8=%E2%9C%93&q=label%3Abizarre-unexplainable-scoping-issues+).
 
+## What is the "bleeding-edge" branch? ##
+
+All users should just use the master branch, or beter yet, install
+from MELPA. The bleeding-edge branch is where I test experimental and
+unfinished features. Because ido-ubiquitous hooks deeply into the
+bowels of Emacs, a bug in ido-ubiquitous could easily freeze or crash
+Emacs entirely. Additionally, some bug only show up when
+ido-ubiquitous is installed and compiled as a package. So I test every
+new feature myself for some time on this branch before pushing to the
+master branch. If you report a bug, I might develop a fix for it on
+the bleeding edge branch and ask then you to try this branch.
+Otherwise, normal users don't need to think about this branch.
+
 # ido-completing-read+ #
 
 As of version 3.0, most of the core functionality of ido-ubiquitous
