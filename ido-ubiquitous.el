@@ -277,7 +277,7 @@ behavior. Instead, it must return an empty string like
 
 The `disable' mode is available as a default, which seems
 counterintuitive. But this allows you, if you so desire, to
-enable ido-ubiquitous selectively for only a few specifc commands
+enable ido-ubiquitous selectively for only a few specific commands
 using overrides and disable it for everything else."
   :type '(choice :tag "Default mode"
                  (const :menu-tag "Disable"
@@ -414,7 +414,7 @@ file a bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :group 'ido-ubiquitous)
 
 (defmacro ido-ubiquitous-with-override (override &rest body)
-  "Eval BODY with specicified OVERRIDE in place.
+  "Eval BODY with specified OVERRIDE in place.
 
 The OVERRIDE argument is evaluated normally, so if it is a
 literal symbol, it must be quoted.

@@ -3,7 +3,7 @@
 [![MELPA Stable](https://stable.melpa.org/packages/ido-ubiquitous-badge.svg)](https://stable.melpa.org/#/ido-ubiquitous)
 [![Join the chat at https://gitter.im/DarwinAwardWinner/ido-ubiquitous](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/DarwinAwardWinner/ido-ubiquitous?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Gimme some ido... everywhere! This pacakge replaces stock emacs
+Gimme some ido... everywhere! This package replaces stock emacs
 completion with ido completion wherever it is possible to do so
 without breaking things.
 
@@ -175,7 +175,7 @@ standard meanings). This allows you to select the default by pressing
 RET as soon as the completion prompt appears, as intended (C-j would
 select the first item).
 
-Unfortuantely, there is no way for ido-ubiquitous to detect when a
+Unfortunately, there is no way for ido-ubiquitous to detect when a
 command is using this old-style default selection, so instead it uses
 a built-in set of overrides telling it about commands that are known
 to use old-style defaults. If you discover a command where pressing
@@ -232,7 +232,7 @@ You can see the bug reports about weird warnings
 
 ## What is the "bleeding-edge" branch? ##
 
-All users should just use the master branch, or beter yet, install
+All users should just use the master branch, or better yet, install
 from MELPA. The bleeding-edge branch is where I test experimental and
 unfinished features. Because ido-ubiquitous hooks deeply into the
 bowels of Emacs, a bug in ido-ubiquitous could easily freeze or crash
@@ -249,7 +249,7 @@ As of version 3.0, most of the core functionality of ido-ubiquitous
 has been spun off into a separate library called ido-completing-read+,
 or "ido-cr+" for short. ido-cr+ incorporates all the features of
 ido-ubiquitous that are actually just generic improvements to ido that
-should probably always be anabled. It implements these fixes in a
+should probably always be enabled. It implements these fixes in a
 single function `ido-completing-read+`, which should be suitable as a
 drop-in replacement for either `ido-completing-read` or
 `completing-read`. Notably, unlike the original `ido-completing-read`,
@@ -259,5 +259,5 @@ Additionally, it allows you to manually fall back using C-f and C-b,
 in the same way you can use those keys to switch between file and
 buffer completion in ido. As a user, you don't really need to know
 anything about ido-cr+. However, if you are writing an Emacs package
-and would like to incorpoarte ido completion, you may wish to use
+and would like to incorporate ido completion, you may wish to use
 ido-cr+ to get more robust completion with fewer weird edge cases.
