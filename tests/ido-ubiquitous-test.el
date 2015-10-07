@@ -1,22 +1,12 @@
-;;; ido-ubiquitous-tests.el ---  -*- "lexical-binding": t -*-
+;;; ido-ubiquitous-test.el ---  -*- "lexical-binding": t -*-
 
 ;; Copyright (C) 2015 Ryan C. Thompson
 
-;; Filename: ido-ubiquitous-tests.el
+;; Filename: ido-ubiquitous-test.el
 ;; Author: Ryan C. Thompson
 ;; Created: Tue Oct  6 20:52:45 2015 (-0700)
-;; Version: 
-;; Package-Requires: ()
-;; URL: 
-;; Keywords: 
 
 ;; This file is NOT part of GNU Emacs.
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;;; Commentary: 
-
-;; 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
@@ -124,6 +114,6 @@ for activation and deactivation."
        (completing-read "Prompt: " '("blue" "yellow" "green") nil 'require-match))
      :type 'error))))
 
-(provide 'ido-ubiquitous-tests)
+(provide 'ido-ubiquitous-test)
 
-;;; ido-ubiquitous-tests.el ends here
+;;; ido-ubiquitous-test.el ends here
