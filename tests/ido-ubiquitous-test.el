@@ -1,4 +1,4 @@
-;;; ido-ubiquitous-test.el ---  -*- "lexical-binding": t -*-
+;;; ido-ubiquitous-test.el ---  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015 Ryan C. Thompson
 
@@ -9,28 +9,30 @@
 ;; This file is NOT part of GNU Emacs.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or (at
 ;; your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-;; 
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;;
 ;;; Code:
 
 ;; This is a series of macros to facilitate the testing of completion
 ;; non-interactively by simulating input.
 
 (require 'ido-ubiquitous)
+(require 'ert)
+(require 'cl-macs)
 
 (defmacro keyboard-quit-to-error (&rest body)
   "Evaluate BODY but signal an error on `keyboard-quit'."
@@ -87,32 +89,190 @@ for activation and deactivation."
            ,@body)
        (,mode ,restore-arg))))
 
-(ert-deftest ido-ubiquitous-test ()
-  "Do some ido-ubiquitous tests"
-  (with-mode ido-ubiquitous-mode 1
+(defmacro with-ido-ubiquitous-standard-env (&rest body)
+  "Execute BODY with standard ido-ubiquitous settings.\n\nAll ido-ubiquitous and ido-cr+ options will be let-bound to their\ndefault values, and `ido-ubiquitous-mode' will be enabled."
+  (let*
+      ((ido-ubiquitous-options
+        '(ido-ubiquitous-allow-on-functional-collection
+          ido-ubiquitous-command-overrides
+          ido-ubiquitous-debug-mode
+          ido-ubiquitous-default-state
+          ido-ubiquitous-function-overrides
+          ido-cr+-fallback-function
+          ido-cr+-max-items
+          ido-cr+-replace-completely))
+       (idu-bindings
+        (loop for var in ido-ubiquitous-options collect
+              (list var
+                    (list 'quote
+                          (default-value var))))))
+    `(with-mode ido-ubiquitous-mode 1
+       (let ,idu-bindings ,@body))))
+
+(defun collection-as-function (collection)
+  "Return a function equivalent to COLLECTION.
+
+The returned function will work equivalently to COLLECTION when
+passed to `all-completions' and `try-completion'."
+  (if (functionp collection)
+      collection
+    ;; Capture collection in a closure
+    (lambda (string pred all)
+      (funcall (if all #'all-completions #'try-completion)
+               string collection pred))))
+
+(defun test-ido-ubiquitous-expected-mode (override)
+  "Test whether observed ido-ubiquitous behavior matches OVERRIDE."
+  (if (eq override 'disable)
+      (progn
+        (should
+         ;; Verify that we get standard completion
+         (string=
+          "g"
+          (with-simulated-input "g RET"
+            (completing-read "Prompt: " '("blue" "yellow" "green")))))
+        ;; Test is disabled because of an apparent bug in Emacs:
+        ;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=21644
+
+        ;; ;; Match is required, so with standard completion the input should
+        ;; ;; be incomplete and throw an error.
+        ;; (should-error
+        ;;  (with-simulated-input "g RET"
+        ;;    (completing-read "Prompt: " '("blue" "yellow" "green") nil t))
+        ;;  :type 'error)
+        )
+    ;; Common tests whenever ido-ubiquitous is enabled in any way
     (should
+     ;; Verify that ido completion is active
      (string=
       "green"
       (with-simulated-input "g RET"
         (completing-read "Prompt: " '("blue" "yellow" "green")))))
+    ;; Verify that C-j is working correctly
     (should
      (string=
       "g"
       (with-simulated-input "g C-j"
-        (completing-read "Prompt: " '("blue" "yellow" "green"))))))
-  ;; Normal completing-read
-  (with-mode ido-ubiquitous-mode 0
-    ;; No match required
-    (should
-     (string=
-      "g"
-      (with-simulated-input "g RET"
         (completing-read "Prompt: " '("blue" "yellow" "green")))))
-    ;; Match required, so input should be incomplete
-    (should-error
-     (with-simulated-input "g RET"
-       (completing-read "Prompt: " '("blue" "yellow" "green") nil 'require-match))
-     :type 'error))))
+    (let ((collection '("brown" "blue" "yellow" "green")))
+      (should
+       (member
+        (with-simulated-input "b RET"
+          (completing-read "Prompt: " collection))
+        (all-completions "b" collection))))
+    (case override
+      (enable
+       ;; Test for new style
+       (should
+        (string=
+         "blue"
+         (with-simulated-input "RET"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
+       (should
+        (string=
+         ""
+         (with-simulated-input "C-j"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))))
+      (enable-old
+       (should
+        (string=
+         ""
+         (with-simulated-input "RET"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
+       (should
+        (string=
+         "blue"
+         (with-simulated-input "C-j"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
+       ;; Verify that doing other stuff reverts RET and C-j to standard
+       ;; meanings
+       (should
+        (string=
+         "blue"
+         (with-simulated-input "g DEL RET"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
+       (should
+        (string=
+         "blue"
+         (with-simulated-input "<right> <left> RET"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
+       (should
+        (string=
+         ""
+         (with-simulated-input "g DEL C-j"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
+       (should
+        (string=
+         ""
+         (with-simulated-input "<right> <left> C-j"
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))))
+      (otherwise (error "Unknown override %S" override)))))
+
+(defun test-ido-ubiquitous-expected-mode-on-functional-collection (override)
+  "Test whether observed ido-ubiquitous behavior on functional collection matches OVERRIDE."
+  (cl-letf* ((original-completing-read (symbol-function #'completing-read))
+             ((symbol-function #'completing-read)
+              (lambda (prompt collection &rest args)
+                (apply original-completing-read prompt
+                       (collection-as-function collection)
+                       args))))
+    (test-ido-ubiquitous-expected-mode override)))
+
+(ert-deftest ido-ubiquitous-test-simple ()
+  "Test that basic ido-ubiquitous functionality is working."
+  (with-ido-ubiquitous-standard-env
+    (ido-ubiquitous-mode 1)
+    (test-ido-ubiquitous-expected-mode 'enable)
+    (ido-ubiquitous-mode 0)
+    (test-ido-ubiquitous-expected-mode 'disable)))
+
+(ert-deftest ido-ubiquitous-test-oldstyle ()
+  (with-ido-ubiquitous-standard-env
+   (let ((ido-ubiquitous-default-state 'enable-old))
+     (test-ido-ubiquitous-expected-mode 'enable-old))))
+
+(ert-deftest ido-ubiquitous-test-maxitems ()
+  (with-ido-ubiquitous-standard-env
+   (let ((ido-cr+-max-items -1))
+     (test-ido-ubiquitous-expected-mode 'disable))))
+
+(ert-deftest ido-ubiquitous-test-override ()
+  (with-ido-ubiquitous-standard-env
+   (ido-ubiquitous-with-override 'enable
+     (test-ido-ubiquitous-expected-mode 'enable))
+   (ido-ubiquitous-with-override 'enable-old
+     (test-ido-ubiquitous-expected-mode 'enable-old))
+   (ido-ubiquitous-with-override 'disable
+     (test-ido-ubiquitous-expected-mode 'disable))))
+
+(ert-deftest ido-ubiquitous-test-functional-collection ()
+  (with-ido-ubiquitous-standard-env
+   (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)
+   (ido-ubiquitous-with-override 'enable
+     (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
+   (ido-ubiquitous-with-override 'enable-old
+     (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))))
+
+(ert-deftest ido-ubiquitous-require-match ()
+  "Test whether require-match works."
+  :expected-result :failed
+  (should-error
+   (with-simulated-input "b C-j"
+     (ido-completing-read "Prompt: " '("blue" "brown" "yellow" "green") nil t))))
+
+;; TODO: Test function and command overrides
+
+;; Functions to define overrides on for testing
+(defun idu-no-override-testfunc ()
+  (test-ido-ubiquitous-is-enabled))
+(defun idu-enabled-testfunc (&rest args)
+  (test-ido-ubiquitous-is-newstyle))
+(defun idu-disabled-testfunc (&rest args)
+  (test-ido-ubiquitous-is-disabled))
+(defun idu-enabled-oldstyle-testfunc (&rest args)
+  (test-ido-ubiquitous-is-oldstyle))
+(defun idu-no-override-functional-testfunc (&rest args))
+(defun idu-enabled-functional-testfunc (&rest args))
 
 (provide 'ido-ubiquitous-test)
 
