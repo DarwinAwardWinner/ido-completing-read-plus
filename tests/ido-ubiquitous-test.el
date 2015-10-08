@@ -264,15 +264,47 @@ passed to `all-completions' and `try-completion'."
 
 ;; Functions to define overrides on for testing
 (defun idu-no-override-testfunc ()
-  (test-ido-ubiquitous-is-enabled))
+  (test-ido-ubiquitous-expected-mode 'enable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
 (defun idu-enabled-testfunc (&rest args)
-  (test-ido-ubiquitous-is-newstyle))
+  (test-ido-ubiquitous-expected-mode 'enable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
 (defun idu-disabled-testfunc (&rest args)
-  (test-ido-ubiquitous-is-disabled))
+  (test-ido-ubiquitous-expected-mode 'disable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
 (defun idu-enabled-oldstyle-testfunc (&rest args)
-  (test-ido-ubiquitous-is-oldstyle))
-(defun idu-no-override-functional-testfunc (&rest args))
-(defun idu-enabled-functional-testfunc (&rest args))
+  (test-ido-ubiquitous-expected-mode 'enable-old)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))
+
+;; commands to define overrides on for testing
+(defun idu-no-override-testcmd ()
+  (interactive
+   (list
+    (test-ido-ubiquitous-expected-mode 'enable)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)))
+  (test-ido-ubiquitous-expected-mode 'enable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
+(defun idu-enabled-testcmd (&rest args)
+  (interactive
+   (list
+    (test-ido-ubiquitous-expected-mode 'enable)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable)))
+  (test-ido-ubiquitous-expected-mode 'enable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
+(defun idu-disabled-testcmd (&rest args)
+  (interactive
+   (list
+    (test-ido-ubiquitous-expected-mode 'disable)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)))
+  (test-ido-ubiquitous-expected-mode 'disable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
+(defun idu-enabled-oldstyle-testcmd (&rest args)
+  (interactive
+   (list
+    (test-ido-ubiquitous-expected-mode 'disable)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old)))
+  (test-ido-ubiquitous-expected-mode 'disable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))
 
 (provide 'ido-ubiquitous-test)
 
