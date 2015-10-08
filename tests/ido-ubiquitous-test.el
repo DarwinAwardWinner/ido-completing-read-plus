@@ -91,6 +91,7 @@ for activation and deactivation."
 
 (defmacro with-ido-ubiquitous-standard-env (&rest body)
   "Execute BODY with standard ido-ubiquitous settings.\n\nAll ido-ubiquitous and ido-cr+ options will be let-bound to their\ndefault values, and `ido-ubiquitous-mode' will be enabled."
+  (declare (indent 0))
   (let*
       ((ido-ubiquitous-options
         '(ido-ubiquitous-allow-on-functional-collection
@@ -228,30 +229,30 @@ passed to `all-completions' and `try-completion'."
 
 (ert-deftest ido-ubiquitous-test-oldstyle ()
   (with-ido-ubiquitous-standard-env
-   (let ((ido-ubiquitous-default-state 'enable-old))
-     (test-ido-ubiquitous-expected-mode 'enable-old))))
+    (let ((ido-ubiquitous-default-state 'enable-old))
+      (test-ido-ubiquitous-expected-mode 'enable-old))))
 
 (ert-deftest ido-ubiquitous-test-maxitems ()
   (with-ido-ubiquitous-standard-env
-   (let ((ido-cr+-max-items -1))
-     (test-ido-ubiquitous-expected-mode 'disable))))
+    (let ((ido-cr+-max-items -1))
+      (test-ido-ubiquitous-expected-mode 'disable))))
 
 (ert-deftest ido-ubiquitous-test-override ()
   (with-ido-ubiquitous-standard-env
-   (ido-ubiquitous-with-override 'enable
-     (test-ido-ubiquitous-expected-mode 'enable))
-   (ido-ubiquitous-with-override 'enable-old
-     (test-ido-ubiquitous-expected-mode 'enable-old))
-   (ido-ubiquitous-with-override 'disable
-     (test-ido-ubiquitous-expected-mode 'disable))))
+    (ido-ubiquitous-with-override 'enable
+      (test-ido-ubiquitous-expected-mode 'enable))
+    (ido-ubiquitous-with-override 'enable-old
+      (test-ido-ubiquitous-expected-mode 'enable-old))
+    (ido-ubiquitous-with-override 'disable
+      (test-ido-ubiquitous-expected-mode 'disable))))
 
 (ert-deftest ido-ubiquitous-test-functional-collection ()
   (with-ido-ubiquitous-standard-env
-   (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)
-   (ido-ubiquitous-with-override 'enable
-     (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
-   (ido-ubiquitous-with-override 'enable-old
-     (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))))
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)
+    (ido-ubiquitous-with-override 'enable
+      (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
+    (ido-ubiquitous-with-override 'enable-old
+      (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))))
 
 (ert-deftest ido-ubiquitous-require-match ()
   "Test whether require-match works."
