@@ -277,7 +277,7 @@ passed to `all-completions' and `try-completion'."
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))
 
 ;; commands to define overrides on for testing
-(defun idu-no-override-testcmd ()
+(defun idu-no-override-testcmd (&rest args)
   (interactive
    (list
     (test-ido-ubiquitous-expected-mode 'enable)
@@ -301,10 +301,42 @@ passed to `all-completions' and `try-completion'."
 (defun idu-enabled-oldstyle-testcmd (&rest args)
   (interactive
    (list
-    (test-ido-ubiquitous-expected-mode 'disable)
+    (test-ido-ubiquitous-expected-mode 'enable-old)
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old)))
-  (test-ido-ubiquitous-expected-mode 'disable)
+  (test-ido-ubiquitous-expected-mode 'enable-old)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))
+
+(ert-deftest ido-ubiquitous-test-command-and-function-overrides ()
+  (let ((orig-func-overrides ido-ubiquitous-function-overrides)
+        (orig-cmd-overrides ido-ubiquitous-command-overrides))
+    (unwind-protect
+        (progn
+          (customize-set-variable
+           'ido-ubiquitous-function-overrides
+           (append ido-ubiquitous-function-overrides
+                   '((enable exact "idu-enabled-testfunc")
+                     (disable exact "idu-disabled-testfunc")
+                     (enable-old exact "idu-enabled-oldstyle-testfunc"))))
+          (loop for func in
+                '(idu-no-override-testfunc
+                  idu-enabled-testfunc
+                  idu-disabled-testfunc
+                  idu-enabled-oldstyle-testfunc)
+                do (funcall func))
+          (customize-set-variable
+           'ido-ubiquitous-command-overrides
+           (append ido-ubiquitous-command-overrides
+                   '((enable exact "idu-enabled-testcmd")
+                     (disable exact "idu-disabled-testcmd")
+                     (enable-old exact "idu-enabled-oldstyle-testcmd"))))
+          (loop for cmd in
+                '(idu-no-override-testcmd
+                  idu-enabled-testcmd
+                  idu-disabled-testcmd
+                  idu-enabled-oldstyle-testcmd)
+                do (call-interactively cmd)))
+      (customize-set-variable 'ido-ubiquitous-function-overrides orig-func-overrides)
+      (customize-set-variable 'ido-ubiquitous-command-overrides orig-cmd-overrides))))
 
 (provide 'ido-ubiquitous-test)
 
