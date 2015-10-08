@@ -261,8 +261,6 @@ passed to `all-completions' and `try-completion'."
    (with-simulated-input "b C-j"
      (ido-completing-read "Prompt: " '("blue" "brown" "yellow" "green") nil t))))
 
-;; TODO: Test function and command overrides
-
 ;; Functions to define overrides on for testing
 (defun idu-no-override-testfunc ()
   (test-ido-ubiquitous-expected-mode 'enable)
@@ -338,6 +336,34 @@ passed to `all-completions' and `try-completion'."
                 do (call-interactively cmd)))
       (customize-set-variable 'ido-ubiquitous-function-overrides orig-func-overrides)
       (customize-set-variable 'ido-ubiquitous-command-overrides orig-cmd-overrides))))
+
+(ert-deftest ido-ubiquitous-test-fallback ()
+  (with-ido-ubiquitous-standard-env
+    (should
+     ;; C-b/f not at beginning/end of input should not fall back
+     (string=
+      "green"
+      (with-simulated-input "g C-b C-f RET"
+        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+    (should
+     ;; C-f at end of input should fall back
+     (string=
+      "g"
+      (with-simulated-input "g C-f RET"
+        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+    (should
+     ;; Repeated C-b should not fall back
+     (string=
+      "green"
+      (with-simulated-input "g C-b C-b C-b C-b RET"
+        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+    (should
+     ;; C-b at beginning of line should fall back (if previous action
+     ;; was not also C-b)
+     (string=
+      "g"
+      (with-simulated-input "g C-b x DEL C-b RET"
+        (completing-read "Prompt: " '("blue" "yellow" "green")))))))
 
 (provide 'ido-ubiquitous-test)
 
