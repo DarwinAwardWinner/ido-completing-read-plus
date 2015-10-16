@@ -115,14 +115,7 @@ for activation and deactivation."
 
 The returned function will work equivalently to COLLECTION when
 passed to `all-completions' and `try-completion'."
-  (if (functionp collection)
-      collection
-    ;; Capture collection in a closure
-    (lambda (string pred all)
-      (funcall (if all #'all-completions #'try-completion)
-               string collection pred))))
-
-(defun test-ido-ubiquitous-expected-mode (override)
+  (completion-table-dynamic (lambda (string) (all-completions string collection))))
   "Test whether observed ido-ubiquitous behavior matches OVERRIDE."
   (if (eq override 'disable)
       (progn
