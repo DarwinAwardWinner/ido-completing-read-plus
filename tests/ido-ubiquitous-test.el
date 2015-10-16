@@ -116,139 +116,199 @@ for activation and deactivation."
 The returned function will work equivalently to COLLECTION when
 passed to `all-completions' and `try-completion'."
   (completion-table-dynamic (lambda (string) (all-completions string collection))))
+
+(cl-defmacro should-with-tag (form &key tag)
+  "Equivalent to `(should FORM)' but with a tag on the output.
+
+This is useful if the same `should' form will be called multiple
+times in different contexts. Each test can pass a different tag
+so it's clear in the ERT output which context is causing the
+failure."
+  `(if ,tag
+       (should (and ,tag ,form))
+     (should ,form)))
+
+(defun plist-delete (plist property)
+  "Delete PROPERTY from PLIST.
+This is in contrast to merely setting it to 0."
+  (let (p)
+    (while plist
+      (if (not (eq property (car plist)))
+          (setq p (plist-put p (car plist) (nth 1 plist))))
+      (setq plist (cddr plist)))
+    p))
+
+(cl-defmacro should-error-with-tag (form &rest other-keys &key tag &allow-other-keys)
+  "Equivalent to `(should FORM)' but with a tag on the output.
+See `should-with-tag'."
+  (setq other-keys (plist-delete other-keys :tag))
+  `(if ,tag
+       (should-error (and ,tag ,form) ,@other-keys)
+     (should-error ,form ,@other-keys)))
+
+(defun test-ido-ubiquitous-expected-mode (override &optional tag)
   "Test whether observed ido-ubiquitous behavior matches OVERRIDE."
+  (declare (indent 1))
   (if (eq override 'disable)
       (progn
-        (should
+        (should-with-tag
          ;; Verify that we get standard completion
          (string=
           "g"
           (with-simulated-input "g RET"
-            (completing-read "Prompt: " '("blue" "yellow" "green")))))
-        ;; Test is disabled because of an apparent bug in Emacs:
-        ;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=21644
-
-        ;; ;; Match is required, so with standard completion the input should
-        ;; ;; be incomplete and throw an error.
-        ;; (should-error
-        ;;  (with-simulated-input "g RET"
-        ;;    (completing-read "Prompt: " '("blue" "yellow" "green") nil t))
-        ;;  :type 'error)
-        )
+            (completing-read "Prompt: " '("blue" "yellow" "green"))))
+         :tag tag)
+        (should-with-tag
+         (string=
+          "green"
+          (with-simulated-input "g RET"
+            (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+         :tag tag)
+        ;; Standard completion should refuse to finish with incomplete
+        ;; input if match is required
+        (should-error-with-tag
+         (with-simulated-input "b RET"
+           (completing-read "Prompt: " '("brown" "blue" "yellow" "green") nil t))
+         :type 'error
+         :tag tag))
     ;; Common tests whenever ido-ubiquitous is enabled in any way
-    (should
+    (should-with-tag
      ;; Verify that ido completion is active
      (string=
       "green"
       (with-simulated-input "g RET"
-        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+        (completing-read "Prompt: " '("blue" "yellow" "green"))))
+     :tag tag)
     ;; Verify that C-j is working correctly
-    (should
+    (should-with-tag
      (string=
       "g"
       (with-simulated-input "g C-j"
-        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+        (completing-read "Prompt: " '("blue" "yellow" "green"))))
+     :tag tag)
     (let ((collection '("brown" "blue" "yellow" "green")))
-      (should
+      (should-with-tag
        (member
         (with-simulated-input "b RET"
           (completing-read "Prompt: " collection))
-        (all-completions "b" collection))))
+        (all-completions "b" collection))
+       :tag tag))
     (case override
       (enable
        ;; Test for new style
-       (should
+       (should-with-tag
         (string=
          "blue"
          (with-simulated-input "RET"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
-       (should
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag)
+       (should-with-tag
         (string=
          ""
          (with-simulated-input "C-j"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))))
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag))
       (enable-old
-       (should
+       (should-with-tag
         (string=
          ""
          (with-simulated-input "RET"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
-       (should
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag)
+       (should-with-tag
         (string=
          "blue"
          (with-simulated-input "C-j"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag)
        ;; Verify that doing other stuff reverts RET and C-j to standard
        ;; meanings
-       (should
+       (should-with-tag
         (string=
          "blue"
          (with-simulated-input "g DEL RET"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
-       (should
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag)
+       (should-with-tag
         (string=
          "blue"
          (with-simulated-input "<right> <left> RET"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
-       (should
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag)
+       (should-with-tag
         (string=
          ""
          (with-simulated-input "g DEL C-j"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t))))
-       (should
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag)
+       (should-with-tag
         (string=
          ""
          (with-simulated-input "<right> <left> C-j"
-           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))))
+           (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+        :tag tag))
       (otherwise (error "Unknown override %S" override)))))
 
-(defun test-ido-ubiquitous-expected-mode-on-functional-collection (override)
+(defun test-ido-ubiquitous-expected-mode-on-functional-collection (override &optional tag)
   "Test whether observed ido-ubiquitous behavior on functional collection matches OVERRIDE."
+  (declare (indent 1))
   (cl-letf* ((original-completing-read (symbol-function #'completing-read))
              ((symbol-function #'completing-read)
               (lambda (prompt collection &rest args)
                 (apply original-completing-read prompt
                        (collection-as-function collection)
                        args))))
-    (test-ido-ubiquitous-expected-mode override)))
+    (test-ido-ubiquitous-expected-mode override tag)))
 
 (ert-deftest ido-ubiquitous-test-simple ()
   "Test that basic ido-ubiquitous functionality is working."
   (with-ido-ubiquitous-standard-env
     (ido-ubiquitous-mode 1)
-    (test-ido-ubiquitous-expected-mode 'enable)
+    (test-ido-ubiquitous-expected-mode 'enable
+      :simple)
     (ido-ubiquitous-mode 0)
-    (test-ido-ubiquitous-expected-mode 'disable)))
+    (test-ido-ubiquitous-expected-mode 'disable
+      :simple)))
 
 (ert-deftest ido-ubiquitous-test-oldstyle ()
   (with-ido-ubiquitous-standard-env
     (let ((ido-ubiquitous-default-state 'enable-old))
-      (test-ido-ubiquitous-expected-mode 'enable-old))))
+      (test-ido-ubiquitous-expected-mode 'enable-old
+        :simple-oldstyle))))
 
 (ert-deftest ido-ubiquitous-test-maxitems ()
   (with-ido-ubiquitous-standard-env
     (let ((ido-cr+-max-items -1))
-      (test-ido-ubiquitous-expected-mode 'disable))))
+      (test-ido-ubiquitous-expected-mode 'disable
+        :maxitems))))
 
 (ert-deftest ido-ubiquitous-test-override ()
   (with-ido-ubiquitous-standard-env
     (ido-ubiquitous-with-override 'enable
-      (test-ido-ubiquitous-expected-mode 'enable))
+      (test-ido-ubiquitous-expected-mode 'enable
+        :override-enable))
     (ido-ubiquitous-with-override 'enable-old
-      (test-ido-ubiquitous-expected-mode 'enable-old))
+      (test-ido-ubiquitous-expected-mode 'enable-old
+        :override-enable-old))
     (ido-ubiquitous-with-override 'disable
-      (test-ido-ubiquitous-expected-mode 'disable))))
+      (test-ido-ubiquitous-expected-mode 'disable
+        :override-disable))))
 
 (ert-deftest ido-ubiquitous-test-functional-collection ()
   (with-ido-ubiquitous-standard-env
-    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
+      :colfunc)
     (ido-ubiquitous-with-override 'enable
-      (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
+      (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
+        :override-enable-colfunc))
     (ido-ubiquitous-with-override 'enable-old
-      (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))))
+      (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
+        :override-enable-old-colfunc))))
 
 (ert-deftest ido-ubiquitous-require-match ()
-  "Test whether require-match works."
+  "Test whether require-match works.
+
+(Require match seems to be broken in ido at the moment)"
   :expected-result :failed
   (should-error
    (with-simulated-input "b C-j"
@@ -256,47 +316,71 @@ passed to `all-completions' and `try-completion'."
 
 ;; Functions to define overrides on for testing
 (defun idu-no-override-testfunc ()
-  (test-ido-ubiquitous-expected-mode 'enable)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
+  (test-ido-ubiquitous-expected-mode 'enable
+    :func-override-none)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
+    :func-override-none-colfunc))
 (defun idu-enabled-testfunc (&rest args)
-  (test-ido-ubiquitous-expected-mode 'enable)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
+  (test-ido-ubiquitous-expected-mode 'enable
+    :func-override-enable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
+    :func-override-enable-colfunc))
 (defun idu-disabled-testfunc (&rest args)
-  (test-ido-ubiquitous-expected-mode 'disable)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
+  (test-ido-ubiquitous-expected-mode 'disable
+    :func-override-disable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
+    :func-override-disable-colfunc))
 (defun idu-enabled-oldstyle-testfunc (&rest args)
-  (test-ido-ubiquitous-expected-mode 'enable-old)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))
+  (test-ido-ubiquitous-expected-mode 'enable-old
+    :func-override-enable-old)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
+    :func-override-enable-old-colfunc))
 
 ;; commands to define overrides on for testing
 (defun idu-no-override-testcmd (&rest args)
   (interactive
    (list
-    (test-ido-ubiquitous-expected-mode 'enable)
-    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)))
-  (test-ido-ubiquitous-expected-mode 'enable)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
+    (test-ido-ubiquitous-expected-mode 'enable
+      :cmd-override-none)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
+      :cmd-override-non-colfunc)))
+  (test-ido-ubiquitous-expected-mode 'enable
+    :cmd-override-none)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
+    :cmd-override-non-colfunc))
 (defun idu-enabled-testcmd (&rest args)
   (interactive
    (list
-    (test-ido-ubiquitous-expected-mode 'enable)
-    (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable)))
-  (test-ido-ubiquitous-expected-mode 'enable)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable))
+    (test-ido-ubiquitous-expected-mode 'enable
+      :cmd-override-enable)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
+      :cmd-override-enable-colfunc)))
+  (test-ido-ubiquitous-expected-mode 'enable
+    :cmd-override-enable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
+    :cmd-override-enable-colfunc))
 (defun idu-disabled-testcmd (&rest args)
   (interactive
    (list
-    (test-ido-ubiquitous-expected-mode 'disable)
-    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable)))
-  (test-ido-ubiquitous-expected-mode 'disable)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable))
+    (test-ido-ubiquitous-expected-mode 'disable
+      :cmd-override-disable)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
+      :cmd-override-disable-colfunc)))
+  (test-ido-ubiquitous-expected-mode 'disable
+    :cmd-override-disable)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
+    :cmd-override-disable-colfunc))
 (defun idu-enabled-oldstyle-testcmd (&rest args)
   (interactive
    (list
-    (test-ido-ubiquitous-expected-mode 'enable-old)
-    (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old)))
-  (test-ido-ubiquitous-expected-mode 'enable-old)
-  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old))
+    (test-ido-ubiquitous-expected-mode 'enable-old
+      :cmd-override-enable-old)
+    (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
+      :cmd-override-enable-old-colfunc)))
+  (test-ido-ubiquitous-expected-mode 'enable-old
+    :cmd-override-enable-old)
+  (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
+    :cmd-override-enable-old-colfunc))
 
 (ert-deftest ido-ubiquitous-test-command-and-function-overrides ()
   (let ((orig-func-overrides ido-ubiquitous-function-overrides)
