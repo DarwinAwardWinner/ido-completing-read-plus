@@ -27,13 +27,13 @@
 ;;
 ;;; Code:
 
-;; This is a series of macros to facilitate the testing of completion
-;; non-interactively by simulating input.
-
 (require 'ido-completing-read+)
 (require 'ido-ubiquitous)
 (require 'ert)
 (require 'cl-macs)
+
+;; This is a series of macros to facilitate the testing of completion
+;; non-interactively by simulating input.
 
 (defmacro keyboard-quit-to-error (&rest body)
   "Evaluate BODY but signal an error on `keyboard-quit'."
@@ -266,24 +266,27 @@ See `should-with-tag'."
   (with-ido-ubiquitous-standard-env
     (ido-ubiquitous-mode 1)
     (test-ido-ubiquitous-expected-mode 'enable
-      :simple)
+      :simple-enable)
     (ido-ubiquitous-mode 0)
     (test-ido-ubiquitous-expected-mode 'disable
-      :simple)))
+      :simple-disable)))
 
 (ert-deftest ido-ubiquitous-test-oldstyle ()
+  "Test whether old-style completion works as expected."
   (with-ido-ubiquitous-standard-env
     (let ((ido-ubiquitous-default-state 'enable-old))
       (test-ido-ubiquitous-expected-mode 'enable-old
         :simple-oldstyle))))
 
 (ert-deftest ido-ubiquitous-test-maxitems ()
+  "Test whether the large-collection fallback works."
   (with-ido-ubiquitous-standard-env
     (let ((ido-cr+-max-items -1))
       (test-ido-ubiquitous-expected-mode 'disable
         :maxitems))))
 
 (ert-deftest ido-ubiquitous-test-override ()
+  "Test whether ido-ubiquitous overrides work."
   (with-ido-ubiquitous-standard-env
     (ido-ubiquitous-with-override 'enable
       (test-ido-ubiquitous-expected-mode 'enable
@@ -296,6 +299,7 @@ See `should-with-tag'."
         :override-disable))))
 
 (ert-deftest ido-ubiquitous-test-functional-collection ()
+  "Test whether ido-ubiquitous overrides work when collection is a function."
   (with-ido-ubiquitous-standard-env
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
       :colfunc)
@@ -417,6 +421,7 @@ See `should-with-tag'."
     :cmd-override-enable-old-colfunc))
 
 (ert-deftest ido-ubiquitous-test-command-and-function-overrides ()
+  "Test whether command- and function-specific overrides work."
   (let ((orig-func-overrides ido-ubiquitous-function-overrides)
         (orig-cmd-overrides ido-ubiquitous-command-overrides))
     (unwind-protect
@@ -449,6 +454,7 @@ See `should-with-tag'."
       (customize-set-variable 'ido-ubiquitous-command-overrides orig-cmd-overrides))))
 
 (ert-deftest ido-ubiquitous-test-fallback ()
+  "Test whether manually invoking fallback works."
   (with-ido-ubiquitous-standard-env
     (should
      ;; C-b/f not at beginning/end of input should not fall back
@@ -475,6 +481,10 @@ See `should-with-tag'."
       "g"
       (with-simulated-input "g C-b x DEL C-b RET"
         (completing-read "Prompt: " '("blue" "yellow" "green")))))))
+
+(defun ido-ubiquitous-run-all-tests ()
+  (interactive)
+  (ert "^ido-\\(ubiquitous\\|cr\\+\\)-"))
 
 (provide 'ido-ubiquitous-test)
 
