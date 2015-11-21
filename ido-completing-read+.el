@@ -270,6 +270,32 @@ shouldn't matter.")
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
 
+;;; Workaround for https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/93
+
+(defadvice ido-select-text (around fix-require-match-behavior activate)
+  "Fix ido behavior when `require-match' is non-nil.
+
+Standard ido will allow C-j to exit with an incomplete completion
+even when `require-match' is non-nil. Ordinary completion does
+not allow this. In ordinary completion, RET on an incomplete
+match is equivalent to TAB, and C-j selects the first match.
+Since RET in ido already selects the first match, this advice
+sets up C-j to be equivalent to TAB in the same situation."
+  (if (and
+       ;; Only if using ico-cr+
+       ido-cr+-enable-this-call
+       ;; Only if require-match is non-nil
+       ido-require-match
+       ;; Only if current text is non-empty
+       (not (string= ido-text ""))
+       ;; Only if current text is not a complete choice
+       (not (member ido-text ido-cur-list)))
+      (progn
+        (ido-cr+--debug-message
+         "Overriding C-j behavior for require-match: performing completion instead of exiting.")
+        (ido-complete))
+    ad-do-it))
+
 ;;; Debug mode
 
 ;; This is defined at the end so it goes at the bottom of the

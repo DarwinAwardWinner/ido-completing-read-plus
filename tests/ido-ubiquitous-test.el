@@ -30,6 +30,7 @@
 ;; This is a series of macros to facilitate the testing of completion
 ;; non-interactively by simulating input.
 
+(require 'ido-completing-read+)
 (require 'ido-ubiquitous)
 (require 'ert)
 (require 'cl-macs)
@@ -305,14 +306,47 @@ See `should-with-tag'."
       (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
         :override-enable-old-colfunc))))
 
-(ert-deftest ido-ubiquitous-require-match ()
-  "Test whether require-match works.
-
-(Require match seems to be broken in ido at the moment)"
-  :expected-result :failed
+(ert-deftest ido-cr+-require-match ()
+  "Test whether require-match works."
   (should-error
-   (with-simulated-input "b C-j"
-     (ido-completing-read "Prompt: " '("blue" "brown" "yellow" "green") nil t))))
+   (with-simulated-input "b C-j C-j C-j"
+     (ido-completing-read+
+      "Prompt: "
+      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+  (should-error
+   (with-simulated-input "b C-j b C-j C-j"
+     (ido-completing-read+
+      "Prompt: "
+      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+  (should
+   (string=
+    "blueberry"
+    (with-simulated-input "b C-j b C-j e C-j C-j"
+      (ido-completing-read+
+       "Prompt: "
+       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+  (should-error
+   (with-simulated-input "b l u e g C-j"
+     (ido-completing-read+
+      "Prompt: "
+      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+  (should
+   (string=
+    "bluegrass"
+    (with-simulated-input "b l u e g C-j C-j"
+      (ido-completing-read+
+       "Prompt: "
+       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+  ;; Finally, test for the expected wrong behavior without ido-cr+. If
+  ;; ido.el ever fixes this bug, it will cause this test to fail as a
+  ;; signal that the workaround can be phased out.
+  (should
+   (string=
+    "b"
+    (with-simulated-input "b C-j"
+     (ido-completing-read
+      "Prompt: "
+      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))))
 
 ;; Functions to define overrides on for testing
 (defun idu-no-override-testfunc ()
