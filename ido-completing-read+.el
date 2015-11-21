@@ -6,7 +6,7 @@
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
 ;; Version: 3.7
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
 
@@ -48,7 +48,7 @@ Note that when you update ido-completing-read+, this variable may
 not be updated until you restart Emacs.")
 
 (require 'ido)
-(require 'cl-macs)
+(require 'cl-lib)
 
 ;;; Debug messages
 
