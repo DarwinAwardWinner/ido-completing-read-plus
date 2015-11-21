@@ -1,3 +1,11 @@
+2015-11-21  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el: Fix up dependency declarations and require
+	statements (including a pull request by Steve Purcell)
+
+	* ido-completing-read+.el (ido-select-text): Fix C-j behavior when
+	require-match is enabled
+
 2015-10-04  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el: Add override for etags-select
