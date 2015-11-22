@@ -408,6 +408,9 @@ functions marked as interactive. See
 `ido-ubiquitous-function-overrides' for how to modify the
 behavior of ido-ubiquitous for arbitrary functions.
 
+Note: If multiple overrides match the same commmand, the first
+one in the list will take precedence.
+
 If you need to add a new specification to this list, please also
 file a bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :type '(repeat ido-ubiquitous-command-override-spec)
@@ -467,18 +470,36 @@ each function to apply the appropriate override."
         (cl-loop for (action match-type func) in newval
                  collect (list action match-type
                                (ido-ubiquitous--as-string func))))
-  (set-default sym newval)
   ;; set new overrides
-  (cl-loop for override in (eval sym)
+  (cl-loop with overridden-functions = nil
+           with final-value = nil
+           for override in newval
            for (action match-type func) = override
-           if (eq match-type 'exact)
+
+           ;; Remove duplicate overrides
+           if (member func overridden-functions)
+           do (display-warning
+               'ido-ubiquitous
+               (format
+                "Removing duplicate override for function `%s'" func))
+
+           ;; Apply valid overrides
+           else if (eq match-type 'exact)
            do (ido-ubiquitous-apply-function-override func action)
+           and collect func into overridden-functions
+           and collect override into final-value
+
+           ;; Remove invalid overrides
            else
            do (display-warning
                'ido-ubiquitous
                (format
-                "Ignoring invalid function override match-type `%s' for function `%s'; only match-type `exact' is supported in `ido-ubiquitous-function-overrides'."
-                match-type func))))
+                "Removing invalid function override match-type `%s' for function `%s'; only match-type `exact' is supported in `ido-ubiquitous-function-overrides'."
+                match-type func))
+
+           ;; Set the value to only the overrides that were actually
+           ;; applied.
+           finally return (set-default sym final-value)))
 
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
   "List of function override specifications for ido-ubiquitous
@@ -489,6 +510,12 @@ command override specifications (see
 specification has the form `(BEHAVIOR MATCH-TYPE MATCH-TEXT)'.
 However, `MATCH-TYPE' may ONLY be `exact'; No other match type is
 supported.
+
+Note: If multiple overrides are set for the same function, the
+first one in the list will take precedence, and the rest will be
+ignored and deleted from the override list, with a warning.
+Invalid override specifications will also be deleted with a
+warning.
 
 If you need to add a new specification to this list, please also file a
 bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues
