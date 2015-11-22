@@ -30,7 +30,7 @@
 (require 'ido-completing-read+)
 (require 'ido-ubiquitous)
 (require 'ert)
-(require 'cl-macs)
+(require 'cl-lib)
 
 ;; This is a series of macros to facilitate the testing of completion
 ;; non-interactively by simulating input.
@@ -104,10 +104,10 @@ for activation and deactivation."
           ido-cr+-max-items
           ido-cr+-replace-completely))
        (idu-bindings
-        (loop for var in ido-ubiquitous-options collect
-              (list var
-                    (list 'quote
-                          (default-value var))))))
+        (cl-loop for var in ido-ubiquitous-options collect
+                 (list var
+                       (list 'quote
+                             (default-value var))))))
     `(with-mode ido-ubiquitous-mode 1
        (let ,idu-bindings ,@body))))
 
@@ -348,9 +348,9 @@ See `should-with-tag'."
    (string=
     "b"
     (with-simulated-input "b C-j"
-     (ido-completing-read
-      "Prompt: "
-      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))))
+      (ido-completing-read
+       "Prompt: "
+       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))))
 
 ;; Functions to define overrides on for testing
 (defun idu-no-override-testfunc ()
@@ -432,24 +432,24 @@ See `should-with-tag'."
                    '((enable exact "idu-enabled-testfunc")
                      (disable exact "idu-disabled-testfunc")
                      (enable-old exact "idu-enabled-oldstyle-testfunc"))))
-          (loop for func in
-                '(idu-no-override-testfunc
-                  idu-enabled-testfunc
-                  idu-disabled-testfunc
-                  idu-enabled-oldstyle-testfunc)
-                do (funcall func))
+          (cl-loop for func in
+                   '(idu-no-override-testfunc
+                     idu-enabled-testfunc
+                     idu-disabled-testfunc
+                     idu-enabled-oldstyle-testfunc)
+                   do (funcall func))
           (customize-set-variable
            'ido-ubiquitous-command-overrides
            (append ido-ubiquitous-command-overrides
                    '((enable exact "idu-enabled-testcmd")
                      (disable exact "idu-disabled-testcmd")
                      (enable-old exact "idu-enabled-oldstyle-testcmd"))))
-          (loop for cmd in
-                '(idu-no-override-testcmd
-                  idu-enabled-testcmd
-                  idu-disabled-testcmd
-                  idu-enabled-oldstyle-testcmd)
-                do (call-interactively cmd)))
+          (cl-loop for cmd in
+                   '(idu-no-override-testcmd
+                     idu-enabled-testcmd
+                     idu-disabled-testcmd
+                     idu-enabled-oldstyle-testcmd)
+                   do (call-interactively cmd)))
       (customize-set-variable 'ido-ubiquitous-function-overrides orig-func-overrides)
       (customize-set-variable 'ido-ubiquitous-command-overrides orig-cmd-overrides))))
 
