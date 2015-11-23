@@ -8,7 +8,7 @@
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.9") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.9") (cl-lib "0.5") (s "0"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
@@ -85,6 +85,7 @@ be updated until you restart Emacs.")
 (require 'advice)
 (require 'cl-lib)
 (require 'ido-completing-read+)
+(require 's)
 ;; Only exists in emacs 24.4 and up; we don't use this library
 ;; directly, but we load it here so we can test if it's available,
 ;; because if it isn't we need enable a workaround.
@@ -803,7 +804,9 @@ it to `nil'.
 
 (Note that having this option enabled effectively prevents you
 from removing any of the built-in default overrides, since they
-will simply be re-added the next time Emacs starts.)"
+will simply be re-added the next time Emacs starts. However, your
+custom overrides will still take precedence, so this shouldn't be
+a problem.)"
   :type '(choice :tag "When new overrides are available:"
                  (const :menu-tag "Auto-add"
                         :tag "Add them automatically"
@@ -816,39 +819,103 @@ will simply be re-added the next time Emacs starts.)"
                         nil))
   :group 'ido-ubiquitous)
 
-(defcustom ido-ubiquitous-prompt-to-report-custom-overrides t
-  "If non-nil, remind the user to report any overrides they add.
+(defun ido-ubiquitous--overrides-have-same-target-p (o1 o2)
+  (cl-destructuring-bind (oride1 type1 text1) o1
+    (cl-destructuring-bind(oride2 type2 text2) o2
+      (and (string= text1 text2)
+           (eq type1 type2)))))
 
-TODO doc"
-  :type 'boolean
-  :group 'ido-ubiquitous)
+(defun ido-ubiquitous--combine-override-lists (olist1 olist2)
+  "Append OLIST2 to OLIST1, but remove redundant elements.
 
-(defun ido-ubiquitous-restore-default-overrides (&optional save)
-  "Re-add the default overrides for ido-ubiquitous.
+Redundancy is determined using
+`ido-ubiquitous--overrides-have-same-target-p'."
+  (let ((olist2
+         (cl-remove-if
+          (lambda (o2) (cl-member
+                 o2 olist1
+                 :test #'ido-ubiquitous--overrides-have-same-target-p))
+          olist2)))
+    (append olist1 olist2)))
 
-This will ensure that the default overrides are all present and
-at the head of the list in `ido-ubiquitous-command-overrides' and
-`ido-ubiquitous-function-overrides'. User-added overrides will
-not be removed, but they may be masked if one of the default
-overrides affects the same functions.
+(defun ido-ubiquitous-update-overrides (&optional save)
+  "Re-add the default overrides without erasing custom overrides.
 
-With a prefix arg, also save the above variables' new values for
-future sessions."
+This is useful after an update of ido-ubiquitous that adds new
+default overrides. See `ido-ubiquitous-auto-update-overrides' for
+more information.
+
+If SAVE is non-nil, also save the overrides to the user's custom
+file (but only if they were already customized). When called
+interactively, a prefix argument triggers a save."
   (interactive "P")
-  (let ((setter (if save
-                    'customize-save-variable
-                  'customize-set-variable)))
-    (cl-loop for (var def) in '((ido-ubiquitous-command-overrides
-                                 ido-ubiquitous-default-command-overrides)
-                                (ido-ubiquitous-function-overrides
-                                 ido-ubiquitous-default-function-overrides))
-             do (let* ((curval (eval var))
-                       (defval (eval def))
-                       (newval (delete-dups (append defval curval))))
-                  (funcall setter var newval)))
-    (message (if save
-                 "ido-ubiquitous: Restored default command and function overrides and saved for future sessions."
-               "ido-ubiquitous: Restored default command and function overrides for current session only. Call again with prefix to save for future sessions."))))
+  (let ((unmodified-vars nil)
+        (set-vars nil)
+        (saved-vars nil)
+        (final-message-lines nil))
+    (cl-loop
+     for (var def) in
+     '((ido-ubiquitous-command-overrides
+        ido-ubiquitous-default-command-overrides)
+       (ido-ubiquitous-function-overrides
+        ido-ubiquitous-default-function-overrides))
+     do (let* ((var-state (custom-variable-state var (eval var)))
+               (curval (eval var))
+               (defval (eval def))
+               (newval (ido-ubiquitous--combine-override-lists
+                        curval defval)))
+          (cond
+           ;; Nothing to add to var, do nothing
+           ((and (equal curval newval)
+                 (eq var-state 'saved))
+            (ido-ubiquitous--debug-message
+             "No need to modify value of option `%s'"
+             var)
+            (push var unmodified-vars))
+           ;; Var is not customized, just set the new default
+           ((eq var-state 'standard)
+            (ido-ubiquitous--debug-message
+             "Setting uncustomized option `%s' to its default value"
+             var)
+            (push var unmodified-vars)
+            (set var defval))
+           ;; Var is customized, set and save new value (if SAVE is t)
+           (save
+            (ido-ubiquitous--debug-message
+             "Updating option `%s' with new overrides and saving it."
+             (push var saved-vars)
+             (customize-save-variable var newval)))
+           ;; Var is set but not saved (or SAVE is nil), update it but
+           ;; don't save it
+           (t
+            (ido-ubiquitous--debug-message
+             "Updating option `%s' with new overrides but not saving it for future sessions."
+             var)
+            (push var set-vars)
+            (customize-set-variable var newval)))))
+    ;; Now compose a single message that summarizes what was done
+    (if (and (null set-vars) (null saved-vars))
+        (push "No updates to ido-ubiquitous override variables were needed."
+              final-message-lines)
+      (push
+       (format "Updated the following ido-ubiquitous override variables: %S" (sort (append set-vars saved-vars) #'string<))
+       final-message-lines)
+      (if save
+          (push
+           (if set-vars
+               (format "However, the following variables were not saved automatically and should be inspected manually using `M-x customize-variable': %S"
+                       set-vars)
+             "All updated variables were successfully saved.")
+           final-message-lines)
+        (push
+         "You should inspect their values manually and save them for future sessions using `M-x customize-variable'"
+         final-message-lines)))
+    (message (s-join "\n" (nreverse final-message-lines))))))
+
+(define-obsolete-function-alias
+  ido-ubiquitous-restore-default-overrides
+  ido-ubiquitous-update-overrides
+  "ido-ubiquitous 3.9")
 
 ;; TODO: Add notification message for new overrides, and a preference
 ;; to disable it. https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/90
