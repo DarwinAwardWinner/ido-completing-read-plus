@@ -52,7 +52,7 @@ not be updated until you restart Emacs.")
 
 ;;; Debug messages
 
-(defvar ido-cr+-debug-mode)
+(defvar ido-cr+-debug-mode nil)
 
 ;; Defined as a macro for efficiency (args are not evaluated unless
 ;; debug mode is on)
@@ -285,11 +285,11 @@ sets up C-j to be equivalent to TAB in the same situation."
        ;; Only if using ico-cr+
        ido-cr+-enable-this-call
        ;; Only if require-match is non-nil
-       ido-require-match
+       (bound-and-true-p ido-require-match)
        ;; Only if current text is non-empty
        (not (string= ido-text ""))
        ;; Only if current text is not a complete choice
-       (not (member ido-text ido-cur-list)))
+       (not (member ido-text (bound-and-true-p ido-cur-list))))
       (progn
         (ido-cr+--debug-message
          "Overriding C-j behavior for require-match: performing completion instead of exiting.")
