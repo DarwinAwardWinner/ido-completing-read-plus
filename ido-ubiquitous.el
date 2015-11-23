@@ -498,7 +498,8 @@ each function to apply the appropriate override."
 
            ;; Set the value to only the overrides that were actually
            ;; applied.
-           finally return (set-default sym final-value)))
+           finally return
+           (set-default-toplevel-value sym final-value)))
 
 (defcustom ido-ubiquitous-auto-update-overrides t
   "Whether to add new overrides when updating ido-ubiquitous.
@@ -838,7 +839,7 @@ Redundancy is determined using
           olist2)))
     (append olist1 olist2)))
 
-(defun ido-ubiquitous-update-overrides (&optional save)
+(defun ido-ubiquitous-update-overrides (&optional save quiet)
   "Re-add the default overrides without erasing custom overrides.
 
 This is useful after an update of ido-ubiquitous that adds new
@@ -850,9 +851,10 @@ file (but only if they were already customized). When called
 interactively, a prefix argument triggers a save."
   (interactive "P")
   (let ((unmodified-vars nil)
-        (set-vars nil)
-        (saved-vars nil)
-        (final-message-lines nil))
+        (updated-vars nil)
+        (updated-vars nil)
+        (final-message-lines nil)
+        (final-message-is-warning nil))
     (cl-loop
      for (var def) in
      '((ido-ubiquitous-command-overrides
@@ -883,38 +885,74 @@ interactively, a prefix argument triggers a save."
            (save
             (ido-ubiquitous--debug-message
              "Updating option `%s' with new overrides and saving it."
-             (push var saved-vars)
-             (customize-save-variable var newval)))
+             var)
+             (push var updated-vars)
+             (customize-save-variable var newval))
            ;; Var is set but not saved (or SAVE is nil), update it but
            ;; don't save it
            (t
             (ido-ubiquitous--debug-message
              "Updating option `%s' with new overrides but not saving it for future sessions."
              var)
-            (push var set-vars)
+            (push var updated-vars)
             (customize-set-variable var newval)))))
-    ;; Now compose a single message that summarizes what was done
-    (if (and (null set-vars) (null saved-vars))
-        (push "No updates to ido-ubiquitous override variables were needed."
-              final-message-lines)
-      (push
-       (format "Updated the following ido-ubiquitous override variables: %S" (sort (append set-vars saved-vars) #'string<))
-       final-message-lines)
-      (if save
-          (push
-           (if set-vars
-               (format "However, the following variables were not saved automatically and should be inspected manually using `M-x customize-variable': %S"
-                       set-vars)
-             "All updated variables were successfully saved.")
-           final-message-lines)
+    (unless quiet
+      ;; Now compose a single message that summarizes what was done
+      (if (null updated-vars)
+          (push "No updates to ido-ubiquitous override variables were needed."
+                final-message-lines)
         (push
-         "You should inspect their values manually and save them for future sessions using `M-x customize-variable'"
-         final-message-lines)))
-    (message (s-join "\n" (nreverse final-message-lines))))))
+         (format "Updated the following ido-ubiquitous override variables: %S"
+                 (sort updated-vars #'string<))
+         final-message-lines)
+        (if save
+            (push
+             "All updated variables were successfully saved."
+             final-message-lines)
+          (push
+           "However, they have not been saved for future sessions. To save them, re-run this command with a prefix argument: `C-u M-x ido-ubiquitous-update-overrides'; or else manually inspect and save their values using `M-x customize-group ido-ubiquitous'."
+           final-message-lines)
+          (setq final-message-is-warning t)))
+      (if final-message-is-warning
+          (display-warning 'ido-ubiquitous
+                           (s-join "\n" (nreverse final-message-lines)))
+        (message (s-join "\n" (nreverse final-message-lines)))))))
+
+(defun ido-ubiquitous--find-override-updates (current-value available-updates)
+  (cl-set-difference (ido-ubiquitous--combine-override-lists
+                    current-value available-updates)
+                     current-value))
+
+(defun ido-ubiquitous--maybe-update-overrides ()
+  "Maybe call `ido-ubiquitous-update-overrides.
+
+See `ido-ubiquitous-auto-update-overrides."
+  (if ido-ubiquitous-auto-update-overrides
+      (let* ((command-override-updates
+              (ido-ubiquitous--find-override-updates
+               ido-ubiquitous-command-overrides
+               ido-ubiquitous-default-command-overrides))
+             (function-override-updates
+              (ido-ubiquitous--find-override-updates
+               ido-ubiquitous-function-overrides
+               ido-ubiquitous-default-function-overrides))
+             (update-count
+              (+ (length command-override-updates)
+                 (length function-override-updates))))
+        (if (> update-count 0)
+            (if (eq ido-ubiquitous-auto-update-overrides 'notify)
+                (display-warning
+                 'ido-ubiquitous
+                 (format "There are %s new overrides available. Use `M-x ido-ubiquitous-update-overrides' to enable them."
+                         update-count))
+              (ido-ubiquitous--debug-message "Applying override updates.")
+              (ido-ubiquitous-update-overrides t))
+          (ido-ubiquitous--debug-message "No override updates availble.")))
+    (ido-ubiquitous--debug-message "Skipping override updates by user preference.")))
 
 (define-obsolete-function-alias
-  ido-ubiquitous-restore-default-overrides
-  ido-ubiquitous-update-overrides
+  'ido-ubiquitous-restore-default-overrides
+  'ido-ubiquitous-update-overrides
   "ido-ubiquitous 3.9")
 
 (defun ido-ubiquitous-spec-match (spec symbol)
@@ -1164,6 +1202,7 @@ It cleans up any traces of old versions of ido-ubiquitous and
 then sets up the mode."
   (ido-ubiquitous--fixup-old-advice)
   (ido-ubiquitous--fixup-old-magit-overrides)
+  (ido-ubiquitous--maybe-update-overrides)
   ;; Make sure the mode is turned on/off as specified by the value of
   ;; the mode variable
   (ido-ubiquitous-mode (if ido-ubiquitous-mode 1 0)))
