@@ -500,6 +500,46 @@ each function to apply the appropriate override."
            ;; applied.
            finally return (set-default sym final-value)))
 
+(defcustom ido-ubiquitous-auto-update-overrides t
+  "Whether to add new overrides when updating ido-ubiquitous.
+
+Ido-ubiquitous comes with a default set of overrides for commands
+that are known to require them. New versions of ido-ubiquitous
+may come with updates to the default overrides as more commands
+are discovered to require them. However, customizing your own
+overrides would normally prevent you from receiving these
+updates, since Emacs will not overwrite your customizations.
+
+To resolve this problem, you can set this variable to `t', and
+then ido-ubiquitous can automatically add any new built-in
+overrides whenever it is updated. (Actually, the update will
+happen the next time Emacs is restarted after the update.) This
+allows you to add your own overrides but still receive updates to
+the default set. The default overrides will always be added with
+lower precedence than user-added ones.
+
+If you want ido-ubiquitous to just notify you about new default
+overrides instead of adding them itself, set this variable to
+`notify'. If you don't want this auto-update behavior at all, set
+it to `nil'.
+
+(Note that having this option enabled effectively prevents you
+from removing any of the built-in default overrides, since they
+will simply be re-added the next time Emacs starts. However, your
+custom overrides will still take precedence, so this shouldn't be
+a problem.)"
+  :type '(choice :tag "When new overrides are available:"
+                 (const :menu-tag "Auto-add"
+                        :tag "Add them automatically"
+                        t)
+                 (const :menu-tag "Notify"
+                        :tag "Notify the user about them"
+                        notify)
+                 (const :menu-tag "Ignore"
+                        :tag "Ignore them"
+                        nil))
+  :group 'ido-ubiquitous)
+
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
   "List of function override specifications for ido-ubiquitous
 
@@ -779,46 +819,6 @@ advice has any effect."
 
 ;;; Overrides
 
-(defcustom ido-ubiquitous-auto-update-overrides t
-  "Whether to add new overrides when updating ido-ubiquitous.
-
-Ido-ubiquitous comes with a default set of overrides for commands
-that are known to require them. New versions of ido-ubiquitous
-may come with updates to the default overrides as more commands
-are discovered to require them. However, customizing your own
-overrides would normally prevent you from receiving these
-updates, since Emacs will not overwrite your customizations.
-
-To resolve this problem, you can set this variable to `t', and
-then ido-ubiquitous can automatically add any new built-in
-overrides whenever it is updated. (Actually, the update will
-happen the next time Emacs is restarted after the update.) This
-allows you to add your own overrides but still receive updates to
-the default set. The default overrides will always be added with
-lower precedence than user-added ones.
-
-If you want ido-ubiquitous to just notify you about new default
-overrides instead of adding them itself, set this variable to
-`notify'. If you don't want this auto-update behavior at all, set
-it to `nil'.
-
-(Note that having this option enabled effectively prevents you
-from removing any of the built-in default overrides, since they
-will simply be re-added the next time Emacs starts. However, your
-custom overrides will still take precedence, so this shouldn't be
-a problem.)"
-  :type '(choice :tag "When new overrides are available:"
-                 (const :menu-tag "Auto-add"
-                        :tag "Add them automatically"
-                        t)
-                 (const :menu-tag "Notify"
-                        :tag "Notify the user about them"
-                        notify)
-                 (const :menu-tag "Ignore"
-                        :tag "Ignore them"
-                        nil))
-  :group 'ido-ubiquitous)
-
 (defun ido-ubiquitous--overrides-have-same-target-p (o1 o2)
   (cl-destructuring-bind (oride1 type1 text1) o1
     (cl-destructuring-bind(oride2 type2 text2) o2
@@ -916,9 +916,6 @@ interactively, a prefix argument triggers a save."
   ido-ubiquitous-restore-default-overrides
   ido-ubiquitous-update-overrides
   "ido-ubiquitous 3.9")
-
-;; TODO: Add notification message for new overrides, and a preference
-;; to disable it. https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/90
 
 (defun ido-ubiquitous-spec-match (spec symbol)
   "Returns t if SPEC matches SYMBOL (which should be a function name).
