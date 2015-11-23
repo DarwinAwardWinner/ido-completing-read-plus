@@ -1,3 +1,8 @@
+2015-11-22  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el (ido-ubiquitous--maybe-update-overrides):
+	Allow ido-ubiquitous to automatically add new overrides.
+
 2015-11-21  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el: Fix up dependency declarations and require
