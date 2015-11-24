@@ -223,9 +223,10 @@ I've gotten numerous reports about nonsensical warnings produced by
 ido-ubiquitous, such as "free variable" warnings about variables that
 are most definitely properly declared, or warnings that only appear
 when ido-ubiquitous is loaded after another unrelated package. For
-many of these warnings, I've never been able to discover the cause,
-and I've given up trying to figure it out. If you are an Emacs expert
-who knows how to fix these warnings, please let me know.
+many of these warnings, I've never been able to discover the cause or
+reproduce the warnings myself, and I've given up trying to figure it
+out. If you are an Emacs expert who knows how to fix these warnings,
+please let me know.
 
 You can see the bug reports about weird warnings
 [here](https://github.com/DarwinAwardWinner/ido-ubiquitous/issues?utf8=%E2%9C%93&q=label%3Abizarre-unexplainable-scoping-issues+).
