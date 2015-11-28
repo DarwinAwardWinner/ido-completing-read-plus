@@ -217,22 +217,6 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues so I can
 incorporate them into the defaults for future versions. You can also
 report any bugs you find in ido-ubiquitous.
 
-## I'm getting some weird warnings from ido-ubiquitous when Emacs starts. ##
-
-I've gotten numerous reports about nonsensical warnings produced by
-ido-ubiquitous, such as "free variable" warnings about variables that
-are most definitely properly declared, or warnings that only appear
-when ido-ubiquitous is loaded after another unrelated package. For
-many of these warnings, I've never been able to discover the cause or
-reproduce the warnings myself, and I've given up trying to figure it
-out. Please don't report any new bugs about variable warnings *unless*
-you can tell me how to consistently reproduce them starting from
-`emacs -Q`. If you are an Emacs expert who knows how to fix these
-warnings, please let me know.
-
-You can see the bug reports about weird warnings
-[here](https://github.com/DarwinAwardWinner/ido-ubiquitous/issues?utf8=%E2%9C%93&q=label%3Abizarre-unexplainable-scoping-issues+).
-
 ## What is the "bleeding-edge" branch? ##
 
 All users should just use the master branch, or better yet, install
