@@ -306,7 +306,7 @@ sets up C-j to be equivalent to TAB in the same situation."
 Debug info is printed to the *Messages* buffer."
   nil
   :global t
-  :group 'ido-cr+)
+  :group 'ido-completing-read-plus)
 
 (provide 'ido-completing-read+)
 
