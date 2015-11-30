@@ -471,9 +471,7 @@ each function to apply the appropriate override."
                  collect (list action match-type
                                (ido-ubiquitous--as-string func))))
   ;; set new overrides
-  (cl-loop with overridden-functions = nil
-           with final-value = nil
-           for override in newval
+  (cl-loop for override in newval
            for (action match-type func) = override
 
            ;; Remove duplicate overrides
