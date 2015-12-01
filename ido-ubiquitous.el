@@ -84,6 +84,7 @@ be updated until you restart Emacs.")
 (require 'ido)
 (require 'advice)
 (require 'cl-lib)
+(require 'cus-edit)
 (require 'ido-completing-read+)
 (require 's)
 ;; Only exists in emacs 24.4 and up; we don't use this library
@@ -93,7 +94,14 @@ be updated until you restart Emacs.")
 
 ;;; Debug messages
 
-(defvar ido-ubiquitous-debug-mode)
+;;;###autoload
+(define-minor-mode ido-ubiquitous-debug-mode
+  "If non-nil, ido-ubiquitous will print debug info.
+
+Debug info is printed to the *Messages* buffer."
+  nil
+  :global t
+  :group 'ido-ubiquitous)
 
 ;; Defined as a macro for efficiency (args are not evaluated unless
 ;; debug mode is on)
@@ -823,6 +831,8 @@ advice has any effect."
 (defun ido-ubiquitous--overrides-have-same-target-p (o1 o2)
   (cl-destructuring-bind (oride1 type1 text1) o1
     (cl-destructuring-bind(oride2 type2 text2) o2
+      ;; Avoid warnings about unused vars
+      oride1 oride2
       (and (string= text1 text2)
            (eq type1 type2)))))
 
@@ -834,8 +844,8 @@ Redundancy is determined using
   (let ((olist2
          (cl-remove-if
           (lambda (o2) (cl-member
-                 o2 olist1
-                 :test #'ido-ubiquitous--overrides-have-same-target-p))
+                   o2 olist1
+                   :test #'ido-ubiquitous--overrides-have-same-target-p))
           olist2)))
     (append olist1 olist2)))
 
@@ -851,7 +861,6 @@ file (but only if they were already customized). When called
 interactively, a prefix argument triggers a save."
   (interactive "P")
   (let ((unmodified-vars nil)
-        (updated-vars nil)
         (updated-vars nil)
         (final-message-lines nil)
         (final-message-is-warning nil))
@@ -1150,17 +1159,6 @@ This advice completely overrides the original definition."
       (error ad-do-it))))
 
 ;;; Other
-
-;; This is defined at the end so it goes at the bottom of the
-;; customization group
-;;;###autoload
-(define-minor-mode ido-ubiquitous-debug-mode
-  "If non-nil, ido-ubiquitous will print debug info.
-
-Debug info is printed to the *Messages* buffer."
-  nil
-  :global t
-  :group 'ido-ubiquitous)
 
 (defsubst ido-ubiquitous--fixup-old-advice ()
   ;; Clean up old versions of ido-ubiquitous advice if they exist
