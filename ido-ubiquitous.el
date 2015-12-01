@@ -507,7 +507,7 @@ each function to apply the appropriate override."
            ;; Set the value to only the overrides that were actually
            ;; applied.
            finally return
-           (set-default-toplevel-value sym final-value)))
+           (set-default sym final-value)))
 
 (defcustom ido-ubiquitous-auto-update-overrides t
   "Whether to add new overrides when updating ido-ubiquitous.
