@@ -72,7 +72,7 @@ end of input."
      (when (member (car C-g-key-sequence) key-sequence)
        (error "KEYS must include C-g"))
      (condition-case nil
-         ,@body
+         (progn ,@body)
        (quit
         (error "Reached end of simulated input while evaluating body")))))
 
