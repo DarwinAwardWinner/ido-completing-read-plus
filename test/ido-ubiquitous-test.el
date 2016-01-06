@@ -70,7 +70,7 @@ end of input."
           (unread-command-events
            (append key-sequence C-g-key-sequence)))
      (when (member (car C-g-key-sequence) key-sequence)
-       (error "KEYS must include C-g"))
+       (error "KEYS must not include C-g"))
      (condition-case nil
          (progn ,@body)
        (quit
