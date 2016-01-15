@@ -1,3 +1,8 @@
+2016-01-16  Rasmus <rasmus@gmx.us>
+
+	* ido-ubiquitous.el (ido-ubiquitous-update-overrides): Remove
+	dependency on s.el.
+
 2015-11-22  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el (ido-ubiquitous--maybe-update-overrides):

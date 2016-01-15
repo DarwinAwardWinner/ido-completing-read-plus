@@ -8,7 +8,7 @@
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.10") (cl-lib "0.5") (s "0"))
+;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.10") (cl-lib "0.5"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
@@ -86,7 +86,7 @@ be updated until you restart Emacs.")
 (require 'cl-lib)
 (require 'cus-edit)
 (require 'ido-completing-read+)
-(require 's)
+
 ;; Only exists in emacs 24.4 and up; we don't use this library
 ;; directly, but we load it here so we can test if it's available,
 ;; because if it isn't we need enable a workaround.
@@ -924,8 +924,8 @@ interactively, a prefix argument triggers a save."
           (setq final-message-is-warning t)))
       (if final-message-is-warning
           (display-warning 'ido-ubiquitous
-                           (s-join "\n" (nreverse final-message-lines)))
-        (message (s-join "\n" (nreverse final-message-lines)))))))
+                           (mapconcat 'identity (nreverse final-message-lines) "\n"))
+        (message (mapconcat 'identity (nreverse final-message-lines) "\n"))))))
 
 (defun ido-ubiquitous--find-override-updates (current-value available-updates)
   (cl-set-difference (ido-ubiquitous--combine-override-lists
