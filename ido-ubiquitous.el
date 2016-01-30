@@ -890,15 +890,17 @@ interactively, a prefix argument triggers a save."
              var)
             (push var unmodified-vars)
             (set var defval))
-           ;; Var is customized, set and save new value (if SAVE is t)
-           (save
+           ;; Var is saved to custom.el, set and save new value (if
+           ;; SAVE is t)
+           ((and save
+                 (eq var-state 'saved))
             (ido-ubiquitous--debug-message
              "Updating option `%s' with new overrides and saving it."
              var)
              (push var updated-vars)
              (customize-save-variable var newval))
-           ;; Var is set but not saved (or SAVE is nil), update it but
-           ;; don't save it
+           ;; Var is modified but not saved (or SAVE is nil), update it
+           ;; but don't save it
            (t
             (ido-ubiquitous--debug-message
              "Updating option `%s' with new overrides but not saving it for future sessions."
