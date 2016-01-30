@@ -331,8 +331,6 @@ using overrides and disable it for everything else."
     (enable-old prefix "bbdb-")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/83
     (enable-old exact "where-is")
-    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/85
-    (enable prefix "xref-")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/60
     (disable exact "todo-add-category")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/51
