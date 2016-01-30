@@ -858,7 +858,12 @@ more information.
 
 If SAVE is non-nil, also save the overrides to the user's custom
 file (but only if they were already customized). When called
-interactively, a prefix argument triggers a save."
+interactively, a prefix argument triggers a save.
+
+When called from Lisp code, this function returns the list of
+variables whose values were modified. In particular, it returns
+non-nil if any variables were modified, and nil if no modifications
+were made."
   (interactive "P")
   (let ((unmodified-vars nil)
         (updated-vars nil)
@@ -927,7 +932,8 @@ interactively, a prefix argument triggers a save."
       (if final-message-is-warning
           (display-warning 'ido-ubiquitous
                            (mapconcat 'identity (nreverse final-message-lines) "\n"))
-        (message (mapconcat 'identity (nreverse final-message-lines) "\n"))))))
+        (message (mapconcat 'identity (nreverse final-message-lines) "\n"))))
+    updated-vars))
 
 (defun ido-ubiquitous--find-override-updates (current-value available-updates)
   (cl-set-difference (ido-ubiquitous--combine-override-lists
@@ -957,7 +963,13 @@ See `ido-ubiquitous-auto-update-overrides."
                  (format "There are %s new overrides available. Use `M-x ido-ubiquitous-update-overrides' to enable them."
                          update-count))
               (ido-ubiquitous--debug-message "Applying override updates.")
-              (ido-ubiquitous-update-overrides t))
+              (let (updated-vars
+                    (ido-ubiquitous-update-overrides t))
+                (when updated-vars
+                  (display-warning
+                   'ido-ubiquitous
+                   "If you want to disable automatic updating of overrides, customize `ido-ubiquitous-auto-update-overrides'."
+                   :warning))))
           (ido-ubiquitous--debug-message "No override updates availble.")))
     (ido-ubiquitous--debug-message "Skipping override updates by user preference.")))
 
