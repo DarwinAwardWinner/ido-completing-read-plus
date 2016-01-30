@@ -1,3 +1,11 @@
+2016-01-29  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el (ido-ubiquitous--maybe-update-overrides):
+	Change default auto-update setting to notify. If the user has
+	customized overrides and new ones are added upstream, it will nag
+	them until they choose to explicitly enable or disable
+	auto-updating.
+
 2016-01-16  Rasmus <rasmus@gmx.us>
 
 	* ido-ubiquitous.el (ido-ubiquitous-update-overrides): Remove

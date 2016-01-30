@@ -509,7 +509,7 @@ each function to apply the appropriate override."
            finally return
            (set-default sym final-value)))
 
-(defcustom ido-ubiquitous-auto-update-overrides t
+(defcustom ido-ubiquitous-auto-update-overrides 'notify
   "Whether to add new overrides when updating ido-ubiquitous.
 
 Ido-ubiquitous comes with a default set of overrides for commands
@@ -960,16 +960,10 @@ See `ido-ubiquitous-auto-update-overrides."
             (if (eq ido-ubiquitous-auto-update-overrides 'notify)
                 (display-warning
                  'ido-ubiquitous
-                 (format "There are %s new overrides available. Use `M-x ido-ubiquitous-update-overrides' to enable them."
+                 (format "There are %s new overrides available. Use `M-x ido-ubiquitous-update-overrides' to enable them. (See `ido-ubiquitous-auto-update-overrides' for more information.)"
                          update-count))
               (ido-ubiquitous--debug-message "Applying override updates.")
-              (let (updated-vars
-                    (ido-ubiquitous-update-overrides t))
-                (when updated-vars
-                  (display-warning
-                   'ido-ubiquitous
-                   "If you want to disable automatic updating of overrides, customize `ido-ubiquitous-auto-update-overrides'."
-                   :warning))))
+              (ido-ubiquitous-update-overrides t))
           (ido-ubiquitous--debug-message "No override updates availble.")))
     (ido-ubiquitous--debug-message "Skipping override updates by user preference.")))
 
