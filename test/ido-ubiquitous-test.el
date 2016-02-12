@@ -312,6 +312,22 @@ See `should-with-tag'."
 
 (ert-deftest ido-cr+-require-match ()
   "Test whether require-match works."
+  ;; "C-j" should be allowed to return an empty string even if
+  ;; require-match is non-nil, as long as default is nil
+  (should
+   (string=
+    ""
+    (with-simulated-input "C-j"
+      (ido-completing-read+
+       "Prompt: "
+       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+  ;; "C-j" should NOT be allowed to return an empty string if
+  ;; require-match and default are both non-nil.
+  (should-error
+   (with-simulated-input "C-j"
+     (ido-completing-read+
+      "Prompt: "
+      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow")))
   (should-error
    (with-simulated-input "b C-j C-j C-j"
      (ido-completing-read+
@@ -341,9 +357,16 @@ See `should-with-tag'."
       (ido-completing-read+
        "Prompt: "
        '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
-  ;; Finally, test for the expected wrong behavior without ido-cr+. If
-  ;; ido.el ever fixes this bug, it will cause this test to fail as a
-  ;; signal that the workaround can be phased out.
+  ;; Finally, a few tests for the expected wrong behavior without
+  ;; ido-cr+. If ido.el ever fixes this bug, it will cause this test
+  ;; to fail as a signal that the workaround can be phased out.
+  (should
+   (string=
+    ""
+    (with-simulated-input "C-j"
+      (ido-completing-read
+       "Prompt: "
+       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
   (should
    (string=
     "b"
