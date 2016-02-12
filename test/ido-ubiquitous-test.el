@@ -1,4 +1,4 @@
-;;; ido-ubiquitous-test.el ---  -*- lexical-binding: t -*-
+;;; ido-ubiquitous-test.el ---  -*- lexical-binding: nil -*-
 
 ;; Copyright (C) 2015 Ryan C. Thompson
 
@@ -82,13 +82,14 @@ end of input."
 This will only work on modes that respect the normal conventions
 for activation and deactivation."
   (declare (indent 2))
-  (let* ((orig-status (eval mode))
-         (restore-arg (if orig-status 1 0)))
-    `(unwind-protect
+  `(let* ((orig-status ,mode)
+          (restore-arg (if orig-status 1 0)))
+     (unwind-protect
          (progn
            (,mode ,arg)
            ,@body)
-       (,mode ,restore-arg))))
+       (message "Restoring mode %s to %s" ',mode restore-arg)
+       (,mode restore-arg))))
 
 (defmacro with-ido-ubiquitous-standard-env (&rest body)
   "Execute BODY with standard ido-ubiquitous settings.\n\nAll ido-ubiquitous and ido-cr+ options will be let-bound to their\ndefault values, and `ido-ubiquitous-mode' will be enabled."
@@ -118,6 +119,10 @@ The returned function will work equivalently to COLLECTION when
 passed to `all-completions' and `try-completion'."
   (completion-table-dynamic (lambda (string) (all-completions string collection))))
 
+(defun should-with-tag-internal (form tag)
+  (let ((complete-form (list 'and tag form)))
+    (eval (list 'should complete-form))))
+
 (cl-defmacro should-with-tag (form &key tag)
   "Equivalent to `(should FORM)' but with a tag on the output.
 
@@ -126,7 +131,7 @@ times in different contexts. Each test can pass a different tag
 so it's clear in the ERT output which context is causing the
 failure."
   `(if ,tag
-       (should (and ,tag ,form))
+       (should-with-tag-internal ',form ,tag)
      (should ,form)))
 
 (defun plist-delete (plist property)
@@ -139,12 +144,17 @@ This is in contrast to merely setting it to 0."
       (setq plist (cddr plist)))
     p))
 
+(defun should-error-with-tag-internal (form other-args tag)
+  (let ((complete-form (list 'and tag form)))
+    (eval (nconc (list 'should-error complete-form)
+                 other-args))))
+
 (cl-defmacro should-error-with-tag (form &rest other-keys &key tag &allow-other-keys)
   "Equivalent to `(should FORM)' but with a tag on the output.
 See `should-with-tag'."
   (setq other-keys (plist-delete other-keys :tag))
   `(if ,tag
-       (should-error (and ,tag ,form) ,@other-keys)
+       (should-error-with-tag-internal ',form ',other-keys ,tag)
      (should-error ,form ,@other-keys)))
 
 (defun test-ido-ubiquitous-expected-mode (override &optional tag)
