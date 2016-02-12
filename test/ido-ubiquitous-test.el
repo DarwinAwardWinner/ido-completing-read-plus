@@ -253,6 +253,9 @@ See `should-with-tag'."
 (defun test-ido-ubiquitous-expected-mode-on-functional-collection (override &optional tag)
   "Test whether observed ido-ubiquitous behavior on functional collection matches OVERRIDE."
   (declare (indent 1))
+  ;; This just temporarily replaces `completing-read' with a wrapper
+  ;; that always converts the collection argument to an equivalent
+  ;; function.
   (cl-letf* ((original-completing-read (symbol-function #'completing-read))
              ((symbol-function #'completing-read)
               (lambda (prompt collection &rest args)
@@ -307,13 +310,13 @@ See `should-with-tag'."
   "Test whether ido-ubiquitous overrides work when collection is a function."
   (with-ido-ubiquitous-standard-env
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-      :colfunc)
+      :collfunc)
     (ido-ubiquitous-with-override 'enable
       (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
-        :override-enable-colfunc))
+        :override-enable-collfunc))
     (ido-ubiquitous-with-override 'enable-old
       (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
-        :override-enable-old-colfunc))))
+        :override-enable-old-collfunc))))
 
 (ert-deftest ido-cr+-require-match ()
   :tags '(ido ido-cr+)
@@ -334,16 +337,21 @@ See `should-with-tag'."
      (ido-completing-read+
       "Prompt: "
       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow")))
+  ;; Multiple presses of C-j won't just select the first match
   (should-error
    (with-simulated-input "b C-j C-j C-j"
      (ido-completing-read+
       "Prompt: "
       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+  ;; First press of C-j should complete unique common prefix after the
+  ;; first b, but then get stuck on the choice for the second b.
   (should-error
    (with-simulated-input "b C-j b C-j C-j"
      (ido-completing-read+
       "Prompt: "
       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+  ;; This should complete to "blueberry" via 2 rounds of unique common
+  ;; prefix completion, and then return on the 3rd "C-j"
   (should
    (string=
     "blueberry"
@@ -351,11 +359,15 @@ See `should-with-tag'."
       (ido-completing-read+
        "Prompt: "
        '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+  ;; The "C-j" should complete to "bluegrass" but should
+  ;; not return.
   (should-error
    (with-simulated-input "b l u e g C-j"
      (ido-completing-read+
       "Prompt: "
       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+  ;; The first "C-j" should complete to "bluegrass", and the second
+  ;; should return.
   (should
    (string=
     "bluegrass"
@@ -386,22 +398,22 @@ See `should-with-tag'."
   (test-ido-ubiquitous-expected-mode 'enable
     :func-override-none)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-    :func-override-none-colfunc))
+    :func-override-none-collfunc))
 (defun idu-enabled-testfunc (&rest args)
   (test-ido-ubiquitous-expected-mode 'enable
     :func-override-enable)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
-    :func-override-enable-colfunc))
+    :func-override-enable-collfunc))
 (defun idu-disabled-testfunc (&rest args)
   (test-ido-ubiquitous-expected-mode 'disable
     :func-override-disable)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-    :func-override-disable-colfunc))
+    :func-override-disable-collfunc))
 (defun idu-enabled-oldstyle-testfunc (&rest args)
   (test-ido-ubiquitous-expected-mode 'enable-old
     :func-override-enable-old)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
-    :func-override-enable-old-colfunc))
+    :func-override-enable-old-collfunc))
 
 ;; commands to define overrides on for testing
 (defun idu-no-override-testcmd (&rest args)
@@ -410,44 +422,44 @@ See `should-with-tag'."
     (test-ido-ubiquitous-expected-mode 'enable
       :cmd-override-none)
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-      :cmd-override-non-colfunc)))
+      :cmd-override-non-collfunc)))
   (test-ido-ubiquitous-expected-mode 'enable
     :cmd-override-none)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-    :cmd-override-non-colfunc))
+    :cmd-override-non-collfunc))
 (defun idu-enabled-testcmd (&rest args)
   (interactive
    (list
     (test-ido-ubiquitous-expected-mode 'enable
       :cmd-override-enable)
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
-      :cmd-override-enable-colfunc)))
+      :cmd-override-enable-collfunc)))
   (test-ido-ubiquitous-expected-mode 'enable
     :cmd-override-enable)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable
-    :cmd-override-enable-colfunc))
+    :cmd-override-enable-collfunc))
 (defun idu-disabled-testcmd (&rest args)
   (interactive
    (list
     (test-ido-ubiquitous-expected-mode 'disable
       :cmd-override-disable)
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-      :cmd-override-disable-colfunc)))
+      :cmd-override-disable-collfunc)))
   (test-ido-ubiquitous-expected-mode 'disable
     :cmd-override-disable)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-    :cmd-override-disable-colfunc))
+    :cmd-override-disable-collfunc))
 (defun idu-enabled-oldstyle-testcmd (&rest args)
   (interactive
    (list
     (test-ido-ubiquitous-expected-mode 'enable-old
       :cmd-override-enable-old)
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
-      :cmd-override-enable-old-colfunc)))
+      :cmd-override-enable-old-collfunc)))
   (test-ido-ubiquitous-expected-mode 'enable-old
     :cmd-override-enable-old)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'enable-old
-    :cmd-override-enable-old-colfunc))
+    :cmd-override-enable-old-collfunc))
 
 (ert-deftest ido-ubiquitous-test-command-and-function-overrides ()
   :tags '(ido ido-ubiquitous)
