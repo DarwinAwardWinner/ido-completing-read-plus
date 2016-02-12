@@ -262,6 +262,7 @@ See `should-with-tag'."
     (test-ido-ubiquitous-expected-mode override tag)))
 
 (ert-deftest ido-ubiquitous-test-simple ()
+  :tags '(ido ido-ubiquitous)
   "Test that basic ido-ubiquitous functionality is working."
   (with-ido-ubiquitous-standard-env
     (ido-ubiquitous-mode 1)
@@ -272,6 +273,7 @@ See `should-with-tag'."
       :simple-disable)))
 
 (ert-deftest ido-ubiquitous-test-oldstyle ()
+  :tags '(ido ido-ubiquitous)
   "Test whether old-style completion works as expected."
   (with-ido-ubiquitous-standard-env
     (let ((ido-ubiquitous-default-state 'enable-old))
@@ -279,6 +281,7 @@ See `should-with-tag'."
         :simple-oldstyle))))
 
 (ert-deftest ido-ubiquitous-test-maxitems ()
+  :tags '(ido ido-ubiquitous)
   "Test whether the large-collection fallback works."
   (with-ido-ubiquitous-standard-env
     (let ((ido-cr+-max-items -1))
@@ -286,6 +289,7 @@ See `should-with-tag'."
         :maxitems))))
 
 (ert-deftest ido-ubiquitous-test-override ()
+  :tags '(ido ido-ubiquitous)
   "Test whether ido-ubiquitous overrides work."
   (with-ido-ubiquitous-standard-env
     (ido-ubiquitous-with-override 'enable
@@ -299,6 +303,7 @@ See `should-with-tag'."
         :override-disable))))
 
 (ert-deftest ido-ubiquitous-test-functional-collection ()
+  :tags '(ido ido-ubiquitous)
   "Test whether ido-ubiquitous overrides work when collection is a function."
   (with-ido-ubiquitous-standard-env
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
@@ -311,6 +316,7 @@ See `should-with-tag'."
         :override-enable-old-colfunc))))
 
 (ert-deftest ido-cr+-require-match ()
+  :tags '(ido ido-cr+)
   "Test whether require-match works."
   ;; "C-j" should be allowed to return an empty string even if
   ;; require-match is non-nil, as long as default is nil
@@ -444,6 +450,7 @@ See `should-with-tag'."
     :cmd-override-enable-old-colfunc))
 
 (ert-deftest ido-ubiquitous-test-command-and-function-overrides ()
+  :tags '(ido ido-ubiquitous)
   "Test whether command- and function-specific overrides work."
   (let ((orig-func-overrides ido-ubiquitous-function-overrides)
         (orig-cmd-overrides ido-ubiquitous-command-overrides))
@@ -477,6 +484,7 @@ See `should-with-tag'."
       (customize-set-variable 'ido-ubiquitous-command-overrides orig-cmd-overrides))))
 
 (ert-deftest ido-ubiquitous-test-fallback ()
+  :tags '(ido ido-ubiquitous)
   "Test whether manually invoking fallback works."
   (with-ido-ubiquitous-standard-env
     (should
