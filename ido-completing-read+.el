@@ -86,6 +86,8 @@ Debug info is printed to the *Messages* buffer."
   (if (memq completing-read-function
             '(ido-completing-read+
               ido-completing-read
+              ;; Current ido-ubiquitous function
+              completing-read-ido-ubiquitous
               ;; Old ido-ubiquitous functions that shouldn't be used
               completing-read-ido
               ido-ubiquitous-completing-read))
