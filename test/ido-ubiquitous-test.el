@@ -108,7 +108,7 @@ for activation and deactivation."
         (cl-loop for var in ido-ubiquitous-options collect
                  (list var
                        (list 'quote
-                             (default-value var))))))
+                             (eval (car (get var 'standard-value))))))))
     `(with-mode ido-ubiquitous-mode 1
        (let ,idu-bindings ,@body))))
 
