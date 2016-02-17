@@ -432,7 +432,7 @@ See `should-with-tag'."
     (test-ido-ubiquitous-expected-mode 'enable
       :cmd-override-none)
     (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
-      :cmd-override-non-collfunc)))
+      :cmd-override-none-collfunc)))
   (test-ido-ubiquitous-expected-mode 'enable
     :cmd-override-none)
   (test-ido-ubiquitous-expected-mode-on-functional-collection 'disable
