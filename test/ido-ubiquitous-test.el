@@ -1,4 +1,4 @@
-;;; ido-ubiquitous-test.el ---  -*- lexical-binding: nil -*-
+;;; ido-ubiquitous-test.el ---  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015 Ryan C. Thompson
 
@@ -112,27 +112,32 @@ for activation and deactivation."
     `(with-mode ido-ubiquitous-mode 1
        (let ,idu-bindings ,@body))))
 
-(defun collection-as-function (collection)
+(defmacro collection-as-function (collection)
   "Return a function equivalent to COLLECTION.
 
 The returned function will work equivalently to COLLECTION when
 passed to `all-completions' and `try-completion'."
-  (completion-table-dynamic (lambda (string) (all-completions string collection))))
-
-(defun should-with-tag-internal (form tag)
-  (let ((complete-form (list 'and tag form)))
-    (eval (list 'should complete-form))))
+  `(completion-table-dynamic (lambda (string) (all-completions string ,collection))))
 
 (cl-defmacro should-with-tag (form &key tag)
-  "Equivalent to `(should FORM)' but with a tag on the output.
+  "Equivalent to `(should FORM)' but with a TAG on the output.
 
 This is useful if the same `should' form will be called multiple
 times in different contexts. Each test can pass a different tag
 so it's clear in the ERT output which context is causing the
-failure."
-  `(if ,tag
-       (should-with-tag-internal ',form ,tag)
-     (should ,form)))
+failure.
+
+Note that although this is a macro, the TAG argument is evaluated normally."
+  `(let ((tagvalue ,tag))
+     (condition-case err
+         (should ,form)
+       (ert-test-failed
+        (message "Error symbol: %S" (car err))
+        (message "Error data: %S" (cdr err))
+        (when tagvalue
+          (setf (cadr err) (append (cadr err) (list :tag tagvalue))))
+        (message "New error data: %S" (cdr err))
+        (signal (car err) (cdr err))))))
 
 (defun plist-delete (plist property)
   "Delete PROPERTY from PLIST.
@@ -144,18 +149,22 @@ This is in contrast to merely setting it to 0."
       (setq plist (cddr plist)))
     p))
 
-(defun should-error-with-tag-internal (form other-args tag)
-  (let ((complete-form (list 'and tag form)))
-    (eval (nconc (list 'should-error complete-form)
-                 other-args))))
-
 (cl-defmacro should-error-with-tag (form &rest other-keys &key tag &allow-other-keys)
-  "Equivalent to `(should FORM)' but with a tag on the output.
-See `should-with-tag'."
+  "Equivalent to `(should FORM)' but with a TAG on the output.
+See `should-with-tag'.
+
+Note that although this is a macro, the TAG argument is evaluated normally."
   (setq other-keys (plist-delete other-keys :tag))
-  `(if ,tag
-       (should-error-with-tag-internal ',form ',other-keys ,tag)
-     (should-error ,form ,@other-keys)))
+  `(let ((tagvalue ,tag))
+     (condition-case err
+         (should-error ,form ,@other-keys)
+       (ert-test-failed
+        (message "Error symbol: %S" (car err))
+        (message "Error data: %S" (cdr err))
+        (when tagvalue
+          (setf (cadr err) (append (cadr err) (list :tag tagvalue))))
+        (message "New error data: %S" (cdr err))
+        (signal (car err) (cdr err))))))
 
 (defun test-ido-ubiquitous-expected-mode (override &optional tag)
   "Test whether observed ido-ubiquitous behavior matches OVERRIDE."
@@ -260,18 +269,20 @@ See `should-with-tag'."
         :tag tag))
       (otherwise (error "Unknown override %S" override)))))
 
+(defvar original-completing-read (symbol-function #'completing-read))
+
 (defun test-ido-ubiquitous-expected-mode-on-functional-collection (override &optional tag)
   "Test whether observed ido-ubiquitous behavior on functional collection matches OVERRIDE."
   (declare (indent 1))
   ;; This just temporarily replaces `completing-read' with a wrapper
   ;; that always converts the collection argument to an equivalent
-  ;; function.
-  (cl-letf* ((original-completing-read (symbol-function #'completing-read))
-             ((symbol-function #'completing-read)
-              (lambda (prompt collection &rest args)
-                (apply original-completing-read prompt
-                       (collection-as-function collection)
-                       args))))
+  ;; function. That way, any use of `completing-read' will always see
+  ;; a functional collection.
+  (cl-letf (((symbol-function 'completing-read)
+             (lambda (prompt collection &rest args)
+               (apply original-completing-read prompt
+                      (collection-as-function collection)
+                      args))))
     (test-ido-ubiquitous-expected-mode override tag)))
 
 (ert-deftest ido-ubiquitous-test-simple ()
