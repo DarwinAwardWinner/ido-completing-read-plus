@@ -488,7 +488,7 @@ Note that although this is a macro, the TAG argument is evaluated normally."
   (let ((orig-func-overrides ido-ubiquitous-function-overrides)
         (orig-cmd-overrides ido-ubiquitous-command-overrides))
     (unwind-protect
-        (progn
+        (with-ido-ubiquitous-standard-env
           (customize-set-variable
            'ido-ubiquitous-function-overrides
            (append ido-ubiquitous-function-overrides
