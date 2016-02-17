@@ -1,3 +1,14 @@
+2016-02-17  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* test/ido-ubiquitous-test.el: Significant refactoring of awkward
+	testing code. Tests should now be more robust.
+
+	* ido-completing-read+.el (ido-select-text): Fix an edge case in
+	ido-select-text: when require-match and default are both non-nil,
+	it should be impossible to return an empty string.
+	(ido-cr+-fallback-function): Don't allow ido-ubiquitous to be a
+	fallback for ido-cr+.
+
 2016-01-29  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el (ido-ubiquitous--maybe-update-overrides):
@@ -54,11 +65,12 @@
 
 2015-04-08  Ryan C. Thompson  <rct@thompsonclan.org>
 
-	* Major refactor: split into two packages: ido-completing-read+.el
-	and ido-ubiquitous.el that depends on it. Additionally, some of
-	the customization variables for ido-ubiquitous have been changed
-	for increased flexibility in configuration, and the internals have
-	been rearchitected significantly.
+	* ido-ubiquitous.el: Major refactor. Split into two packages:
+	ido-completing-read+.el and ido-ubiquitous.el that depends on it.
+	Additionally, some of the customization variables for
+	ido-ubiquitous have been changed for increased flexibility in
+	configuration, and the internals have been rearchitected
+	significantly.
 
 2015-01-25  Ryan C. Thompson  <rct@thompsonclan.org>
 
