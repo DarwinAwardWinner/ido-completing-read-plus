@@ -1,3 +1,8 @@
+2016-02-20  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-select-text): Eliminate another
+	compiler warning
+
 2016-02-17  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* test/ido-ubiquitous-test.el: Significant refactoring of awkward
