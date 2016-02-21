@@ -296,7 +296,7 @@ sets up C-j to be equivalent to TAB in the same situation."
        ;; Require-match is non-nil
        (with-no-warnings ido-require-match)
        ;; A default was provided, or ido-text is non-empty
-       (or ido-default-item
+       (or (with-no-warnings ido-default-item)
            (not (string= ido-text "")))
        ;; Only if current text is not a complete choice
        (not (member ido-text (with-no-warnings ido-cur-list))))
