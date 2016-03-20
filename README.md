@@ -83,7 +83,6 @@ ido-ubiquitous specifically avoids interfering with these. If you use
 any of the following packages, you need to enable ido for each of them
 separately.
 
-* Org Mode: `(setq org-completion-use-ido t)`
 * Magit: `(setq magit-completing-read-function 'magit-ido-completing-read)`
 * Gnus: `(setq gnus-completing-read-function 'gnus-ido-completing-read)`
 

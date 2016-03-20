@@ -39,9 +39,8 @@
 ;; functions will not have ido completion even when this mode is
 ;; enabled. Some other functions have ido disabled in them because
 ;; their packages already provide support for ido via other means (for
-;; example, org-mode and magit). See `M-x customize-group
-;; ido-ubiquitous' and read about the override variables for more
-;; information.
+;; example, magit). See `M-x customize-group ido-ubiquitous' and read
+;; about the override variables for more information.
 
 ;; ido-ubiquitous version 3.0 is a major update, including a split
 ;; into two packages, and some of the configuration options have
@@ -317,9 +316,6 @@ using overrides and disable it for everything else."
     (enable exact "webjump")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/28
     (enable regexp "\\`\\(find\\|load\\|locate\\)-library\\'")
-    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
-    ;; Org already supports ido natively
-    (disable prefix "org-")
     ;; https://github.com/bbatsov/prelude/issues/488
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
     ;; tmm implements its own non-standard completion mechanics
@@ -357,11 +353,6 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (enable-old exact "webjump-read-url-choice")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/9
     (disable exact "isearchp-read-unicode-char")
-    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
-    (disable exact "org-completing-read")
-    (disable exact "org-completing-read-no-i")
-    (disable exact "org-iswitchb-completing-read")
-    (disable exact "org-icompleting-read")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/38
     (enable exact "read-char-by-name")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/39
