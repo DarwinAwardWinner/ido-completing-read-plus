@@ -667,7 +667,10 @@ completion for them."
             (if (or ido-ubiquitous-allow-on-functional-collection
                     (memq ido-ubiquitous-active-override
                           '(enable enable-old)))
-                (setq collection (all-completions "" collection predicate))
+                (setq collection (all-completions "" collection predicate)
+                      ;; `all-completions' will apply the predicate,
+                      ;; so it now becomes redundant.
+                      predicate nil)
               (signal 'ido-ubiquitous-fallback
                       "COLLECTION is a function and there is no override")))
           (let ((ido-ubiquitous-enable-next-call t))
