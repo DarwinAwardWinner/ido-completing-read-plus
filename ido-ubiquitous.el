@@ -363,7 +363,8 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     ;; https://github.com/mooz/js2-mode/issues/181
     (enable exact "imenu--completion-buffer")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/74
-    (enable-old exact "auto-insert"))
+    (enable-old exact "auto-insert")
+    ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-function-overrides'.
 
 You can restore these using the command `ido-ubiquitous-restore-default-overrides'.")
