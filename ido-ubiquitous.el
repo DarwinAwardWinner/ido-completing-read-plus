@@ -333,6 +333,8 @@ using overrides and disable it for everything else."
     (enable exact "find-tag")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/89
     (enable prefix "etags-select-")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/110
+    (enable regexp "\\`describe-\\(function\\|variable\\)\\'")
     ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-command-overrides'.
 
