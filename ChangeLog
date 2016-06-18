@@ -1,3 +1,17 @@
+2016-06-18  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el (completing-read-ido-ubiquitous): Fix an edge
+	case where COLLECTION is a function and PREDICATE is non-nil. This
+	edge case caused errors in "describe-function" and
+	"describe-variable" in Emacs 25.1.
+	(completing-read-ido-ubiquitous): Make error handling more robust.
+	In addition to falling back to normal completion on a specific set
+	of expected errors, ido-ubiquitous now falls back on *any* error
+	encountered in the body of "completing-read-ido-ubiquitous".
+	(ido-ubiquitous-default-command-overrides): Add override for
+	"describe-function" and "describe-variable", which now require
+	them in Emacs 25.1.
+
 2016-02-20  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-select-text): Eliminate another
