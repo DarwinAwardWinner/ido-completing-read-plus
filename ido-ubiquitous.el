@@ -4,11 +4,11 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 3.13
+;; Version: 3.14
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.13") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.14") (cl-lib "0.5"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
@@ -69,7 +69,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-ubiquitous-version "3.13"
+(defconst ido-ubiquitous-version "3.14"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
