@@ -626,7 +626,8 @@ ido-ubiquitous, not for ordinary ido completion."
          (ido-ubiquitous-initial-item nil))
     ad-do-it))
 
-;; Signal used to trigger fallback
+;; Signal used to trigger fallback (don't use `define-error' because
+;; it's only supported in 24.4 and up)
 (put 'ido-ubiquitous-fallback 'error-conditions '(ido-ubiquitous-fallback error))
 (put 'ido-ubiquitous-fallback 'error-message "ido-ubiquitous-fallback")
 
@@ -647,36 +648,44 @@ completion for them."
         (orig-args
          (list prompt collection predicate require-match
                initial-input hist def inherit-input-method)))
+    ;; Outer `condition-case' is the fallback handler
     (condition-case sig
-        (let* (;; Set the active override and clear the "next" one so it
-               ;; doesn't apply to nested calls.
-               (ido-ubiquitous-active-override ido-ubiquitous-next-override)
-               (ido-ubiquitous-next-override nil)
-               ;; Apply the active override, if any
-               (ido-ubiquitous-active-state
-                (or ido-ubiquitous-active-override
-                    ido-ubiquitous-default-state
-                    'enable)))
-          ;; If ido-ubiquitous is disabled this time, fall back
-          (when (eq ido-ubiquitous-active-state 'disable)
-            (signal 'ido-ubiquitous-fallback
-                    "`ido-ubiquitous-active-state' is `disable'"))
-          ;; Handle a collection that is a function: either expand
-          ;; completion list now or fall back
-          (when (functionp collection)
-            (if (or ido-ubiquitous-allow-on-functional-collection
-                    (memq ido-ubiquitous-active-override
-                          '(enable enable-old)))
-                (setq collection (all-completions "" collection predicate)
-                      ;; `all-completions' will apply the predicate,
-                      ;; so it now becomes redundant.
-                      predicate nil)
-              (signal 'ido-ubiquitous-fallback
-                      "COLLECTION is a function and there is no override")))
-          (let ((ido-ubiquitous-enable-next-call t))
-            (ido-completing-read+
-             prompt collection predicate require-match
-             initial-input hist def inherit-input-method)))
+        ;; Inner `condition-case' converts any unexpected errors into
+        ;; fallback signals.
+        (condition-case err
+            (let* (;; Set the active override and clear the "next" one so it
+                   ;; doesn't apply to nested calls.
+                   (ido-ubiquitous-active-override ido-ubiquitous-next-override)
+                   (ido-ubiquitous-next-override nil)
+                   ;; Apply the active override, if any
+                   (ido-ubiquitous-active-state
+                    (or ido-ubiquitous-active-override
+                        ido-ubiquitous-default-state
+                        'enable)))
+              ;; If ido-ubiquitous is disabled this time, fall back
+              (when (eq ido-ubiquitous-active-state 'disable)
+                (signal 'ido-ubiquitous-fallback
+                        "`ido-ubiquitous-active-state' is `disable'"))
+              ;; Handle a collection that is a function: either expand
+              ;; completion list now or fall back
+              (when (functionp collection)
+                (if (or ido-ubiquitous-allow-on-functional-collection
+                        (memq ido-ubiquitous-active-override
+                              '(enable enable-old)))
+                    (setq collection (all-completions "" collection predicate)
+                          ;; `all-completions' will apply the predicate,
+                          ;; so it now becomes redundant.
+                          predicate nil)
+                  (signal 'ido-ubiquitous-fallback
+                          "COLLECTION is a function and there is no override")))
+              (let ((ido-ubiquitous-enable-next-call t))
+                (ido-completing-read+
+                 prompt collection predicate require-match
+                 initial-input hist def inherit-input-method)))
+          (error
+           (signal 'ido-ubiquitous-fallback
+                   (format "ido-ubiquitous encountered an unexpected error: %S"
+                           err))))
       ;; Handler for ido-ubiquitous-fallback signal
       (ido-ubiquitous-fallback
        (ido-ubiquitous--explain-fallback sig)
