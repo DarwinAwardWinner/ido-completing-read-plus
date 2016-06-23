@@ -1,3 +1,11 @@
+2016-06-23  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el (ido-ubiquitous-default-command-overrides):
+	Remove the recently-added overrides for "describe-function" and
+	"describe-variable". Ido completion interferes with a new feature
+	of the completion for these functions, so it should be disabled
+	unless ido can be made compatible with this feature.
+
 2016-06-18  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el (completing-read-ido-ubiquitous): Fix an edge
