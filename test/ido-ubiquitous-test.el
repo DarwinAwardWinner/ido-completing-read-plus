@@ -213,7 +213,7 @@ Note that although this is a macro, the TAG argument is evaluated normally."
           (completing-read "Prompt: " collection))
         (all-completions "b" collection))
        :tag tag))
-    (case override
+    (cl-case override
       (enable
        ;; Test for new style
        (should-with-tag
