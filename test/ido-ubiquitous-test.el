@@ -103,7 +103,8 @@ for activation and deactivation."
           ido-ubiquitous-function-overrides
           ido-cr+-fallback-function
           ido-cr+-max-items
-          ido-cr+-replace-completely))
+          ido-cr+-replace-completely
+          ido-confirm-unique-completion))
        (idu-bindings
         (cl-loop for var in ido-ubiquitous-options collect
                  (list var
@@ -342,77 +343,88 @@ Note that although this is a macro, the TAG argument is evaluated normally."
 (ert-deftest ido-cr+-require-match ()
   :tags '(ido ido-cr+)
   "Test whether require-match works."
-  ;; "C-j" should be allowed to return an empty string even if
-  ;; require-match is non-nil, as long as default is nil
-  (should
-   (string=
-    ""
-    (with-simulated-input "C-j"
-      (ido-completing-read+
-       "Prompt: "
-       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
-  ;; "C-j" should NOT be allowed to return an empty string if
-  ;; require-match and default are both non-nil.
-  (should-error
-   (with-simulated-input "C-j"
-     (ido-completing-read+
-      "Prompt: "
-      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow")))
-  ;; Multiple presses of C-j won't just select the first match
-  (should-error
-   (with-simulated-input "b C-j C-j C-j"
-     (ido-completing-read+
-      "Prompt: "
-      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
-  ;; First press of C-j should complete unique common prefix after the
-  ;; first b, but then get stuck on the choice for the second b.
-  (should-error
-   (with-simulated-input "b C-j b C-j C-j"
-     (ido-completing-read+
-      "Prompt: "
-      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
-  ;; This should complete to "blueberry" via 2 rounds of unique common
-  ;; prefix completion, and then return on the 3rd "C-j"
-  (should
-   (string=
-    "blueberry"
-    (with-simulated-input "b C-j b C-j e C-j C-j"
-      (ido-completing-read+
-       "Prompt: "
-       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
-  ;; The "C-j" should complete to "bluegrass" but should
-  ;; not return.
-  (should-error
-   (with-simulated-input "b l u e g C-j"
-     (ido-completing-read+
-      "Prompt: "
-      '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
-  ;; The first "C-j" should complete to "bluegrass", and the second
-  ;; should return.
-  (should
-   (string=
-    "bluegrass"
-    (with-simulated-input "b l u e g C-j C-j"
-      (ido-completing-read+
-       "Prompt: "
-       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
-  ;; Finally, a few tests for the expected wrong behavior without
-  ;; ido-cr+. If ido.el ever fixes this bug, it will cause this test
-  ;; to fail as a signal that the workaround can be phased out.
-  (should
-   (string=
-    ""
-    (with-simulated-input "C-j"
-      (ido-completing-read
-       "Prompt: "
-       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
-  (should
-   (string=
-    "b"
-    (with-simulated-input "b C-j"
-      (ido-completing-read
-       "Prompt: "
-       '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))))
+  (with-ido-ubiquitous-standard-env
+    ;; "C-j" should be allowed to return an empty string even if
+    ;; require-match is non-nil, as long as default is nil
+    (should
+     (string=
+      ""
+      (with-simulated-input "C-j"
+        (ido-completing-read+
+         "Prompt: "
+         '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+    ;; "C-j" should NOT be allowed to return an empty string if
+    ;; require-match and default are both non-nil.
+    (should-error
+     (with-simulated-input "C-j"
+       (ido-completing-read+
+        "Prompt: "
+        '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow")))
+    ;; Multiple presses of C-j won't just select the first match
+    (should-error
+     (with-simulated-input "b C-j C-j C-j"
+       (ido-completing-read+
+        "Prompt: "
+        '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+    ;; First press of C-j should complete unique common prefix after the
+    ;; first b, but then get stuck on the choice for the second b.
+    (should-error
+     (with-simulated-input "b C-j b C-j C-j"
+       (ido-completing-read+
+        "Prompt: "
+        '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+    ;; This should complete to "blueberry" via 2 rounds of unique common
+    ;; prefix completion, and then return on the 3rd "C-j"
+    (should
+     (string=
+      "blueberry"
+      (with-simulated-input "b C-j b C-j e C-j C-j"
+        (ido-completing-read+
+         "Prompt: "
+         '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+    ;; The "C-j" should complete to "bluegrass" and return, because
+    ;; `ido-confirm-unique-completion is nil.
+    (should
+     (string=
+      "bluegrass"
+      (with-simulated-input "b l u e g C-j"
+        (ido-completing-read+
+         "Prompt: "
+         '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+    (let ((ido-confirm-unique-completion t))
+      ;; Now the first "C-j" should complete to "bluegrass" but should
+      ;; not return.
+      (should-error
+       (with-simulated-input "b l u e g C-j"
+         (ido-completing-read+
+          "Prompt: "
+          '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+      ;; The first "C-j" should complete to "bluegrass", and the second
+      ;; should return.
+      (should
+       (string=
+        "bluegrass"
+        (with-simulated-input "b l u e g C-j C-j"
+          (ido-completing-read+
+           "Prompt: "
+           '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))))
+    ;; Finally, a few tests for the expected wrong behavior without
+    ;; ido-cr+. If ido.el ever fixes this bug, it will cause this test
+    ;; to fail as a signal that the workaround can be phased out.
+    (should
+     (string=
+      ""
+      (with-simulated-input "C-j"
+        (ido-completing-read
+         "Prompt: "
+         '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+    (should
+     (string=
+      "b"
+      (with-simulated-input "b C-j"
+        (ido-completing-read
+         "Prompt: "
+         '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))))
 
 ;; Functions to define overrides on for testing
 (defun idu-no-override-testfunc ()

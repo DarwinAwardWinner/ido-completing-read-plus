@@ -302,7 +302,7 @@ sets up C-j to be equivalent to TAB in the same situation."
        (not (member ido-text (with-no-warnings ido-cur-list))))
       (progn
         (ido-cr+--debug-message
-         "Overriding C-j behavior for require-match: performing completion instead of exiting.")
+         "Overriding C-j behavior for require-match: performing completion instead of exiting with current text. (This might still exit with a match if `ido-confirm-unique-completion' is nil)")
         (ido-complete))
     ad-do-it))
 
