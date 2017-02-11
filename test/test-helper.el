@@ -5,18 +5,6 @@
 ;; Filename: test-helper.el
 ;; Author: Ryan C. Thompson
 ;; Created: Sat Nov 21 15:27:00 2015 (-0800)
-;; Version: 
-;; Package-Requires: ()
-;; URL: 
-;; Keywords: 
-
-;; This file is NOT part of GNU Emacs.
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;;; Commentary: 
-
-;; 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
@@ -49,7 +37,5 @@
 
 (require 'ido-completing-read+)
 (require 'ido-ubiquitous)
-
-(provide 'test-helper)
 
 ;;; test-helper.el ends here
