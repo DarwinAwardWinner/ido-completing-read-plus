@@ -331,6 +331,7 @@ using overrides and disable it for everything else."
     (enable exact "find-tag")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/89
     (enable prefix "etags-select-")
+    (enable regexp "\\`describe-\\(function\\|variable\\)\\'")
     ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-command-overrides'.
 
@@ -668,7 +669,8 @@ completion for them."
                         '("`ido-ubiquitous-active-state' is `disable'")))
               ;; Handle a collection that is a function: either expand
               ;; completion list now or fall back
-              (when (functionp collection)
+              (when (and (functionp collection)
+                         (not (eq collection 'help--symbol-completion-table)))
                 (if (or ido-ubiquitous-allow-on-functional-collection
                         (memq ido-ubiquitous-active-override
                               '(enable enable-old)))
