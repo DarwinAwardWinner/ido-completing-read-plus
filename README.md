@@ -23,8 +23,9 @@ settings are to your liking.
 
 If you are using this package, you probably want to enable ido
 everywhere that it is possible to do so. Here are all the places to
-enable ido that I'm aware of. (Note that most of these variables can
-also be set via `M-x customize-variable` if you prefer that.)
+enable ido that I'm aware of. (Note that most of these variables/modes
+can also be set/enabled via `M-x customize-variable` if you prefer
+that.)
 
 ## Ido itself ##
 
@@ -46,7 +47,18 @@ and then turn on `ido-ubiquitous-mode`:
 Smex allows you to use ido for completion of commands in M-x, with
 enhancements like putting your most-used commands at the front of the
 list. First install the [smex](https://github.com/nonsequitur/smex)
-package, then follow the directions to set up key-bindings for it.
+package, then follow the directions to load it and replace your normal
+M-x key-binding with smex:
+
+    (require 'smex) ; Not needed if you use package.el
+    (smex-initialize) ; Can be omitted. This might cause a (minimal) delay
+                      ; when Smex is auto-initialized on its first run.
+    (global-set-key (kbd "M-x") 'smex)
+    (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+    ;; This is your old M-x.
+    (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+
+(These directions are the same ones given in the smex README file.)
 
 ## ido-yes-or-no ##
 
@@ -85,9 +97,6 @@ separately.
 
 * Magit: `(setq magit-completing-read-function 'magit-ido-completing-read)`
 * Gnus: `(setq gnus-completing-read-function 'gnus-ido-completing-read)`
-
-(You can also use `M-x customize-variable` to set all of these
-options.)
 
 # Frequently asked questions #
 
