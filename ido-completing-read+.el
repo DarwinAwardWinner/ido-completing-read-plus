@@ -143,9 +143,9 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   (when ido-cr+-debug-mode
     (when (and (listp arg)
                (eq (car arg) 'ido-cr+-fallback))
-      (setq arg (cdr arg)))
+      (setq arg (cadr arg)))
     (ido-cr+--debug-message "Falling back to `%s' because %s."
-                                   ido-cr+-fallback-function arg)))
+                            ido-cr+-fallback-function arg)))
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
@@ -169,22 +169,23 @@ completion for them."
           (cond
            (inherit-input-method
             (signal 'ido-cr+-fallback
-                    "ido cannot handle non-nil INHERIT-INPUT-METHOD"))
+                    '("ido cannot handle non-nil INHERIT-INPUT-METHOD")))
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
-                    "ido cannot handle non-nil `completion-extra-properties'"))
+                    '("ido cannot handle non-nil `completion-extra-properties'")))
            ((functionp collection)
             (signal 'ido-cr+-fallback
-                    "ido cannot handle COLLECTION being a function")))
+                    '("ido cannot handle COLLECTION being a function"))))
           ;; Expand all possible completions
           (setq collection (all-completions "" collection predicate))
           ;; Check for excessively large collection
           (when (and ido-cr+-max-items
                      (> (length collection) ido-cr+-max-items))
             (signal 'ido-cr+-fallback
-                    (format
-                     "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
-                     ido-cr+-max-items)))
+                    (list
+                     (format
+                      "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
+                      ido-cr+-max-items))))
           ;; ido doesn't natively handle DEF being a list. If DEF is a
           ;; list, prepend it to COLLECTION and set DEF to just the
           ;; car of the default list.
@@ -219,7 +220,7 @@ completion for them."
             ;; This detects when the user triggered fallback mode
             ;; manually.
             (when (eq ido-exit 'fallback)
-              (signal 'ido-cr+-fallback "user manually triggered fallback"))))
+              (signal 'ido-cr+-fallback '("user manually triggered fallback")))))
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
        (ido-cr+--explain-fallback sig)

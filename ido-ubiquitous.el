@@ -114,7 +114,7 @@ Debug info is printed to the *Messages* buffer."
   (when ido-ubiquitous-debug-mode
     (when (and (listp arg)
                (eq (car arg) 'ido-ubiquitous-fallback))
-      (setq arg (cdr arg)))
+      (setq arg (cadr arg)))
     (ido-ubiquitous--debug-message "Falling back to `%s' because %s."
                                    ido-cr+-fallback-function arg)))
 
@@ -667,7 +667,7 @@ completion for them."
               ;; If ido-ubiquitous is disabled this time, fall back
               (when (eq ido-ubiquitous-active-state 'disable)
                 (signal 'ido-ubiquitous-fallback
-                        "`ido-ubiquitous-active-state' is `disable'"))
+                        '("`ido-ubiquitous-active-state' is `disable'")))
               ;; Handle a collection that is a function: either expand
               ;; completion list now or fall back
               (when (functionp collection)
@@ -679,15 +679,20 @@ completion for them."
                           ;; so it now becomes redundant.
                           predicate nil)
                   (signal 'ido-ubiquitous-fallback
-                          "COLLECTION is a function and there is no override")))
+                          '("COLLECTION is a function and there is no override"))))
               (let ((ido-ubiquitous-enable-next-call t))
                 (ido-completing-read+
                  prompt collection predicate require-match
                  initial-input hist def inherit-input-method)))
+          ;; Pass through any known fallback signals to the outer
+          ;; `condition-case'
+          (ido-ubiquitous-fallback
+           (signal (car err) (cdr err)))
+          ;; Convert any other error into a fallback signal.
           (error
            (signal 'ido-ubiquitous-fallback
-                   (format "ido-ubiquitous encountered an unexpected error: %S"
-                           err))))
+                   (list (format "ido-ubiquitous encountered an unexpected error: %S"
+                                 err)))))
       ;; Handler for ido-ubiquitous-fallback signal
       (ido-ubiquitous-fallback
        (ido-ubiquitous--explain-fallback sig)
