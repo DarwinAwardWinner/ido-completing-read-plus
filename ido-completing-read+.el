@@ -60,11 +60,9 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-completing-read-plus)
 
-;; Defined as a macro for efficiency (args are not evaluated unless
-;; debug mode is on)
-(defmacro ido-cr+--debug-message (format-string &rest args)
-  `(when ido-cr+-debug-mode
-     (message (concat "ido-completing-read+: " ,format-string) ,@args)))
+(defun ido-cr+--debug-message (format-string &rest args)
+  (when ido-cr+-debug-mode
+    (apply #'message (concat "ido-completing-read+: " format-string) args)))
 
 ;;; Core code
 

@@ -102,11 +102,9 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-ubiquitous)
 
-;; Defined as a macro for efficiency (args are not evaluated unless
-;; debug mode is on)
-(defmacro ido-ubiquitous--debug-message (format-string &rest args)
-  `(when ido-ubiquitous-debug-mode
-     (message (concat "ido-ubiquitous: " ,format-string) ,@args)))
+(defun ido-ubiquitous--debug-message (format-string &rest args)
+  (when ido-ubiquitous-debug-mode
+     (apply #'message (concat "ido-ubiquitous: " format-string) args)))
 
 (defun ido-ubiquitous--explain-fallback (arg)
   ;; This function accepts a string, or an ido-ubiquitous-fallback
