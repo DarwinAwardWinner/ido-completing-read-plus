@@ -1,3 +1,8 @@
+2017-03-13  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-ubiquitous.el (ido-cr+--explain-fallback): Fix
+	ido-ubiquitous-debug-mode messages.
+
 2016-06-23  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el (ido-ubiquitous-default-command-overrides):
