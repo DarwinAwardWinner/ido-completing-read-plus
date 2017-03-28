@@ -97,6 +97,7 @@ separately.
 
 * Magit: `(setq magit-completing-read-function 'magit-ido-completing-read)`
 * Gnus: `(setq gnus-completing-read-function 'gnus-ido-completing-read)`
+* ESS: `(setq ess-use-ido t)`
 
 # Frequently asked questions #
 
