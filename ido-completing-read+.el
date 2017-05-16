@@ -211,7 +211,7 @@ completion for them."
                     '("ido cannot handle non-nil INHERIT-INPUT-METHOD")))
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
-                    '("ido cannot handle non-nil `completion-extra-properties'"))
+                    '("ido cannot handle non-nil `completion-extra-properties'")))
 	   ((eq collection 'help--symbol-completion-table)
 	    ;; In newer Emacs help--symbol-completion-table loads libs
 	    ;; based on the prefix of the completion in
