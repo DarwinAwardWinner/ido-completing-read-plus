@@ -73,6 +73,11 @@ Debug info is printed to the *Messages* buffer."
 (defvar ido-cr+-enable-this-call nil
   "If non-nil, then the current call to `ido-completing-read' is by `ido-completing-read+'")
 
+(defvar ido-cr+-orig-completing-read-args nil
+  "Original arguments passed to `ido-completing-read+'.
+
+These are used for falling back to `completing-read-default'.")
+
 (defgroup ido-completing-read-plus nil
   "Extra features and compatibility for `ido-completing-read'."
   :group 'ido)
@@ -200,7 +205,7 @@ it detects edge cases that ido cannot handle and uses normal
 completion for them."
   (let (;; Save the original arguments in case we need to do the
         ;; fallback
-        (orig-args
+        (ido-cr+-orig-completing-read-args
          (list prompt collection predicate require-match
                initial-input hist def inherit-input-method)))
     (condition-case sig
@@ -270,7 +275,7 @@ completion for them."
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
        (ido-cr+--explain-fallback sig)
-       (apply ido-cr+-fallback-function orig-args)))))
+       (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args)))))
 
 ;;;###autoload
 (defadvice ido-completing-read (around ido-cr+ activate)
