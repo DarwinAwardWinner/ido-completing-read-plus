@@ -76,7 +76,8 @@ Returns non-nil if any new files were loaded."
     (help--load-prefixes prefixes)
     (not (eq load-history old-load-history))))
 
-(defun ido-descfns-post-self-insert-hook ()
+;; `ido-exhibit' is the ido post-command hook
+(defadvice ido-exhibit (before ido-descfns activate)
   "Maybe load new files and update possible ido completions.
 
 Has no effect unless `ido-descfns-enable-this-call' is non-nil."
@@ -84,38 +85,21 @@ Has no effect unless `ido-descfns-enable-this-call' is non-nil."
              (ido-descfns-maybe-load-prefixes ido-text))
     (with-no-warnings
       (setq ido-cur-list
-            (all-completions "" obarray ido-descfns-orig-predicate)))))
-
-(defun ido-descfns-setup ()
-  (add-hook 'post-self-insert-hook #'ido-descfns-post-self-insert-hook)
-  (add-hook 'minibuffer-exit-hook #'ido-descfns-cleanup))
-
-(defun ido-descfns-cleanup ()
-  (remove-hook 'post-self-insert-hook #'ido-descfns-post-self-insert-hook)
-  (remove-hook 'minibuffer-exit-hook #'ido-descfns-cleanup)
-  (remove-hook 'ido-setup-hook #'ido-descfns-setup))
+            (all-completions "" obarray ido-descfns-orig-predicate))
+      (ido-ubiquitous--debug-message "ido-describe-fns loaded new files. `ido-cur-list' now has %i items" (length ido-cur-list)))))
 
 ;; This advice-based implementation is required for reentrancy
 (defadvice ido-completing-read+ (around ido-descfns activate)
   (let ((ido-descfns-enable-this-call
          (and ido-ubiquitous-mode
-              (eq collection 'help--symbol-completion-table)))
-        ;; Each call gets its own private copy of these hooks
-        (ido-setup-hook ido-setup-hook)
-        (minibuffer-exit-hook minibuffer-exit-hook)
-        (post-self-insert-hook post-self-insert-hook))
-    ;; Clean up our copy of the hook in case of recursive completion.
-    (ido-descfns-cleanup)
+              (eq collection 'help--symbol-completion-table))))
     (when ido-descfns-enable-this-call
       ;; Convert the initial collection into something ido-cr+ will
       ;; accept
+      (ido-ubiquitous--debug-message "Activating ido-describe-fns")
       (setq collection obarray
-            ido-descfns-orig-predicate predicate)
-      (add-hook 'ido-setup-hook #'ido-descfns-setup))
-    ad-do-it
-    (ido-descfns-cleanup)))
-
-(add-hook 'ido-cr+-before-fallback-hook #'ido-descfns-cleanup)
+            ido-descfns-orig-predicate predicate))
+    ad-do-it))
 
 (provide 'ido-describe-fns)
 
