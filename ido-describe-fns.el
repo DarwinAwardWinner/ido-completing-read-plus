@@ -6,7 +6,7 @@
 ;; Author: Ryan C. Thompson
 ;; Created: Tue May 16 18:23:13 2017 (-0400)
 ;; Version: 3.17
-;; Package-Requires: ((emacs "26.1") (ido-completing-read+ 3.17))
+;; Package-Requires: ((emacs "26.1") (ido-completing-read+ 3.17) (ido-ubiquitous 3.17))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
 
@@ -16,11 +16,16 @@
 ;; 
 ;;; Commentary: 
 
-;; This package implements ido completion for the new `describe-*'
-;; family of functions. These no longer work with ido-ubiquitous
-;; because they use a function-based collection argument to implement
-;; auto-loading of the file corresponding to the prefix you entered in
-;; order to offer completions of symbols from that file.
+;; This package is an extension for ido-ubiquitous that implements ido
+;; completion for the new `describe-*' family of commands. In recent
+;; Emacs versions, these commands no longer work with ido-ubiquitous
+;; because they now use a function-based collection argument to
+;; implement auto-loading of the file corresponding to the prefix you
+;; entered in order to offer completions of symbols from that file.
+
+;; Note that there is no separate mode to enable. If
+;; `ido-ubiquitous-mode' is already enabled, then simply loading this
+;; package will enable it as well.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
@@ -49,6 +54,7 @@ be updated until you restart Emacs.")
 
 (require 'ido)
 (require 'ido-completing-read+)
+(require 'ido-ubiquitous)
 
 ;;;###autoload
 (defvar ido-descfns-enable-this-call nil
@@ -56,17 +62,6 @@ be updated until you restart Emacs.")
 
 (defvar ido-descfns-orig-predicate nil
   "Original predicate from the current completion call.")
-
-;;;###autoload
-(define-minor-mode ido-describe-functions-mode
-  "Use `ido-completing-read' for `describe-variable' and similar functions.
-
-In particular, it uses ido for any function that uses
-`help--symbol-completion-table' as the collection argument to
-`completing-read'."
-  nil
-  :global t
-  :group 'ido-ubiquitous)
 
 (defun ido-descfns-maybe-load-prefixes (string)
   "Load any files needed to complete the current input.
@@ -103,7 +98,7 @@ Has no effect unless `ido-descfns-enable-this-call' is non-nil."
 ;; This advice-based implementation is required for reentrancy
 (defadvice ido-completing-read+ (around ido-descfns activate)
   (let ((ido-descfns-enable-this-call
-         (and ido-describe-functions-mode
+         (and ido-ubiquitous-mode
               (eq collection 'help--symbol-completion-table)))
         ;; Each call gets its own private copy of these hooks
         (ido-setup-hook ido-setup-hook)
