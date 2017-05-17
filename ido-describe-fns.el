@@ -56,10 +56,6 @@ be updated until you restart Emacs.")
 (require 'ido-completing-read+)
 (require 'ido-ubiquitous)
 
-;;;###autoload
-(defvar ido-descfns-enable-this-call nil
-  "If non-nil, then the current call to `ido-completing-read+' is by `ido-descfns-read-from-help-symbol-completion-table'.")
-
 (defvar ido-descfns-orig-predicate nil
   "Original predicate from the current completion call.")
 
@@ -81,25 +77,12 @@ Returns non-nil if any new files were loaded."
   "Maybe load new files and update possible ido completions.
 
 Has no effect unless `ido-descfns-enable-this-call' is non-nil."
-  (when (and ido-descfns-enable-this-call
+  (when (and (ido-ubiquitous-active)
              (ido-descfns-maybe-load-prefixes ido-text))
     (with-no-warnings
       (setq ido-cur-list
             (all-completions "" obarray ido-descfns-orig-predicate))
       (ido-ubiquitous--debug-message "ido-describe-fns loaded new files. `ido-cur-list' now has %i items" (length ido-cur-list)))))
-
-;; This advice-based implementation is required for reentrancy
-(defadvice ido-completing-read+ (around ido-descfns activate)
-  (let ((ido-descfns-enable-this-call
-         (and ido-ubiquitous-mode
-              (eq collection 'help--symbol-completion-table))))
-    (when ido-descfns-enable-this-call
-      ;; Convert the initial collection into something ido-cr+ will
-      ;; accept
-      (ido-ubiquitous--debug-message "Activating ido-describe-fns")
-      (setq collection obarray
-            ido-descfns-orig-predicate predicate))
-    ad-do-it))
 
 (provide 'ido-describe-fns)
 
