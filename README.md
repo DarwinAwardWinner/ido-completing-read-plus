@@ -42,6 +42,21 @@ and then turn on `ido-ubiquitous-mode`:
     (require 'ido-ubiquitous)
     (ido-ubiquitous-mode 1)
 
+## ido-describe-fns ##
+
+Newer versions of Emacs have a special feature where functions like
+`describe-variable` and `describe-function` can automatically load the
+file whose prefix you have typed in order to offer the symbols defined
+in that package as completions. Unfortunately, this non-standard
+completion with a dynamically updating set of options is incompatible
+with ido. The ido-describe-fns package allows ido to work with these
+functions again. Simply install it and then do
+
+    (require 'ido-describe-fns)
+
+If `ido-ubiquitous-mode` is enabled, then simply loading this package
+will enable it as well.
+
 ## Smex ##
 
 Smex allows you to use ido for completion of commands in M-x, with
