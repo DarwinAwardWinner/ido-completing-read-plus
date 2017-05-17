@@ -583,13 +583,11 @@ this to non-nil, but this is not recommended."
 
 ;;; ido-ubiquitous core
 
-;; These variable are used to make ido-ubiquitous work properly in the
-;; case that `completing-read' is called recursively (which is
-;; possible when `enable-recursive-minibuffers' is non-nil.)
-(defvar ido-ubiquitous-enable-next-call nil
-  "If non-nil, then the next call to `ido-completing-read' is by ido-ubiquitous.")
-(defvar ido-ubiquitous-enable-this-call nil
-  "If non-nil, then the current call to `ido-completing-read' is by ido-ubiquitous.")
+(defvar ido-ubiquitous-minibuffer-depth -1
+  "Analgous to `ido-cr+-minibuffer-depth.")
+
+;; These variables are used to make overrides work properly with
+;; recursive minibuffers.
 (defvar ido-ubiquitous-next-override nil
   "This holds the override to be applied on the next call to `completing-read'.
 
@@ -614,17 +612,13 @@ It's value can be nil or one of the symbols `disable', `enable', or
 
 You should not modify this variable directly.")
 
-(defadvice ido-completing-read (around ido-ubiquitous activate)
-  "Enable ido-ubiquitous features if this call was done through ido-ubiquitous.
+(defun ido-ubiquitous-active ()
+  "Returns non-nil if ido-ubiquitous is currently using the minibuffer."
+  (>= ido-ubiquitous-minibuffer-depth (minibuffer-depth)))
 
-This advice ensures that `ido-ubiquitous-enable-this-call' is set
-properly while `ido-completing-read' is executing. This variable
-is used to determine whether to enable certain behaviors only for
-ido-ubiquitous, not for ordinary ido completion."
-  ;; Set "this" and clear "next" so it doesn't apply to nested calls.
-  (let* ((ido-ubiquitous-enable-this-call ido-ubiquitous-enable-next-call)
-         (ido-ubiquitous-enable-next-call nil)
-         (ido-ubiquitous-initial-item nil))
+(defadvice ido-completing-read (around ido-ubiquitous activate)
+  "This initiailizes `ido-ubiquitous-initial-item'."
+  (let ((ido-ubiquitous-initial-item nil))
     ad-do-it))
 
 ;; Signal used to trigger fallback (don't use `define-error' because
@@ -678,7 +672,7 @@ completion for them."
                 (unless ido-cr+-force-on-functional-collection
                   (signal 'ido-ubiquitous-fallback
                           '("COLLECTION is a function and there is no override"))))
-              (let ((ido-ubiquitous-enable-next-call t))
+              (let ((ido-ubiquitous-minibuffer-depth (1+ (minibuffer-depth))))
                 (ido-completing-read+
                  prompt collection predicate require-match
                  initial-input hist def inherit-input-method)))
@@ -775,7 +769,7 @@ done in order to decide whether to swap RET and C-j. See
       ;; Only if completing a list, not a buffer or file
       (eq ido-cur-item 'list)
       ;; Only if this call was done through ido-ubiquitous
-      ido-ubiquitous-enable-this-call
+      (ido-ubiquitous-active)
       ;; Only if default is nil
       (null ido-default-item)
       ;; Only if input is empty
