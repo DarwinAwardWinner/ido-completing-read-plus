@@ -6,7 +6,7 @@
 ;; Author: Ryan C. Thompson
 ;; Created: Tue May 16 18:23:13 2017 (-0400)
 ;; Version: 3.17
-;; Package-Requires: ((emacs "26.1") (ido-completing-read+ 3.17) (ido-ubiquitous 3.17))
+;; Package-Requires: ((emacs "26") (ido-completing-read+ 3.17) (ido-ubiquitous 3.17))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
 
