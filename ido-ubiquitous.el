@@ -669,8 +669,7 @@ completion for them."
                         '("`ido-ubiquitous-active-state' is `disable'")))
               ;; Handle a collection that is a function: either expand
               ;; completion list now or fall back
-              (when (and (functionp collection)
-                         (not (eq collection 'help--symbol-completion-table)))
+              (when (functionp collection)
                 (if (or ido-ubiquitous-allow-on-functional-collection
                         (memq ido-ubiquitous-active-override
                               '(enable enable-old)))

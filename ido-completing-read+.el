@@ -155,47 +155,6 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
     (ido-cr+--debug-message "Falling back to `%s' because %s."
                             ido-cr+-fallback-function arg)))
 
-(defvar ido-cr+--predicate nil)
-;;; ido-cr+--update-help-prefixes needs to know the completion
-;;; predicate but ido discards that information
-
-(defun ido-cr+--update-help-prefixes ()
-  (let ((ido-cr+--old-load-history load-history))
-    (help--load-prefixes
-     (radix-tree-prefixes
-      (help-definition-prefixes)
-      (buffer-substring-no-properties (minibuffer-prompt-end) (point-max))))
-    ;; load new prefixes the same way as help--symbol-completion-table
-    ;; but without doing any completion
-    (unless (eq ido-cr+--old-load-history load-history)
-      ;; hackish way to see if help--load-prefixes loaded any new files
-      (with-no-warnings
-	;; ido dynamically binds ido-cur-list
-	(setq ido-cur-list (all-completions "" obarray ido-cr+--predicate))))))
-
-(defun ido-cr+--help-symbol-completion-minibuffer-hook ()
-  (remove-hook 'post-self-insert-hook
-	       #'ido-cr+--update-help-prefixes)
-  ;; prefixes are updated with each self-insert as necessary
-  (remove-hook 'ido-setup-hook
-	       #'ido-cr+--help-symbol-completion-ido-hook)
-  (remove-hook 'minibuffer-exit-hook
-	       #'ido-cr+--help-symbol-completion-minibuffer-hook)
-  (setq ido-cr+--predicate nil))
-
-(defun ido-cr+--help-symbol-completion-ido-hook ()
-  (add-hook 'post-self-insert-hook
-	    #'ido-cr+--update-help-prefixes)
-  (add-hook 'minibuffer-exit-hook
-	    #'ido-cr+--help-symbol-completion-minibuffer-hook))
-
-(defun ido-cr+--handle-help-symbol-completion (predicate)
-  ;; ido-setup-hook does all the setup for the prefix completion and
-  ;; minibuffer-exit-hook breaks it all down
-  (setq ido-cr+--predicate predicate)
-  (add-hook 'ido-setup-hook
-	    #'ido-cr+--help-symbol-completion-ido-hook))
-
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
                                     require-match initial-input
@@ -222,13 +181,6 @@ completion for them."
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
                     '("ido cannot handle non-nil `completion-extra-properties'")))
-	   ((eq collection 'help--symbol-completion-table)
-	    ;; In newer Emacs help--symbol-completion-table loads libs
-	    ;; based on the prefix of the completion in
-	    ;; describe-variable and describe-function as the user
-	    ;; types. Detect and handle that case with ido.
-	    (ido-cr+--handle-help-symbol-completion predicate)
-	    (setq collection obarray))
            ((functionp collection)
             (signal 'ido-cr+-fallback
                     '("ido cannot handle COLLECTION being a function"))))
