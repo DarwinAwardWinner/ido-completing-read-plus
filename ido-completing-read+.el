@@ -78,6 +78,11 @@ Debug info is printed to the *Messages* buffer."
 
 These are used for falling back to `completing-read-default'.")
 
+(defvar ido-cr+-before-fallback-hook nil
+  "Hook run when ido-cr+ triggers a fallback.
+
+The hook is run right before calling `ido-cr+-fallback-function'.")
+
 (defgroup ido-completing-read-plus nil
   "Extra features and compatibility for `ido-completing-read'."
   :group 'ido)
@@ -275,6 +280,7 @@ completion for them."
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
        (ido-cr+--explain-fallback sig)
+       (run-hooks 'ido-cr+-before-fallback-hook)
        (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args)))))
 
 ;;;###autoload
