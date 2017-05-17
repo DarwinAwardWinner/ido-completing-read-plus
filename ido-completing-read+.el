@@ -66,12 +66,17 @@ Debug info is printed to the *Messages* buffer."
 
 ;;; Core code
 
-;;;###autoload
-(defvar ido-cr+-enable-next-call nil
-  "If non-nil, then the next call to `ido-completing-read' is by `ido-completing-read+'.")
-;;;###autoload
-(defvar ido-cr+-enable-this-call nil
-  "If non-nil, then the current call to `ido-completing-read' is by `ido-completing-read+'")
+(defvar ido-cr+-minibuffer-depth -1
+  "Minibuffer depth of the most recent ido-cr+ activation.
+
+If this equals the current minibuffer depth, then the minibuffer
+is currently being used by ido-cr+, and ido-cr+ feature will be
+active. Otherwise, something else is using the minibuffer and
+ido-cr+ features will be deactivated to avoid interfering with
+the other command.
+
+This is set to -1 by default, since `(minibuffer-depth)' should
+never return this value.")
 
 (defvar ido-cr+-force-on-functional-collection nil
   "If non-nil, the next call to `ido-completing-read+' will operate on functional collections.
@@ -162,6 +167,10 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
     (ido-cr+--debug-message "Falling back to `%s' because %s."
                             ido-cr+-fallback-function arg)))
 
+(defun ido-cr+-active ()
+  "Returns non-nil if ido-cr+ is currently using the minibuffer."
+  (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
+
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
                                     require-match initial-input
@@ -227,7 +236,7 @@ completion for them."
                     def nil)))
           ;; Ready to do actual ido completion
           (prog1
-              (let ((ido-cr+-enable-next-call t))
+              (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth))))
                 (ido-completing-read
                  prompt collection
                  predicate require-match initial-input hist def
@@ -244,28 +253,18 @@ completion for them."
 
 ;;;###autoload
 (defadvice ido-completing-read (around ido-cr+ activate)
-  "This advice handles application of ido-completing-read+ features.
-
-First, it ensures that `ido-cr+-enable-this-call' is set
-properly. This variable should be non-nil during execution of
-`ido-completing-read' if it was called from
-`ido-completing-read+'.
-
-Second, if `ido-cr+-replace-completely' is non-nil, then this
-advice completely replaces `ido-completing-read' with
-`ido-completing-read+'."
+  "This advice is the implementation of `ido-cr+-replace-completely'."
   ;; If this advice is autoloaded, then we need to force loading of
   ;; the rest of the file so all the variables will be defined.
   (when (not (featurep 'ido-completing-read+))
     (require 'ido-completing-read+))
-  (let ((ido-cr+-enable-this-call ido-cr+-enable-next-call)
-        (ido-cr+-enable-next-call nil))
-    (if (or
-       ido-cr+-enable-this-call         ; Avoid recursion
-       (not ido-cr+-replace-completely))
+  (if (or (ido-cr+-active)
+          (not ido-cr+-replace-completely))
+      ;; ido-cr+ has either already activated or isn't going to
+      ;; activate, so run the function
       ad-do-it
-    (message "Replacing ido-completing-read")
-    (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0))))))
+    ;; Otherwise, we need to activate ido-cr+.
+    (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0)))))
 
 ;; Fallback on magic C-f and C-b
 ;;;###autoload
@@ -283,14 +282,14 @@ shouldn't matter.")
 
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
-  (when ido-cr+-enable-this-call
+  (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
 
 (defadvice ido-magic-backward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
-  (when ido-cr+-enable-this-call
+  (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
@@ -309,7 +308,7 @@ sets up C-j to be equivalent to TAB in the same situation."
   (if (and
        ;; Only override C-j behavior if...
        ;; We're using ico-cr+
-       ido-cr+-enable-this-call
+       (ido-cr+-active)
        ;; Require-match is non-nil
        (with-no-warnings ido-require-match)
        ;; A default was provided, or ido-text is non-empty
