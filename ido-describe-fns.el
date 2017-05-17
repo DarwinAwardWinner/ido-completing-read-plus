@@ -41,6 +41,12 @@
 ;; 
 ;;; Code:
 
+(defconst ido-describe-fns-version "3.17"
+  "Currently running version of ido-describe-fns.
+
+Note that when you update ido-describe-fns, this variable may not
+be updated until you restart Emacs.")
+
 (require 'ido)
 (require 'ido-completing-read+)
 
