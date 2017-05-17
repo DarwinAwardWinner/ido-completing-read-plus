@@ -662,21 +662,20 @@ completion for them."
                    (ido-ubiquitous-active-state
                     (or ido-ubiquitous-active-override
                         ido-ubiquitous-default-state
-                        'enable)))
+                        'enable))
+                   (ido-cr+-force-on-functional-collection
+                    (or ido-ubiquitous-allow-on-functional-collection
+                        (memq ido-ubiquitous-active-override
+                              '(enable enable-old)))))
               ;; If ido-ubiquitous is disabled this time, fall back
               (when (eq ido-ubiquitous-active-state 'disable)
                 (signal 'ido-ubiquitous-fallback
                         '("`ido-ubiquitous-active-state' is `disable'")))
-              ;; Handle a collection that is a function: either expand
-              ;; completion list now or fall back
+              ;; Handle a collection that is a function: trigger the
+              ;; ido-ubiquitous fallback rather than waiting for
+              ;; ido-cr+ to do its own fall back.
               (when (functionp collection)
-                (if (or ido-ubiquitous-allow-on-functional-collection
-                        (memq ido-ubiquitous-active-override
-                              '(enable enable-old)))
-                    (setq collection (all-completions "" collection predicate)
-                          ;; `all-completions' will apply the predicate,
-                          ;; so it now becomes redundant.
-                          predicate nil)
+                (unless ido-cr+-force-on-functional-collection
                   (signal 'ido-ubiquitous-fallback
                           '("COLLECTION is a function and there is no override"))))
               (let ((ido-ubiquitous-enable-next-call t))

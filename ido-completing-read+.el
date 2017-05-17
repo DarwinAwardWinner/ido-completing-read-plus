@@ -73,6 +73,13 @@ Debug info is printed to the *Messages* buffer."
 (defvar ido-cr+-enable-this-call nil
   "If non-nil, then the current call to `ido-completing-read' is by `ido-completing-read+'")
 
+(defvar ido-cr+-force-on-functional-collection nil
+  "If non-nil, the next call to `ido-completing-read+' will operate on functional collections.
+
+This is not meant to be set permanently, but rather let-bound
+before calling `ido-completing-read+' under controlled
+circumstances.")
+
 (defvar ido-cr+-orig-completing-read-args nil
   "Original arguments passed to `ido-completing-read+'.
 
@@ -181,7 +188,7 @@ completion for them."
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
                     '("ido cannot handle non-nil `completion-extra-properties'")))
-           ((functionp collection)
+           ((and (functionp collection) (not ido-cr+-force-on-functional-collection))
             (signal 'ido-cr+-fallback
                     '("ido cannot handle COLLECTION being a function"))))
           ;; Expand all possible completions
