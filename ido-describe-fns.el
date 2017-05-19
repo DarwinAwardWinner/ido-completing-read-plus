@@ -56,9 +56,6 @@ be updated until you restart Emacs.")
 (require 'ido-completing-read+)
 (require 'ido-ubiquitous)
 
-(defvar ido-descfns-orig-predicate nil
-  "Original predicate from the current completion call.")
-
 (defun ido-descfns-maybe-load-prefixes (string)
   "Load any files needed to complete the current input.
 
@@ -81,7 +78,7 @@ Has no effect unless `ido-descfns-enable-this-call' is non-nil."
              (ido-descfns-maybe-load-prefixes ido-text))
     (with-no-warnings
       (setq ido-cur-list
-            (all-completions "" obarray ido-descfns-orig-predicate))
+            (all-completions "" obarray (nth 2 ido-cr+-orig-completing-read-args)))
       (ido-ubiquitous--debug-message "ido-describe-fns loaded new files. `ido-cur-list' now has %i items" (length ido-cur-list)))))
 
 (provide 'ido-describe-fns)
