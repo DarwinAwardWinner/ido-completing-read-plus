@@ -17,15 +17,20 @@
 ;;; Commentary: 
 
 ;; This package is an extension for ido-ubiquitous that implements ido
-;; completion for the new `describe-*' family of commands. In recent
-;; Emacs versions, these commands no longer work with ido-ubiquitous
-;; because they now use a function-based collection argument to
-;; implement auto-loading of the file corresponding to the prefix you
-;; entered in order to offer completions of symbols from that file.
+;; completion for the new implementation of the `describe-*' family of
+;; commands. In Emacs 26 and above, these commands no longer work with
+;; ido-ubiquitous because they now use a function-based collection
+;; argument to implement auto-loading of the file corresponding to the
+;; prefix you entered in order to offer completions of symbols from
+;; that file.
 
 ;; Note that there is no separate mode to enable. If
 ;; `ido-ubiquitous-mode' is already enabled, then simply loading this
 ;; package will enable it as well.
+
+;; This package has no effect in Emacs versions earlier than 26, so it
+;; is safe to install it unconditionally in an Emacs config shared by
+;; multiple Emacs versions.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
@@ -64,10 +69,11 @@ This function auto-loads new files in the same way as
 completion.
 
 Returns non-nil if any new files were loaded."
-  (let ((old-load-history load-history)
-        (prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
-    (help--load-prefixes prefixes)
-    (not (eq load-history old-load-history))))
+  (when (bound-and-true-p help-definition-prefixes)
+    (let* ((old-load-history load-history)
+           (prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
+      (help--load-prefixes prefixes)
+      (not (eq load-history old-load-history)))))
 
 ;; `ido-exhibit' is the ido post-command hook
 (defadvice ido-exhibit (before ido-descfns activate)
