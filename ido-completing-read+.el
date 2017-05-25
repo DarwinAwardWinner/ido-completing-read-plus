@@ -197,7 +197,8 @@ completion for them."
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
                     '("ido cannot handle non-nil `completion-extra-properties'")))
-           ((and (functionp collection) (not ido-cr+-force-on-functional-collection))
+           ((and (functionp collection)
+                 (not ido-cr+-force-on-functional-collection))
             (signal 'ido-cr+-fallback
                     '("ido cannot handle COLLECTION being a function"))))
           ;; Expand all possible completions
