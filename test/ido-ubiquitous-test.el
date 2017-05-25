@@ -558,6 +558,25 @@ Note that although this is a macro, the TAG argument is evaluated normally."
       (with-simulated-input "g C-b x DEL C-b RET"
         (completing-read "Prompt: " '("blue" "yellow" "green")))))))
 
+(ert-deftest ido-ubiquitous-dot-prefix-empty-string ()
+  :tags '(ido ido-ubiquitous)
+  "Test whether ido-ubiquitous successfully works around a bug in ido.
+
+See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997 for more
+information on this bug."
+  (with-ido-ubiquitous-standard-env
+    (let ((ido-enable-dot-prefix t))
+      (should
+       (string=
+        ""
+        (with-simulated-input "RET"
+          (completing-read "Pick: " '("" "aaa" "aab" "aac")))))
+      (should
+       (string=
+        "aab"
+        (with-simulated-input "a a b RET"
+          (completing-read "Pick: " '("" "aaa" "aab" "aac"))))))))
+
 (defun ido-ubiquitous-run-all-tests ()
   (interactive)
   (ert "^ido-\\(ubiquitous\\|cr\\+\\)-"))

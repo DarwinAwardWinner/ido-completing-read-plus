@@ -203,6 +203,11 @@ completion for them."
                     '("ido cannot handle COLLECTION being a function"))))
           ;; Expand all possible completions
           (setq collection (all-completions "" collection predicate))
+          ;; Check for a specific bug
+          (when (and (version< emacs-version "26.1")
+                     (member "" collection))
+            (signal 'ido-cr+-fallback
+                    '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
           ;; Check for excessively large collection
           (when (and ido-cr+-max-items
                      (> (length collection) ido-cr+-max-items))
