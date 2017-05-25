@@ -288,3 +288,30 @@ buffer completion in ido. As a user, you don't really need to know
 anything about ido-cr+. However, if you are writing an Emacs package
 and would like to incorporate ido completion, you may wish to use
 ido-cr+ to get more robust completion with fewer weird edge cases.
+
+# Running the tests #
+
+Since ido-ubiquitous is a package that is fundamentally about user
+interaction, testing it is a bit tricky. In particular, it cannot be
+tested if Emacs in running in batch mode, because there are is no way
+to read user input. Nevertheless, ido-ubiquitous has a test suite,
+which must be run in a special way to avoid running Emacs in batch
+mode. First, install the [cask](http://cask.readthedocs.io/en/latest/)
+dependency manager. Then, from the ido-ubiqutous directory, run `cask
+install` to install all the development dependencies, in
+particular [ert-runner](https://github.com/rejeep/ert-runner.el).
+Finally, to run the tests, you must instruct ert-runner not to use
+batch mode using either the `--win` option. (The `--no-win` option
+also works.) So the command to run the tests is `cask exec ert-runner
+--win`. An emacs window will briefly appear (or, if you use
+`--no-win`, emacs will briefly launch in the terminal) and the tests
+will run, and finally the test results will be printed. You should see
+something like this:
+
+```
+    .........
+
+    Ran 9 tests in 0.371 seconds
+````
+
+Please run this test suite before submitting any pull requests.
