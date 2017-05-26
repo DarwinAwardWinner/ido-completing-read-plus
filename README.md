@@ -114,6 +114,16 @@ separately.
 * [Gnus](http://www.gnus.org/): `(setq gnus-completing-read-function 'gnus-ido-completing-read)`
 * [ESS](https://ess.r-project.org/): `(setq ess-use-ido t)`
 
+## icomplete-mode ##
+
+For any case where ido cannot be used, there is another older mode
+called `icomplete-mode` that integrates with standard emacs completion
+and adds some ido-like behavior. It is built in to emacs, so no
+installation is necessary. Just load the file and enable the mode:
+
+    (require 'icomplete)
+    (icomplete-mode 1)
+
 # Frequently asked questions #
 
 ## How does ido-ubiquitous decide when to replace `completing-read`? <br/>  Why don't some commands use ido completion? ##
