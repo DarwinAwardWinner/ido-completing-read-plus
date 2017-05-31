@@ -1,39 +1,12 @@
-;;; ido-ubiquitous-test.el ---  -*- lexical-binding: t -*-
-
-;; Copyright (C) 2015 Ryan C. Thompson
-
-;; Filename: ido-ubiquitous-test.el
-;; Author: Ryan C. Thompson
-;; Created: Tue Oct  6 20:52:45 2015 (-0700)
-
-;; This file is NOT part of GNU Emacs.
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
+;;; -*- lexical-binding: t -*-
 
 (require 'ido-completing-read+)
 (require 'ido-ubiquitous)
 (require 'ert)
 (require 'cl-lib)
 
-;; This is a series of macros to facilitate the testing of completion
-;; non-interactively by simulating input.
+;; This is a series of macros to facilitate the non-interactive
+;; testing of interactive functions by simulating user input.
 
 (defmacro keyboard-quit-to-error (&rest body)
   "Evaluate BODY but signal an error on `keyboard-quit'."
