@@ -85,6 +85,31 @@ This is not meant to be set permanently, but rather let-bound
 before calling `ido-completing-read+' under controlled
 circumstances.")
 
+(defvar ido-cr+-no-default-action 'prepend-empty-string
+  "Controls the behavior of ido-cr+ when DEF is nil and REQUIRE-MATCH is non-nil.
+
+Possible values:
+
+- `prepend-empty-string': The empty string will be added to the
+  front of COLLECTION, making it the default. This is the
+  standard behavior since it mimics the semantics of
+  `completing-read-default'.
+
+- `append-empty-string': The empty string will be added to the
+  end of COLLECTION, thus keeping the original default while
+  making the empty string available as a completion.
+
+- `nil': No action will be taken.
+
+- Any other value: The value will be interpreted as a 1-argument
+  function, which will receive the current collection as its
+  argument and return the collection with any necessary
+  modifications applied.
+
+This is not meant to be set permanently, but rather let-bound
+before calling `ido-completing-read+' under controlled
+circumstances.")
+
 (defvar ido-cr+-orig-completing-read-args nil
   "Original arguments passed to `ido-completing-read+'.
 
@@ -171,6 +196,10 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   "Returns non-nil if ido-cr+ is currently using the minibuffer."
   (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
 
+(defsubst ido-cr+-default-was-provided ()
+  "Returns non-nil if ido-cr+ was passed a non-nil default argument."
+  (and (nth 6 ido-cr+-orig-completing-read-args)))
+
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
                                     require-match initial-input
@@ -207,12 +236,6 @@ completion for them."
           ;; who worked so hard to make lazy collections work; ido
           ;; doesn't know how to handle those.)
           (setq collection (all-completions "" collection predicate))
-          ;; Check for a specific bug
-          (when (and (version< emacs-version "26.1")
-                     ido-enable-dot-prefix
-                     (member "" collection))
-            (signal 'ido-cr+-fallback
-                    '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
           ;; No point in using ido unless there's a collection
           (when (= (length collection) 0)
             (signal 'ido-cr+-fallback '("ido is not needed for an empty collection")))
@@ -224,33 +247,56 @@ completion for them."
                      (format
                       "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
                       ido-cr+-max-items))))
-          ;; ido doesn't natively handle DEF being a list. If DEF is a
-          ;; list, prepend it to COLLECTION and set DEF to just the
-          ;; car of the default list.
-          (when (and def (listp def))
-            (setq collection
-                  (append def
-                          (nreverse (cl-set-difference collection def)))
-                  def (car def)))
-          ;; Work around a bug in ido when both INITIAL-INPUT and
-          ;; DEF are provided.
-          (let ((initial
-                 (or (if (consp initial-input)
-                         (car initial-input)
-                       initial-input)
-                     "")))
-            (when (and def initial
-                       (stringp initial)
-                       (not (string= initial "")))
-              ;; Both default and initial input were provided. So keep
-              ;; the initial input and preprocess the collection list
-              ;; to put the default at the head, then proceed with
-              ;; default = nil.
-              (setq collection (cons def (remove def collection))
-                    def nil)))
-          ;; Ready to do actual ido completion
+
+          ;; In ido, the semantics of "default" are simply "put it at
+          ;; the front of the list". Furthermore, ido has certain
+          ;; issues with a non-nil DEF arg. Specifically, it can't
+          ;; handle list defaults or providing both DEF and
+          ;; INITIAL-INPUT. So, just pre-process the collection to put
+          ;; the default(s) at the front and then set DEF to nil in
+          ;; the call to ido to avoid these issues.
+          (unless (listp def)
+            ;; Ensure DEF is a list
+            (setq def (list def)))
+          (when def
+            (setq collection (append def (cl-set-difference collection def
+                                                            :test #'equal))
+                  def nil))
+
+          ;; If DEF was nil and REQUIRE-MATCH was non-nil, then we need to
+          ;; add the empty string as the first option, because RET on
+          ;; an empty input needs to return "". (Or possibly we need
+          ;; to take some other action based on the value of
+          ;; `ido-cr+-no-default-action'.)
+          (when (and require-match
+                     ido-cr+-no-default-action
+                     (not (ido-cr+-default-was-provided)))
+            (cl-case ido-cr+-no-default-action
+              (nil
+               ;; Take no action
+               t)
+              (prepend-empty-string
+               (ido-cr+--debug-message "Adding \"\" as the default completion since no default was provided.")
+               (setq collection (cons "" collection)))
+              (append-empty-string
+               (ido-cr+--debug-message "Adding \"\" as a completion option since no default was provided.")
+               (setq collection (append collection '(""))))
+              (otherwise
+               (ido-cr+--debug-message "Running custom action function since no default was provided.")
+               (setq collection (funcall ido-cr+-no-default-action collection)))))
+
+          ;; Check for a specific bug
+          (when (and ido-enable-dot-prefix
+                     (version< emacs-version "26.1")
+                     (member "" collection))
+            (signal 'ido-cr+-fallback
+                    '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
+
+          ;; Finally ready to do actual ido completion
           (prog1
-              (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth))))
+              (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth)))
+                    ;; Reset this for the next call to ido-cr+
+                    (ido-cr+-no-default-action 'prepend-empty-string))
                 (ido-completing-read
                  prompt collection
                  predicate require-match initial-input hist def
@@ -262,9 +308,11 @@ completion for them."
 
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
-       (ido-cr+--explain-fallback sig)
-       (run-hooks 'ido-cr+-before-fallback-hook)
-       (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args)))))
+       (let ( ;; Reset this for the next call to ido-cr+
+             (ido-cr+-no-default-action 'prepend-empty-string))
+         (ido-cr+--explain-fallback sig)
+         (run-hooks 'ido-cr+-before-fallback-hook)
+         (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args))))))
 
 ;;;###autoload
 (defadvice ido-completing-read (around ido-cr+ activate)
@@ -326,15 +374,26 @@ sets up C-j to be equivalent to TAB in the same situation."
        (ido-cr+-active)
        ;; Require-match is non-nil
        (with-no-warnings ido-require-match)
-       ;; A default was provided, or ido-text is non-empty
-       (or (with-no-warnings ido-default-item)
-           (not (string= ido-text "")))
-       ;; Only if current text is not a complete choice
+       ;; Current text is not a complete choice
        (not (member ido-text (with-no-warnings ido-cur-list))))
       (progn
         (ido-cr+--debug-message
          "Overriding C-j behavior for require-match: performing completion instead of exiting with current text. (This might still exit with a match if `ido-confirm-unique-completion' is nil)")
         (ido-complete))
+    ad-do-it))
+
+;; Interoperation with minibuffer-electric-default-mode: only show the
+;; default when the input is empty and the empty string is the selected
+(defadvice minibuf-eldef-update-minibuffer (around ido-cr+-compat activate)
+  (if (ido-active)
+      (unless (eq minibuf-eldef-showing-default-in-prompt
+                  (and (string= (car ido-cur-list) "")
+                       (string= ido-text "")))
+        ;; Swap state.
+        (setq minibuf-eldef-showing-default-in-prompt
+              (not minibuf-eldef-showing-default-in-prompt))
+        (overlay-put minibuf-eldef-overlay 'invisible
+                     (not minibuf-eldef-showing-default-in-prompt)))
     ad-do-it))
 
 (provide 'ido-completing-read+)
