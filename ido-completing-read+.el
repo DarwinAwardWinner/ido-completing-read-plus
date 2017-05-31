@@ -205,6 +205,7 @@ completion for them."
           (setq collection (all-completions "" collection predicate))
           ;; Check for a specific bug
           (when (and (version< emacs-version "26.1")
+                     ido-enable-dot-prefix
                      (member "" collection))
             (signal 'ido-cr+-fallback
                     '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
