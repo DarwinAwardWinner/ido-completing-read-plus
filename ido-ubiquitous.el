@@ -657,6 +657,10 @@ completion for them."
                     (or ido-ubiquitous-active-override
                         ido-ubiquitous-default-state
                         'enable))
+                   (ido-ubiquitous-active-state
+                    (if (eq ido-ubiquitous-active-state 'enable-old)
+                        'enable
+                      ido-ubiquitous-active-state))
                    (ido-cr+-force-on-functional-collection
                     (or ido-ubiquitous-allow-on-functional-collection
                         (memq ido-ubiquitous-active-override
