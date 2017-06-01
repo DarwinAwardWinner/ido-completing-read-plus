@@ -209,6 +209,9 @@ completion for them."
                      (member "" collection))
             (signal 'ido-cr+-fallback
                     '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
+          ;; No point in using ido unless there's a collection
+          (when (= (length collection) 0)
+            (signal 'ido-cr+-fallback '("ido is not needed for an empty collection")))
           ;; Check for excessively large collection
           (when (and ido-cr+-max-items
                      (> (length collection) ido-cr+-max-items))
