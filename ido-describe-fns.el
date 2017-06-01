@@ -5,7 +5,7 @@
 ;; Filename: ido-describe-fns.el
 ;; Author: Ryan C. Thompson
 ;; Created: Tue May 16 18:23:13 2017 (-0400)
-;; Version: 3.17
+;; Version: 4.0
 ;; Package-Requires: ((emacs "26") (ido-completing-read+ 3.17) (ido-ubiquitous 3.17))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
@@ -51,7 +51,7 @@
 ;; 
 ;;; Code:
 
-(defconst ido-describe-fns-version "3.17"
+(defconst ido-describe-fns-version "4.0"
   "Currently running version of ido-describe-fns.
 
 Note that when you update ido-describe-fns, this variable may not

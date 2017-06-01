@@ -5,7 +5,7 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 3.17
+;; Version: 4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
@@ -41,7 +41,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-completing-read+-version "3.17"
+(defconst ido-completing-read+-version "4.0"
   "Currently running version of ido-completing-read+.
 
 Note that when you update ido-completing-read+, this variable may
