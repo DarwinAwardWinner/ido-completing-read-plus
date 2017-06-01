@@ -140,6 +140,7 @@ Note that although this is a macro, the TAG argument is evaluated normally."
         (message "New error data: %S" (cdr err))
         (signal (car err) (cdr err))))))
 
+;; TODO: Add test for empty collection and too-large collection
 (defun test-ido-ubiquitous-expected-mode (override &optional tag)
   "Test whether observed ido-ubiquitous behavior matches OVERRIDE."
   (declare (indent 1))

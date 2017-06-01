@@ -60,7 +60,7 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-completing-read-plus)
 
-(defun ido-cr+--debug-message (format-string &rest args)
+(defsubst ido-cr+--debug-message (format-string &rest args)
   (when ido-cr+-debug-mode
     (apply #'message (concat "ido-completing-read+: " format-string) args)))
 
@@ -157,7 +157,7 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
 (put 'ido-cr+-fallback 'error-conditions '(ido-cr+-fallback error))
 (put 'ido-cr+-fallback 'error-message "ido-cr+-fallback")
 
-(defun ido-cr+--explain-fallback (arg)
+(defsubst ido-cr+--explain-fallback (arg)
   ;; This function accepts a string, or an ido-cr+-fallback
   ;; signal.
   (when ido-cr+-debug-mode
@@ -167,7 +167,7 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
     (ido-cr+--debug-message "Falling back to `%s' because %s."
                             ido-cr+-fallback-function arg)))
 
-(defun ido-cr+-active ()
+(defsubst ido-cr+-active ()
   "Returns non-nil if ido-cr+ is currently using the minibuffer."
   (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
 
@@ -190,6 +190,7 @@ completion for them."
                initial-input hist def inherit-input-method)))
     (condition-case sig
         (progn
+          ;; Check a bunch of fallback conditions
           (cond
            (inherit-input-method
             (signal 'ido-cr+-fallback
@@ -200,8 +201,11 @@ completion for them."
            ((and (functionp collection)
                  (not ido-cr+-force-on-functional-collection))
             (signal 'ido-cr+-fallback
-                    '("ido cannot handle COLLECTION being a function"))))
-          ;; Expand all possible completions
+                    '("ido cannot handle COLLECTION being a function (but see `ido-cr+-force-on-functional-collection')"))))
+
+          ;; Expand all possible completions. (Apologies to everyone
+          ;; who worked so hard to make lazy collections work; ido
+          ;; doesn't know how to handle those.)
           (setq collection (all-completions "" collection predicate))
           ;; Check for a specific bug
           (when (and (version< emacs-version "26.1")
@@ -255,6 +259,7 @@ completion for them."
             ;; manually.
             (when (eq ido-exit 'fallback)
               (signal 'ido-cr+-fallback '("user manually triggered fallback")))))
+
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
        (ido-cr+--explain-fallback sig)
@@ -271,7 +276,7 @@ completion for them."
   (if (or (ido-cr+-active)
           (not ido-cr+-replace-completely))
       ;; ido-cr+ has either already activated or isn't going to
-      ;; activate, so run the function
+      ;; activate, so just run the function as normal
       ad-do-it
     ;; Otherwise, we need to activate ido-cr+.
     (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0)))))
