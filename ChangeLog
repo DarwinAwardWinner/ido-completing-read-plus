@@ -1,3 +1,15 @@
+2017-06-01  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-completing-read+): Don't use ido if
+	the collection is empty, since doing so would be pointless.
+
+	* ido-ubiquitous.el (ido-ubiquitous-default-command-overrides):
+	Update some overrides
+
+	* ido-describe-fns.el (ido-descfns-maybe-load-prefixes): Add
+	support for the auto-loading feature of describe-variable and
+	similar commands.
+
 2017-03-13  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-ubiquitous.el (ido-cr+--explain-fallback): Fix
