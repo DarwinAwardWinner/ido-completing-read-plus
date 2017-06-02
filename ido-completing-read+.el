@@ -224,6 +224,10 @@ completion for them."
         (ido-cr+-orig-completing-read-args
          (list prompt collection predicate require-match
                initial-input hist def inherit-input-method))
+        ;; Need to save this since activating the minibuffer once will
+        ;; clear out any temporary minibuffer hooks, which need to get
+        ;; restored before falling back.
+        (orig-minibuffer-setup-hook minibuffer-setup-hook)
         ;; Make a private copy of this variable
         (ido-cr+-assume-static-collection ido-cr+-assume-static-collection)
         ;; If collection is a function, save it for later, unless
@@ -317,7 +321,9 @@ completion for them."
 
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
-       (let ( ;; Reset this for the next call to ido-cr+
+       (let (;; Reset `minibuffer-setup-hook' to original value
+             (minibuffer-setup-hook orig-minibuffer-setup-hook)
+             ;; Reset this for the next call to ido-cr+
              (ido-cr+-no-default-action 'prepend-empty-string))
          (ido-cr+--explain-fallback sig)
          (run-hooks 'ido-cr+-before-fallback-hook)
