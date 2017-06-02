@@ -228,8 +228,6 @@ completion for them."
         ;; clear out any temporary minibuffer hooks, which need to get
         ;; restored before falling back.
         (orig-minibuffer-setup-hook minibuffer-setup-hook)
-        ;; Make a private copy of this variable
-        (ido-cr+-assume-static-collection ido-cr+-assume-static-collection)
         ;; If collection is a function, save it for later, unless
         ;; instructed not to
         (ido-cr+-dynamic-collection
@@ -308,8 +306,9 @@ completion for them."
           ;; Finally ready to do actual ido completion
           (prog1
               (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth)))
-                    ;; Reset this for the next call to ido-cr+
-                    (ido-cr+-no-default-action 'prepend-empty-string))
+                    ;; Reset these for the next call to ido-cr+
+                    (ido-cr+-no-default-action 'prepend-empty-string)
+                    (ido-cr+-assume-static-collection nil))
                 (ido-completing-read
                  prompt collection
                  predicate require-match initial-input hist def
@@ -323,8 +322,9 @@ completion for them."
       (ido-cr+-fallback
        (let (;; Reset `minibuffer-setup-hook' to original value
              (minibuffer-setup-hook orig-minibuffer-setup-hook)
-             ;; Reset this for the next call to ido-cr+
-             (ido-cr+-no-default-action 'prepend-empty-string))
+             ;; Reset these for the next call to ido-cr+
+             (ido-cr+-no-default-action 'prepend-empty-string)
+             (ido-cr+-assume-static-collection nil))
          (ido-cr+--explain-fallback sig)
          (run-hooks 'ido-cr+-before-fallback-hook)
          (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args))))))
