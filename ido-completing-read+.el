@@ -372,8 +372,6 @@ shouldn't matter.")
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
 
-;;; Workaround for https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/93
-
 (defadvice ido-select-text (around fix-require-match-behavior activate)
   "Fix ido behavior when `require-match' is non-nil.
 
