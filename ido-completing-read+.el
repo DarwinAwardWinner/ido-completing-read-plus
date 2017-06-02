@@ -78,12 +78,19 @@ the other command.
 This is set to -1 by default, since `(minibuffer-depth)' should
 never return this value.")
 
-(defvar ido-cr+-force-on-functional-collection nil
-  "If non-nil, the next call to `ido-completing-read+' will operate on functional collections.
+(defvar ido-cr+-assume-static-collection nil
+  "If non-nil, ido-cr+ will assume that the collection is static.
 
-This is not meant to be set permanently, but rather let-bound
-before calling `ido-completing-read+' under controlled
-circumstances.")
+This is used to avoid unnecessary work in the case where the
+collection is a function, since a function collection could
+potentially change the set of completion candidates
+dynamically.")
+
+(defvar ido-cr+-dynamic-collection nil
+  "Stores the collection argument if it is a function.
+
+This allows ido-cr+ to update the set of completion candidates
+dynamically.")
 
 (defvar ido-cr+-no-default-action 'prepend-empty-string
   "Controls the behavior of ido-cr+ when DEF is nil and REQUIRE-MATCH is non-nil.
@@ -216,7 +223,15 @@ completion for them."
         ;; fallback
         (ido-cr+-orig-completing-read-args
          (list prompt collection predicate require-match
-               initial-input hist def inherit-input-method)))
+               initial-input hist def inherit-input-method))
+        ;; Make a private copy of this variable
+        (ido-cr+-assume-static-collection ido-cr+-assume-static-collection)
+        ;; If collection is a function, save it for later, unless
+        ;; instructed not to
+        (ido-cr+-dynamic-collection
+         (when (and (not ido-cr+-assume-static-collection)
+                    (functionp collection))
+           collection)))
     (condition-case sig
         (progn
           ;; Check a bunch of fallback conditions
@@ -226,18 +241,12 @@ completion for them."
                     '("ido cannot handle non-nil INHERIT-INPUT-METHOD")))
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
-                    '("ido cannot handle non-nil `completion-extra-properties'")))
-           ((and (functionp collection)
-                 (not ido-cr+-force-on-functional-collection))
-            (signal 'ido-cr+-fallback
-                    '("ido cannot handle COLLECTION being a function (but see `ido-cr+-force-on-functional-collection')"))))
-
-          ;; Expand all possible completions. (Apologies to everyone
-          ;; who worked so hard to make lazy collections work; ido
-          ;; doesn't know how to handle those.)
+                    '("ido cannot handle non-nil `completion-extra-properties'"))))
+          ;; Expand all currently-known completions.
           (setq collection (all-completions "" collection predicate))
           ;; No point in using ido unless there's a collection
-          (when (= (length collection) 0)
+          (when (and (= (length collection) 0)
+                     (not ido-cr+-dynamic-collection))
             (signal 'ido-cr+-fallback '("ido is not needed for an empty collection")))
           ;; Check for excessively large collection
           (when (and ido-cr+-max-items
@@ -381,6 +390,29 @@ sets up C-j to be equivalent to TAB in the same situation."
          "Overriding C-j behavior for require-match: performing completion instead of exiting with current text. (This might still exit with a match if `ido-confirm-unique-completion' is nil)")
         (ido-complete))
     ad-do-it))
+
+(defadvice ido-exhibit (before ido-cr+-update-dynamic-collection activate)
+  "Maybe update the set of completions when ido-text changes."
+  (when ido-cr+-dynamic-collection
+    (let ((prev-ido-text ido-text)
+          (current-ido-text (buffer-substring-no-properties (minibuffer-prompt-end) (point-max))))
+      (when (not (string= prev-ido-text current-ido-text))
+        (let ((current-match (car ido-matches))
+              (def (nth 6 ido-cr+-orig-completing-read-args))
+              (predicate (nth 2 ido-cr+-orig-completing-read-args)))
+          (setq ido-cur-list
+                (all-completions current-ido-text
+                                 ido-cr+-dynamic-collection
+                                 predicate))
+          (unless (listp def)
+            (setq def (list def)))
+          (when def
+            (setq ido-cur-list
+                  (append def (cl-set-difference ido-cur-list def
+                                                 :test #'equal))))
+          (when (and current-match (member current-match ido-cur-list))
+            (setq ido-cur-list (ido-chop ido-cur-list current-match))))
+        (ido-cr+--debug-message "Updated completion candidates for dynamic collection because `ido-text' changed from %S to %S. `ido-cur-list' now has %s elements" prev-ido-text current-ido-text (length ido-cur-list))))))
 
 ;; Interoperation with minibuffer-electric-default-mode: only show the
 ;; default when the input is empty and the empty string is the selected
