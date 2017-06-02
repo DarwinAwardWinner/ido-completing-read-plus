@@ -175,6 +175,40 @@ disable fallback based on collection size, set this to nil."
                         widget)))))
   :group 'ido-completing-read-plus)
 
+(defcustom ido-cr+-function-blacklist
+  '(read-file-name-internal
+    read-buffer
+    todo-add-category
+    gnus-emacs-completing-read
+    gnus-iswitchb-completing-read
+    grep-read-files
+    magit-builtin-completing-read
+    ;; TODO: Revisit this
+    isearchp-read-unicode-char
+    ;; TODO: Revisit this
+    Info-read-node-name
+    tmm-prompt)
+  "Functions & commands for which ido-cr+ should be disabled.
+
+Each entry can be either a symbol or a string. A symbol means to
+fall back specifically for the named function. A regular
+expression means to fall back for any function whose name matches
+that regular expression. When ido-cr+ is called through
+`completing-read', if any function in the call stack of the
+current command matches any of the blacklist entries, ido-cr+
+will be disabled for that command. Additionally, if the
+collection in the call to `completing-read' matches any of the
+blacklist entries, ido-cr+ will be disabled.
+
+Note that using specific function names is generally preferable
+to regular expressions, because the associated function
+definitions will be compared directly, so if the same function is
+called by another name, it should still trigger the fallback. For
+regular expressions, only name-based matching is possible."
+  :group 'ido-completing-read-plus
+  :type '(repeat (choice (symbol :tag "Function or command name")
+                         (string :tag "Regexp"))))
+
 ;;;###autoload
 (defcustom ido-cr+-replace-completely nil
   "If non-nil, replace `ido-completeing-read' completely with ido-cr+.
@@ -207,6 +241,33 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   "Returns non-nil if ido-cr+ was passed a non-nil default argument."
   (and (nth 6 ido-cr+-orig-completing-read-args)))
 
+(defun ido-cr+--called-from-completing-read ()
+  "Returns non-nil if the most recent call to ido-cr+ was from `completing-read'."
+  (equal (cadr (backtrace-frame 1 'ido-completing-read+))
+         'completing-read))
+
+(defun ido-cr+-function-is-blacklisted (fun)
+  (cl-loop
+   for entry in ido-cr+-function-blacklist
+   if (cond
+       ;; Symbol: Compare names and function definitions
+       ((symbolp entry)
+        (or (eq entry fun)
+            (eq (indirect-function entry)
+                (indirect-function fun))))
+       ;; String: Do regexp matching against function name if it is a
+       ;; symbol
+       ((stringp entry)
+        (and (symbolp fun)
+             (string-match-p entry (symbol-name fun))))
+       ;; Anything else: invalid blacklist entry
+       (t
+        (ido-cr+--debug-message "Ignoring invalid entry in ido-cr+-function-blacklist: `%S'" entry)
+        nil))
+   return entry
+   ;; If no blacklist entry matches, return nil
+   finally return nil))
+
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
                                     require-match initial-input
@@ -237,13 +298,22 @@ completion for them."
     (condition-case sig
         (progn
           ;; Check a bunch of fallback conditions
-          (cond
-           (inherit-input-method
+          (when inherit-input-method
             (signal 'ido-cr+-fallback
                     '("ido cannot handle non-nil INHERIT-INPUT-METHOD")))
-           ((bound-and-true-p completion-extra-properties)
+          (when (bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
-                    '("ido cannot handle non-nil `completion-extra-properties'"))))
+                    '("ido cannot handle non-nil `completion-extra-properties'")))
+
+          ;; Check for blacklisted collection function
+          (when (and (functionp collection)
+                     (ido-cr+-function-is-blacklisted collection))
+            (if (symbolp collection)
+                (signal 'ido-cr+-fallback
+                        (list (format "collection function `%S' is blacklisted" collection)))
+              (signal 'ido-cr+-fallback
+                      (list "collection function is blacklisted"))))
+
           ;; Expand all currently-known completions.
           (setq collection (all-completions "" collection predicate))
           ;; No point in using ido unless there's a collection
@@ -258,6 +328,32 @@ completion for them."
                      (format
                       "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
                       ido-cr+-max-items))))
+
+          ;; If called from `completing-read', check for blacklisted
+          ;; commands/callers
+          (when (ido-cr+--called-from-completing-read)
+            ;; Check calling command
+            (when (ido-cr+-function-is-blacklisted this-command)
+              (signal 'ido-cr+-fallback
+                      (list "calling command `%S' is blacklisted" this-command)))
+            ;; Check every function in the call stack starting after
+            ;; `completing-read' until to the first
+            ;; `funcall-interactively' (for a call from the function
+            ;; body) or `call-interactively' (for a call from the
+            ;; interactive form, in which the function hasn't actually
+            ;; been called yet, so `funcall-interactively' won't be on
+            ;; the stack.)
+            (cl-loop for i upfrom 1
+                     for caller = (cadr (backtrace-frame i 'completing-read))
+                     while caller
+                     while (not (memq (indirect-function caller)
+                                      '(internal--funcall-interactively
+                                        (indirect-function 'call-interactively))))
+                     if (ido-cr+-function-is-blacklisted caller)
+                     do (signal 'ido-cr+-fallback
+                                (list (if (symbolp caller)
+                                          (format "calling function `%S' is blacklisted" caller)
+                                        "a calling function is blacklisted")))))
 
           ;; In ido, the semantics of "default" are simply "put it at
           ;; the front of the list". Furthermore, ido has certain
