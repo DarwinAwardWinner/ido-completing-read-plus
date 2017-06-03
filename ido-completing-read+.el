@@ -178,15 +178,15 @@ disable fallback based on collection size, set this to nil."
 (defcustom ido-cr+-function-blacklist
   '(read-file-name-internal
     read-buffer
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/60
     todo-add-category
     gnus-emacs-completing-read
     gnus-iswitchb-completing-read
     grep-read-files
     magit-builtin-completing-read
-    ;; TODO: Revisit this
-    isearchp-read-unicode-char
-    ;; TODO: Revisit this
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/39
     Info-read-node-name
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
     tmm-prompt)
   "Functions & commands for which ido-cr+ should be disabled.
 
