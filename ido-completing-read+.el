@@ -501,9 +501,16 @@ sets up C-j to be equivalent to TAB in the same situation."
               (def (nth 6 ido-cr+-orig-completing-read-args))
               (predicate (nth 2 ido-cr+-orig-completing-read-args)))
           (setq ido-cur-list
-                (all-completions current-ido-text
-                                 ido-cr+-dynamic-collection
-                                 predicate))
+                (delete-dups
+                 (append
+                  (all-completions
+                   current-ido-text
+                   ido-cr+-dynamic-collection
+                   predicate)
+                  (all-completions
+                   ""
+                   ido-cr+-dynamic-collection
+                   predicate))))
           (unless (listp def)
             (setq def (list def)))
           (when def
