@@ -421,7 +421,8 @@ sets up C-j to be equivalent to TAB in the same situation."
 ;; Interoperation with minibuffer-electric-default-mode: only show the
 ;; default when the input is empty and the empty string is the selected
 (defadvice minibuf-eldef-update-minibuffer (around ido-cr+-compat activate)
-  (if (ido-active)
+  "This advice allows minibuffer-electric-default-mode to work with ido-cr+."
+  (if (ido-cr+-active)
       (unless (eq minibuf-eldef-showing-default-in-prompt
                   (and (string= (car ido-cur-list) "")
                        (string= ido-text "")))
