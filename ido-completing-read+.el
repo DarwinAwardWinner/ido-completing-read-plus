@@ -636,7 +636,7 @@ when ido completion is or is not used by customizing
 `ido-cr+-function-blacklist'."
   nil
   :global t
-  :group 'ido-cr+
+  :group 'ido-completing-read-plus
   ;; Actually enable/disable the mode by setting
   ;; `completing-read-function'.
   (setq completing-read-function
@@ -685,7 +685,7 @@ since they will simply be re-added the next time Emacs starts.)"
                  (const :menu-tag "Ignore"
                         :tag "Ignore them"
                         nil))
-  :group 'ido-cr+)
+  :group 'ido-completing-read-plus)
 
 (defun ido-cr+-update-blacklist (&optional save quiet)
   "Re-add any missing default blacklist entries.
