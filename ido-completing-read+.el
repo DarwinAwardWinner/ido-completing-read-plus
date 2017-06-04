@@ -209,6 +209,19 @@ regular expressions, only name-based matching is possible."
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
 
+(defcustom ido-cr+-function-whitelist
+  nil
+  "Functions & commands for which ido-cr+ should be enabled.
+
+If this variable is non-nil, ido-cr+'s whitelisting mode will be
+enabled, and will be disabled for all functions unless they match
+one of the entries. Matching is done in the same manner as
+`ido-cr+-function-blacklist', and blacklisting takes precedence
+over whitelisting."
+  :group 'ido-completing-read-plus
+  :type '(repeat (choice (symbol :tag "Function or command name")
+                         (string :tag "Regexp"))))
+
 ;;;###autoload
 (defcustom ido-cr+-replace-completely nil
   "If non-nil, replace `ido-completeing-read' completely with ido-cr+.
@@ -250,6 +263,9 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   (cl-loop
    for entry in ido-cr+-function-blacklist
    if (cond
+       ;; Nil: Never matches anything
+       ((null entry)
+        nil)
        ;; Symbol: Compare names and function definitions
        ((symbolp entry)
         (or (eq entry fun)
@@ -267,6 +283,34 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
    return entry
    ;; If no blacklist entry matches, return nil
    finally return nil))
+
+(defun ido-cr+-function-is-whitelisted (fun)
+  (if (null ido-cr+-function-whitelist)
+      ;; Empty whitelist means everything is whitelisted
+      t
+    (cl-loop
+     for entry in ido-cr+-function-whitelist
+     if (cond
+         ;; Nil: Never matches anything
+         ((null entry)
+          nil)
+         ;; Symbol: Compare names and function definitions
+         ((symbolp entry)
+          (or (eq entry fun)
+              (eq (indirect-function entry)
+                  (indirect-function fun))))
+         ;; String: Do regexp matching against function name if it is a
+         ;; symbol
+         ((stringp entry)
+          (and (symbolp fun)
+               (string-match-p entry (symbol-name fun))))
+         ;; Anything else: invalid whitelist entry
+         (t
+          (ido-cr+--debug-message "Ignoring invalid entry in ido-cr+-function-whitelist: `%S'" entry)
+          nil))
+     return entry
+     ;; If no whitelist entry matches, return nil
+     finally return nil)))
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
@@ -294,7 +338,9 @@ completion for them."
         (ido-cr+-dynamic-collection
          (when (and (not ido-cr+-assume-static-collection)
                     (functionp collection))
-           collection)))
+           collection))
+        ;; If the whitelist is empty, everything is whitelisted
+        (whitelisted (not ido-cr+-function-whitelist)))
     (condition-case sig
         (progn
           ;; Check a bunch of fallback conditions
@@ -305,14 +351,23 @@ completion for them."
             (signal 'ido-cr+-fallback
                     '("ido cannot handle non-nil `completion-extra-properties'")))
 
-          ;; Check for blacklisted collection function
-          (when (and (functionp collection)
-                     (ido-cr+-function-is-blacklisted collection))
-            (if (symbolp collection)
+          ;; Check for black/white-listed collection function
+          (when (functionp collection)
+            ;; Blacklist
+            (when (ido-cr+-function-is-blacklisted collection)
+              (if (symbolp collection)
+                  (signal 'ido-cr+-fallback
+                          (list (format "collection function `%S' is blacklisted" collection)))
                 (signal 'ido-cr+-fallback
-                        (list (format "collection function `%S' is blacklisted" collection)))
-              (signal 'ido-cr+-fallback
-                      (list "collection function is blacklisted"))))
+                        (list "collection function is blacklisted"))))
+            ;; Whitelist
+            (when (and (not whitelisted)
+                       (ido-cr+-function-is-whitelisted collection))
+              (ido-cr+--debug-message
+               (if (symbolp collection)
+                   (format "Collection function `%S' is whitelisted" collection)
+                 "Collection function is whitelisted"))
+              (setq whitelisted t)))
 
           ;; Expand all currently-known completions.
           (setq collection (all-completions "" collection predicate))
@@ -329,13 +384,17 @@ completion for them."
                       "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
                       ido-cr+-max-items))))
 
-          ;; If called from `completing-read', check for blacklisted
-          ;; commands/callers
+          ;; If called from `completing-read', check for
+          ;; black/white-listed commands/callers
           (when (ido-cr+--called-from-completing-read)
             ;; Check calling command
             (when (ido-cr+-function-is-blacklisted this-command)
               (signal 'ido-cr+-fallback
                       (list "calling command `%S' is blacklisted" this-command)))
+            (when (and (not whitelisted)
+                       (ido-cr+-function-is-whitelisted this-command))
+              (ido-cr+--debug-message "Command `%S' is whitelisted" this-command)
+              (setq whitelisted t))
             ;; Check every function in the call stack starting after
             ;; `completing-read' until to the first
             ;; `funcall-interactively' (for a call from the function
@@ -353,7 +412,19 @@ completion for them."
                      do (signal 'ido-cr+-fallback
                                 (list (if (symbolp caller)
                                           (format "calling function `%S' is blacklisted" caller)
-                                        "a calling function is blacklisted")))))
+                                        "a calling function is blacklisted")))
+                     if (and (not whitelisted)
+                             (ido-cr+-function-is-whitelisted caller))
+                     do (progn
+                          (ido-cr+--debug-message
+                           (if (symbolp caller)
+                               (format "Calling function `%S' is whitelisted" caller)
+                             "A calling function is whitelisted"))
+                          (setq whitelisted t))))
+
+          (unless whitelisted
+            (signal 'ido-cr+-fallback
+                    (list "no functions or commands matched the whitelist for this call")))
 
           ;; In ido, the semantics of "default" are simply "put it at
           ;; the front of the list". Furthermore, ido has certain
