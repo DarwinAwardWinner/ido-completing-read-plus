@@ -232,7 +232,8 @@ incompatibilities, please file a bug report at
 https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :type 'boolean)
 
-;; Signal used to trigger fallback
+;; Signal used to trigger fallback (don't use `define-error' because
+;; it's only supported in 24.4 and up)
 (put 'ido-cr+-fallback 'error-conditions '(ido-cr+-fallback error))
 (put 'ido-cr+-fallback 'error-message "ido-cr+-fallback")
 
@@ -606,6 +607,26 @@ sets up C-j to be equivalent to TAB in the same situation."
         (overlay-put minibuf-eldef-overlay 'invisible
                      (not minibuf-eldef-showing-default-in-prompt)))
     ad-do-it))
+
+;;;###autoload
+(define-minor-mode ido-ubiquitous-mode
+  "Use ido completion instead of standard completion almost everywhere.
+
+If this mode causes problems for a function, you can customize
+when ido completion is or is not used by customizing
+`ido-cr+-function-blacklist'."
+  nil
+  :global t
+  :group 'ido-cr+
+  ;; Actually enable/disable the mode by setting
+  ;; `completing-read-function'.
+  (setq completing-read-function
+        (if ido-ubiquitous-mode
+            #'ido-completing-read+
+          ido-cr+-fallback-function)))
+
+(define-obsolete-function-alias 'completing-read-ido-ubiquitous 'ido-completing-read+
+  "ido-completing-read+ 4.0")
 
 (provide 'ido-completing-read+)
 
