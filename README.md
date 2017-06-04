@@ -180,10 +180,11 @@ appropriate action.
 
 Updates to ido-completing-read+ may include new blacklist entries, but
 Emacs will not edit your override variables if you have already
-customized them. So, if you have recently upgraded ido-ubiquitous,
-remember to invoke `ido-cr+-update-blacklist` to add in any new
-overrides. By default, ido-completing-read+ will remind you to do this
-whenever a new version adds to the blacklist. For more information, see:
+customized them. So, if you have recently upgraded
+ido-completing-read+, remember to invoke `ido-cr+-update-blacklist` to
+add in any new overrides. By default, ido-completing-read+ will remind
+you to do this whenever a new version adds to the blacklist. For more
+information, see:
 
     M-x describe-variable ido-cr+-auto-update-blacklist
 
@@ -199,13 +200,13 @@ report any bugs you find in ido-completing-read+.
 I've gotten numerous reports about nonsensical warnings produced by
 this package, such as "free variable" warnings about variables that
 are most definitely properly declared, or warnings that only appear
-when ido-ubiquitous is loaded after another unrelated package. For
-many of these warnings, I've never been able to discover the cause or
-consistently reproduce the warnings myself, and I've given up trying
-to figure it out. Please don't report any new bugs about variable
-warnings *unless* you can tell me how to consistently reproduce them
-starting from `emacs -Q`. If you are an Emacs expert who knows how to
-fix these warnings, please let me know.
+when ido-completing-read+ is loaded after another unrelated package.
+For many of these warnings, I've never been able to discover the cause
+or consistently reproduce the warnings myself, and I've given up
+trying to figure it out. Please don't report any new bugs about
+variable warnings *unless* you can tell me how to consistently
+reproduce them starting from `emacs -Q`. If you are an Emacs expert
+who knows how to fix these warnings, please let me know.
 
 You can see the bug reports about weird warnings
 [here](https://github.com/DarwinAwardWinner/ido-ubiquitous/issues?utf8=%E2%9C%93&q=label%3Abizarre-unexplainable-scoping-issues+).
@@ -214,13 +215,13 @@ You can see the bug reports about weird warnings
 
 All users should just use the master branch, or better yet, install
 from MELPA. The bleeding-edge branch is where I test experimental and
-unfinished features. Because ido-ubiquitous hooks deeply into the
-bowels of Emacs, a bug in ido-ubiquitous could easily freeze or crash
-Emacs entirely. Additionally, some bug only show up when
-ido-ubiquitous is installed and compiled as a package. So I test every
-new feature myself for some time on this branch before pushing to the
-master branch. If you report a bug, I might develop a fix for it on
-the bleeding edge branch and ask then you to try this branch.
+unfinished features. Because ido-completing-read+ hooks deeply into
+the bowels of Emacs, a bug in ido-completing-read+ could easily freeze
+or crash Emacs entirely. Additionally, some bug only show up when
+ido-completing-read+ is installed and compiled as a package. So I test
+every new feature myself for some time on this branch before pushing
+to the master branch. If you report a bug, I might develop a fix for
+it on the bleeding edge branch and ask then you to try this branch.
 Otherwise, normal users don't need to think about this branch.
 
 # Running the tests #
@@ -228,11 +229,12 @@ Otherwise, normal users don't need to think about this branch.
 Since ido-completing-read+ is a package that is fundamentally about
 user interaction, testing it is a bit tricky. In particular, it cannot
 be tested if Emacs in running in batch mode, because there are is no
-way to read user input. Nevertheless, ido-ubiquitous has a test suite,
-which must be run in a special way to avoid running Emacs in batch
-mode. First, install the [cask](http://cask.readthedocs.io/en/latest/)
-dependency manager. Then, from the ido-ubiqutous directory, run `cask
-install` to install all the development dependencies, in
+way to read user input. Nevertheless, ido-completing-read+ has a test
+suite, which must be run in a special way to avoid running Emacs in
+batch mode. First, install
+the [cask](http://cask.readthedocs.io/en/latest/) dependency manager.
+Then, from the ido-ubiqutous directory, run `cask install` to install
+all the development dependencies, in
 particular [ert-runner](https://github.com/rejeep/ert-runner.el).
 Finally, to run the tests, you must instruct ert-runner not to use
 batch mode using either the `--win` option. (The `--no-win` option
