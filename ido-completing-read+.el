@@ -130,11 +130,6 @@ circumstances.")
 
 These are used for falling back to `completing-read-default'.")
 
-(defvar ido-cr+-before-fallback-hook nil
-  "Hook run when ido-cr+ triggers a fallback.
-
-The hook is run right before calling `ido-cr+-fallback-function'.")
-
 (defgroup ido-completing-read-plus nil
   "Extra features and compatibility for `ido-completing-read'."
   :group 'ido)
@@ -511,7 +506,6 @@ completion for them."
              (ido-cr+-no-default-action 'prepend-empty-string)
              (ido-cr+-assume-static-collection nil))
          (ido-cr+--explain-fallback sig)
-         (run-hooks 'ido-cr+-before-fallback-hook)
          (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args))))))
 
 ;;;###autoload
