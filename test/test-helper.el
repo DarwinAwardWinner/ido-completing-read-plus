@@ -36,6 +36,5 @@
 (add-to-list 'load-path code-path)
 
 (require 'ido-completing-read+)
-(require 'ido-ubiquitous)
 
 ;;; test-helper.el ends here
