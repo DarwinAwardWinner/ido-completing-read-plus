@@ -187,6 +187,29 @@ passed to `all-completions' and `try-completion'."
       (with-simulated-input "g RET"
         (ido-completing-read+ "Prompt: " (collection-as-function '("blue" "yellow" "green"))))))))
 
+(ert-deftest ido-cr+-mode-activation ()
+  :tags '(ido ido-cr+)
+  "Test whether ido-ubiquitous-mode can be turned on and off."
+  (with-ido-cr+-standard-env
+    (cl-letf (((symbol-function 'test-command)
+               (lambda ()
+                 (interactive)
+                 (completing-read "Prompt: " '("blue" "yellow" "green")))))
+      ;; Verify that the mode can be activated
+      (should
+       (string=
+        "green"
+        (with-mode ido-ubiquitous-mode 1
+          (with-simulated-input "g RET"
+            (call-interactively 'test-command)))))
+      ;; Verify that the mode can be deactivated
+      (should
+       (string=
+        "g"
+        (with-mode ido-ubiquitous-mode 0
+          (with-simulated-input "g RET"
+            (call-interactively 'test-command))))))))
+
 (ert-deftest ido-cr+-test-maxitems ()
   :tags '(ido ido-cr+)
   "Test whether the large-collection fallback works."
