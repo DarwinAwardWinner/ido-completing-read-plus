@@ -415,26 +415,26 @@ passed to `all-completions' and `try-completion'."
      (string=
       "green"
       (with-simulated-input "g C-b C-f RET"
-        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+        (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))))
     (should
      ;; C-f at end of input should fall back
      (string=
       "g"
       (with-simulated-input "g C-f RET"
-        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+        (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))))
     (should
      ;; Repeated C-b should not fall back
      (string=
       "green"
       (with-simulated-input "g C-b C-b C-b C-b RET"
-        (completing-read "Prompt: " '("blue" "yellow" "green")))))
+        (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))))
     (should
      ;; C-b at beginning of line should fall back (if previous action
      ;; was not also C-b)
      (string=
       "g"
       (with-simulated-input "g C-b x DEL C-b RET"
-        (completing-read "Prompt: " '("blue" "yellow" "green")))))))
+        (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))))))
 
 (ert-deftest ido-cr+-dot-prefix-empty-string ()
   :tags '(ido ido-cr+)
