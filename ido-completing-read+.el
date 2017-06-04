@@ -741,15 +741,6 @@ blacklist was modified."
 
 (ido-cr+-maybe-update-blacklist)
 
-(define-obsolete-function-alias 'completing-read-ido-ubiquitous 'ido-completing-read+
-  "ido-completing-read+ 4.0")
-(define-obsolete-function-alias 'ido-ubiquitous-update-overrides 'ido-cr+-update-blacklist
-  "ido-completing-read+ 4.0")
-(define-obsolete-function-alias 'ido-ubiquitous--maybe-update-overrides 'ido-cr+-maybe-update-blacklist
-  "ido-completing-read+ 4.0")
-(define-obsolete-variable-alias 'ido-ubiquitous-auto-update-overrides 'ido-cr+-auto-update-blacklist
-  "ido-completing-read+ 4.0")
-
 (provide 'ido-completing-read+)
 
 ;;; ido-completing-read+.el ends here

@@ -79,6 +79,17 @@ be updated until you restart Emacs.")
 
 (warn "The ido-ubiquitous package is now redundant. All functionality, including ido-ubiquitous-mode, has been merged into the ido-completing-read+ package. You should replace ido-ubiquitous with ido-completing-read+ in your Emacs config.")
 
+(define-obsolete-function-alias 'completing-read-ido-ubiquitous 'ido-completing-read+
+  "ido-completing-read+ 4.0")
+(define-obsolete-function-alias 'ido-ubiquitous-update-overrides 'ido-cr+-update-blacklist
+  "ido-completing-read+ 4.0")
+(define-obsolete-function-alias 'ido-ubiquitous--maybe-update-overrides 'ido-cr+-maybe-update-blacklist
+  "ido-completing-read+ 4.0")
+(define-obsolete-variable-alias 'ido-ubiquitous-auto-update-overrides 'ido-cr+-auto-update-blacklist
+  "ido-completing-read+ 4.0")
+
+(provide 'ido-ubiquitous)
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
