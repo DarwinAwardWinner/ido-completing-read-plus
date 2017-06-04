@@ -625,7 +625,129 @@ when ido completion is or is not used by customizing
             #'ido-completing-read+
           ido-cr+-fallback-function)))
 
+(defcustom ido-cr+-auto-update-blacklist 'notify
+  "Whether to add new overrides when updating ido-cr+.
+
+This variable has 3 possible values, with the following meanings:
+
+  `t': Auto-update the blacklist
+  `notify': Notify you about updates but do not apply them
+  `nil': Ignore all blacklist updates
+
+Ido-cr+ comes with a default blacklist for commands that are
+known to be incompatible with ido completion. New versions of
+ido-cr+ may come with updates to this blacklist as more
+incompatible commands are discovered. However, customizing your
+own overrides would normally prevent you from receiving these
+updates, since Emacs will not overwrite your customizations.
+
+To resolve this problem, you can set this variable to `t', and
+then ido-cr+ can automatically add any new built-in overrides
+whenever it is updated. (Actually, the update will happen the
+next time Emacs is restarted after the update.) This allows you
+to add your own overrides but still receive updates to the
+default set.
+
+If you want ido-cr+ to just notify you about new default
+overrides instead of adding them itself, set this variable to
+`notify'. If you don't want this auto-update behavior at all, set
+it to `nil'.
+
+(Note that having this option enabled effectively prevents you
+from removing any of the built-in default blacklist entries,
+since they will simply be re-added the next time Emacs starts.)"
+  :type '(choice :tag "When new overrides are available:"
+                 (const :menu-tag "Auto-add"
+                        :tag "Add them automatically"
+                        t)
+                 (const :menu-tag "Notify"
+                        :tag "Notify me about them"
+                        notify)
+                 (const :menu-tag "Ignore"
+                        :tag "Ignore them"
+                        nil))
+  :group 'ido-cr+)
+
+(defun ido-cr+-update-blacklist (&optional save quiet)
+  "Re-add any missing default blacklist entries.
+
+This is useful after an update of ido-ubiquitous that adds new
+default overrides. See `ido-cr+-auto-update-blacklist' for more
+information.
+
+If SAVE is non-nil, also save the new blacklist to the user's
+Custom file (but only if it was already customized beforehand).
+When called interactively, a prefix argument triggers a save.
+
+When called from Lisp code, this function returns non-nil if the
+blacklist was modified."
+  (interactive "P")
+  (let* ((var-state (custom-variable-state 'ido-cr+-function-blacklist
+                                           ido-cr+-function-blacklist))
+         (curval ido-cr+-function-blacklist)
+         (defval (eval (car (get 'ido-cr+-function-blacklist 'standard-value))))
+         (newval (delete-dups (append defval curval)))
+         (new-entries (cl-set-difference curval defval :test #'equal))
+         (modified nil)
+         (saved nil)
+         (message-lines ()))
+    (cl-case var-state
+      (standard
+       ;; Var is not customized, just set the new default
+       (ido-cr+--debug-message "Blacklist was not customized, so it has been updated to the new default value.")
+       (setq ido-cr+-function-blacklist defval
+             modified new-entries))
+      ((saved set changed)
+       ;; Var has been customized and saved by the user, so set the
+       ;; new value and maybe save it
+       (ido-cr+--debug-message "Updating user-customized blacklist with new default entries.")
+       (setq ido-cr+-function-blacklist newval
+             modified t)
+       (when (and save (eq var-state 'saved))
+         (ido-cr+--debug-message "Saving new blacklist value to Custom file.")
+         (customize-save-variable 'ido-cr+-function-blacklist ido-cr+-function-blacklist)
+         (setq saved t)))
+      (otherwise
+       (ido-cr+--debug-message "Customization status of blacklist is unknown. Not modifying it.")))
+    (if (and modified (not quiet))
+        (progn
+          (push (format "Added the following entries to `ido-cr+-function-blacklist': %S" new-entries)
+                message-lines)
+          (if saved
+              (push "Saved the new value of `ido-cr+-function-blacklist' to your Custom file."
+                    message-lines)
+            (push "Hoever, the new value of `ido-cr+-function-blacklist' has not yet been saved for future sessions. To save it. re-run this command with a prefix argument:  `C-u M-x ido-cr+-update-blacklist'; or else manually inspect and save the value using `M-x customize-variable ido-cr+-function-blacklist'."
+                  message-lines)))
+      (push "No updates were required to `ido-cr+-function-blacklist'." message-lines))
+    (unless quiet
+      (message (mapconcat #'identity (nreverse message-lines) "\n")))
+    modified))
+
+(defun ido-cr+-maybe-update-blacklist ()
+  "Maybe call `ico-cr+-update-blacklist.
+
+ See `ido-cr+-auto-update-blacklist' for more information."
+  (if ido-cr+-auto-update-blacklist
+      (let* ((curval ido-cr+-function-blacklist)
+             (defval (eval (car (get 'ido-cr+-function-blacklist 'standard-value))))
+             (new-entries (cl-set-difference curval defval :test #'equal)))
+        (if new-entries
+            (if (eq ido-cr+-auto-update-blacklist 'notify)
+                (display-warning 'ido-completing-read+ "There are %s new blacklist entries available. Use `M-x ido-cr+-update-blacklist' to install them. (See `ido-cr+-auto-update-blacklist' for more information.)")
+              (ido-cr+--debug-message "Initiating blacklist update.")
+              (ido-cr+-update-blacklist t))
+          (ido-cr+--debug-message "No blacklist updates available.")))
+    (ido-cr+--debug-message "Skipping blacklist update by user request.")))
+
+(ido-cr+-maybe-update-blacklist)
+
 (define-obsolete-function-alias 'completing-read-ido-ubiquitous 'ido-completing-read+
+  "ido-completing-read+ 4.0")
+(define-obsolete-function-alias 'ido-ubiquitous-update-overrides 'ido-cr+-update-blacklist
+  "ido-completing-read+ 4.0")
+(define-obsolete-function-alias 'ido-ubiquitous--maybe-update-overrides 'ido-cr+-maybe-update-blacklist
+  "ido-completing-read+ 4.0")
+(define-obsolete-variable-alias 'ido-ubiquitous-auto-update-overrides 'ido-cr+-auto-update-blacklist
   "ido-completing-read+ 4.0")
 
 (provide 'ido-completing-read+)
