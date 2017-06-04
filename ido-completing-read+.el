@@ -6,7 +6,7 @@
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
 ;; Version: 4.0
-;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "25.0") (cl-lib "0.5"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
 
@@ -85,6 +85,14 @@ This is used to avoid unnecessary work in the case where the
 collection is a function, since a function collection could
 potentially change the set of completion candidates
 dynamically.")
+
+(defvar ido-cr+-current-command nil
+  "Command most recently invoked by `call-interactively'.
+
+This is necessary because `command-execute' and
+`call-interactively' do not set `this-command'. Instead, the C
+code that calls `command-execute' sets it beforehand, so using
+either of those functions directly won't set `this-command'.")
 
 (defvar ido-cr+-dynamic-collection nil
   "Stores the collection argument if it is a function.
@@ -396,6 +404,15 @@ completion for them."
                        (ido-cr+-function-is-whitelisted this-command))
               (ido-cr+--debug-message "Command `%S' is whitelisted" this-command)
               (setq whitelisted t))
+            ;; Also need to check `ido-cr+-current-command'
+            (when (ido-cr+-function-is-blacklisted ido-cr+-current-command)
+              (signal 'ido-cr+-fallback
+                      (list "calling command `%S' is blacklisted" ido-cr+-current-command)))
+            (when (and (not whitelisted)
+                       (ido-cr+-function-is-whitelisted ido-cr+-current-command))
+              (ido-cr+--debug-message "Command `%S' is whitelisted" ido-cr+-current-command)
+              (setq whitelisted t))
+
             ;; Check every function in the call stack starting after
             ;; `completing-read' until to the first
             ;; `funcall-interactively' (for a call from the function
@@ -511,6 +528,14 @@ completion for them."
       ad-do-it
     ;; Otherwise, we need to activate ido-cr+.
     (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0)))))
+
+;;;###autoload
+(defadvice call-interactively (around ido-cr+-record-command-name activate)
+  "Record the command being interactively called.
+
+See `ido-cr+-current-command'."
+  (let ((ido-cr+-current-command (ad-get-arg 0)))
+    ad-do-it))
 
 ;; Fallback on magic C-f and C-b
 ;;;###autoload
