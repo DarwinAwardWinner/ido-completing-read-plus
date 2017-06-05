@@ -142,29 +142,35 @@ explains the reason for disabling ido completion.
 
 ## Why does RET sometimes not select the first completion on the list? <br/> Why is there an empty entry at the beginning of the completion list? <br/> What happened to old-style default selection? ##
 
+The simplest way to think about this is that if the command that
+called `completing-read` didn't specify a default, then the default is
+the empty string. In other words, `""` is the default default.
+
 Previous versions of ido-ubiquitous-mode gave special consideration to
 cases where a default value was not provided to `completing-read` and
 the user pressed RET without entering any text. The expected behavior
 is that `completing-read` should return the empty string in this case,
 which indicates to the calling function that the user did not select
 any completion. This conflicts with the standard ido behavior of
-selecting the first available completion when pressing RET.
-Previously, this was handled by having two different modes that
+selecting the first available completion when pressing RET, and this
+conflict was previously resolved by having two different modes that
 differed in their handling of RET on an empty input. Now there is only
-one mode, and this case is handled by adding the empty string as the
-first available completion when the default is omitted. Since you, the
-user, have no way of knowing how `completing-read' was called, you can
-tell when this is occurring by watching for the appearance of an empty
+one mode, and the no-default case is handled by acting as if the empty
+string was specified as the default, which more closely matches the
+behavior of standard emacs completion. Since you, the user, have no
+way of knowing how `completing-read' was called, you can tell when
+this is occurring by watching for the appearance of an empty
 completion at the front of the list. Compare:
 
-With apple specified as a default, pressing RET will select "apple":
+With apple specified as a default, the prompt will look like this, and
+pressing RET will select "apple":
 
     Pick a fruit: {apple | banana | cherry | date}
     
 Without a default specified, an extra empty option is displayed before
 the first option, and pressing RET will select this option and return
-"". To select "apple" instead, you must press the right arrow key
-once, or type an "a":
+"". To select "apple" instead, you must first press the right arrow
+key once, or type an "a":
 
     Pick a fruit: { | apple | banana | cherry | date}
 
