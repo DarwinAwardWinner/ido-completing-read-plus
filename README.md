@@ -140,7 +140,7 @@ completion, you can enable `ido-cr+-debug-mode` and then run the
 command. There should then be a line in the `*Messages*` buffer that
 explains the reason for disabling ido completion.
 
-## Why is there an empty entry a the beginning of the completion list? <br/>  What happened to old-style default selection? ##
+## Why does RET sometimes not select the first completion on the list? <br/> Why is there an empty entry at the beginning of the completion list? <br/> What happened to old-style default selection? ##
 
 Previous versions of ido-ubiquitous-mode gave special consideration to
 cases where a default value was not provided to `completing-read` and
