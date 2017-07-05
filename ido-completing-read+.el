@@ -219,9 +219,11 @@ disable fallback based on collection size, set this to nil."
     read-buffer
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/60
     todo-add-category
+    ;; Gnus already supports ido on its own
     gnus-emacs-completing-read
     gnus-iswitchb-completing-read
     grep-read-files
+    ;; Magit already supports ido on its own
     magit-builtin-completing-read
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/39
     Info-read-node-name
