@@ -252,11 +252,15 @@ regular expressions, only name-based matching is possible."
   nil
   "Functions & commands for which ido-cr+ should be enabled.
 
+If this variable is nil, the whitelist will not be used, and
+ido-cr+ will be allowed in all functions/commands not listed in
+`ido-cr+-function-backlist'.
+
 If this variable is non-nil, ido-cr+'s whitelisting mode will be
-enabled, and will be disabled for all functions unless they match
-one of the entries. Matching is done in the same manner as
-`ido-cr+-function-blacklist', and blacklisting takes precedence
-over whitelisting."
+enabled, and ido-cr+ will be disabled for *all* functions unless
+they match one of the entries. Matching is done in the same
+manner as `ido-cr+-function-blacklist', and blacklisting takes
+precedence over whitelisting."
   :group 'ido-completing-read-plus
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
