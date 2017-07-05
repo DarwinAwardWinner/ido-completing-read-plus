@@ -1,3 +1,17 @@
+2017-07-05  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-completing-read+): Massive
+	refactor. The "overrides" system has been completely reworked.
+	There is no longer a distinction between "old" and "new" default
+	styles; commands and functions are no longer treated differently;
+	and ido-cr+ is now enabled for dynamic completion tables. Users
+	should read the FAQ, which explains the minor user-visible
+	changes.
+
+	* ido-ubiquitous.el: Refactor entire package into ido-cr+. The
+	current ido-ubiquitous.el is just a stub that loads ido-cr+ and
+	displays a deprecation warning.
+
 2017-06-01  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-completing-read+): Don't use ido if
