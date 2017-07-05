@@ -118,7 +118,7 @@ installation is necessary. Just load the file and enable the mode:
 
 # Frequently asked questions #
 
-## How does ido-ubiquitous-mode decide when to replace `completing-read`? <br/>  Why don't some commands use ido completion? ##
+## How does ido-ubiquitous-mode decide when to replace `completing-read`? <br/> Why don't some commands use ido completion? ##
 
 Emacs' `completing-read` is a complex function with many complex
 features. Not all of these features are supported by ido, so it is
@@ -162,17 +162,20 @@ way of knowing how `completing-read' was called, you can tell when
 this is occurring by watching for the appearance of an empty
 completion at the front of the list. Compare:
 
-With apple specified as a default, the prompt will look like this, and
-pressing RET will select "apple":
+If the command specifies apple as the default when calling
+`completing-read`, the prompt will look like this, and pressing RET
+will select "apple":
 
     Pick a fruit: {apple | banana | cherry | date}
     
-Without a default specified, an extra empty option is displayed before
-the first option, and pressing RET will select this option and return
-"". To select "apple" instead, you must first press the right arrow
-key once, or type an "a":
+However, if the command does not specify any default, an extra empty
+option is displayed before the first option, and pressing RET will
+select this empty option and return "":
 
     Pick a fruit: { | apple | banana | cherry | date}
+
+To select "apple" instead, you must first press the right arrow key
+once, or type an "a", before pressing RET:
 
 ## How can I troubleshoot when ido-completing-read+ isn't doing what I want? ##
 
