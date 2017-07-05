@@ -58,6 +58,23 @@ be updated until you restart Emacs.")
 (define-obsolete-variable-alias 'ido-ubiquitous-auto-update-overrides 'ido-cr+-auto-update-blacklist
   "ido-completing-read+ 4.0")
 
+(make-obsolete-variable
+ 'ido-ubiquitous-default-state
+ "For the new variables to control which commands have ido completion, see `ido-cr+-function-blacklist' and `ido-cr+-function-whitelist'. For information on what happened to \"old-style\" default selection, See the FAQ."
+ "ido-completing-read+ 4.0")
+(make-obsolete-variable
+ 'ido-ubiquitous-command-overrides
+ "For the new variables to control which commands have ido completion, see `ido-cr+-function-blacklist' and `ido-cr+-function-whitelist'. For information on what happened to \"old-style\" default selection, See the FAQ."
+ "ido-completing-read+ 4.0")
+(make-obsolete-variable
+ 'ido-ubiquitous-function-overrides
+ "For the new variables to control which commands have ido completion, see `ido-cr+-function-blacklist' and `ido-cr+-function-whitelist'. For information on what happened to \"old-style\" default selection, See the FAQ."
+ "ido-completing-read+ 4.0")
+(make-obsolete-variable
+ 'ido-ubiquitous-allow-on-functional-collection
+ "Ido-cr+ now works with most dynamic completion tables (i.e. \"functional collections\"), so this variable is no longer necessary. If a specific command uses a dynamic completion table that conflicts with ido-cr+, add it to `ido-cr+-function-blacklist' instead."
+ "ido-completing-read+ 4.0")
+
 (provide 'ido-ubiquitous)
 
 ;; Local Variables:
