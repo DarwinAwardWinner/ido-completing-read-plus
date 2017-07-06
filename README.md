@@ -247,9 +247,12 @@ all the development dependencies, in
 particular [ert-runner](https://github.com/rejeep/ert-runner.el).
 Finally, to run the tests, you must instruct ert-runner not to use
 batch mode using either the `--win` option. (The `--no-win` option
-also works.) So the command to run the tests is `cask exec ert-runner
---win`. An emacs window will briefly appear and the tests will run,
-and finally the test results will be printed. You should see something
+also works.) So the command to run the tests is:
+
+    cask exec ert-runner --win
+    
+An emacs window will briefly appear and the tests will run, and
+finally the test results will be printed. You should see something
 like this:
 
 ```
