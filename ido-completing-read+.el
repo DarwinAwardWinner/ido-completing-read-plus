@@ -85,6 +85,7 @@ not be updated until you restart Emacs.")
 
 (require 'ido)
 (require 'cl-lib)
+(require 'cus-edit)
 
 ;;; Debug messages
 
@@ -101,6 +102,18 @@ Debug info is printed to the *Messages* buffer."
     (apply #'message (concat "ido-completing-read+: " format-string) args)))
 
 ;;; Core code
+
+(defvar ido-cur-list nil
+  "Internal ido variable.
+
+This variable is originally declared in `ido.el', but it is not
+given a value (or a docstring). This documentation comes from a
+re-declaration in `ido-completing-read+.el' that initializes it
+to nil, which should suppress some byte-compilation warnings in
+Emacs 25. Setting another package's variable is not safe in
+general, but in this case it should be, because ido always
+let-binds this variable before using it, so the initial value
+shouldn't matter.")
 
 (defvar ido-cr+-minibuffer-depth -1
   "Minibuffer depth of the most recent ido-cr+ activation.
@@ -292,6 +305,7 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
     (ido-cr+--debug-message "Falling back to `%s' because %s."
                             ido-cr+-fallback-function arg)))
 
+;;;###autoload
 (defsubst ido-cr+-active ()
   "Returns non-nil if ido-cr+ is currently using the minibuffer."
   (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
