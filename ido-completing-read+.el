@@ -107,30 +107,31 @@ Debug info is printed to the *Messages* buffer."
 ;; silence byte-compiler warnings, despite already being declared in
 ;; ido.el.
 
-;;;###autoload
-(defvar ido-context-switch-command nil
-  "Variable holding the command used for switching to another completion mode.
+(defmacro define-ido-internal-var (symbol &optional initvalue docstring)
+  "Declare and initialize an ido internal variable.
 
-This variable is originally declared in `ido.el', but it is not
-given a value (or a docstring). This documentation comes from a
-re-declaration in `ido-completing-read+.el' that initializes it
-to nil, which should suppress some byte-compilation warnings in
-Emacs 25. Setting another package's variable is not safe in
-general, but in this case it should be, because ido always
-let-binds this variable before using it, so the initial value
-shouldn't matter.")
+This is used to suppress byte-compilation warnings about
+reference to free variables when ido-cr+ attempts to access
+internal ido variables with no initial value set. Such variables
+are originally declared like `(defvar VARNAME)'.
 
-(defvar ido-cur-list nil
-  "Internal ido variable.
+This is a wrapper for `defvar' that supplies a default for the
+INITVALUE and DOCSTRING arguments."
+  `(defvar ,symbol ,initvalue
+     ,(or docstring
+          "Internal ido variable.
 
-This variable is originally declared in `ido.el', but it is not
-given a value (or a docstring). This documentation comes from a
-re-declaration in `ido-completing-read+.el' that initializes it
-to nil, which should suppress some byte-compilation warnings in
-Emacs 25. Setting another package's variable is not safe in
-general, but in this case it should be, because ido always
-let-binds this variable before using it, so the initial value
-shouldn't matter.")
+This variable was originally declared in `ido.el' without an
+initial value or docstring. The documentation you're reading
+comes from re-declaring it in `ido-completing-read+.el' in order
+to suppress some byte-compilation warnings. Setting another
+package's variable is not safe in general, but in this case it
+should be, because ido always let-binds this variable before
+using it, so the initial value shouldn't matter.")))
+
+(define-ido-internal-var ido-context-switch-command)
+(define-ido-internal-var ido-cur-list)
+(define-ido-internal-var ido-require-match)
 
 ;;; Core code
 
@@ -636,7 +637,7 @@ sets up C-j to be equivalent to TAB in the same situation."
        ;; We're using ico-cr+
        (ido-cr+-active)
        ;; Require-match is non-nil
-       (with-no-warnings ido-require-match)
+       ido-require-match
        ;; Current text is not a complete choice
        (not (member ido-text ido-cur-list)))
       (progn
