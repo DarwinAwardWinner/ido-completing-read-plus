@@ -115,6 +115,7 @@ general, but in this case it should be, because ido always
 let-binds this variable before using it, so the initial value
 shouldn't matter.")
 
+;;;###autoload
 (defvar ido-cr+-minibuffer-depth -1
   "Minibuffer depth of the most recent ido-cr+ activation.
 
