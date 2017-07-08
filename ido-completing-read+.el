@@ -586,8 +586,10 @@ completion for them."
          (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args))))))
 
 ;;;###autoload
-(defadvice ido-completing-read (around ido-cr+ activate)
-  "This advice is the implementation of `ido-cr+-replace-completely'."
+(define-advice ido-completing-read (:around (orig-fun &rest args) ido-cr+-replace)
+  "This advice allows ido-cr+ to coompletely replace `ido-completing-read'.
+
+See the varaible `ido-cr+-replace-completely' for more information."
   ;; If this advice is autoloaded, then we need to force loading of
   ;; the rest of the file so all the variables will be defined.
   (when (not (featurep 'ido-completing-read+))
@@ -596,34 +598,38 @@ completion for them."
           (not ido-cr+-replace-completely))
       ;; ido-cr+ has either already activated or isn't going to
       ;; activate, so just run the function as normal
-      ad-do-it
+      (apply orig-fun args)
     ;; Otherwise, we need to activate ido-cr+.
-    (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0)))))
+    (apply #'ido-completing-read+ args)))
 
 ;;;###autoload
-(defadvice call-interactively (around ido-cr+-record-command-name activate)
-  "Record the command being interactively called.
+(define-advice call-interactively
+    (:around (orig-fun command &rest args) ido-cr+-record-current-command)
+  "Let-bind the command being interactively called.
 
-See `ido-cr+-current-command'."
-  (let ((ido-cr+-current-command (ad-get-arg 0)))
-    ad-do-it))
+See `ido-cr+-current-command' for more information."
+  (let ((ido-cr+-current-command command))
+    (apply orig-fun command args)))
 
 ;; Fallback on magic C-f and C-b
-(defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
+(define-advice ido-magic-forward-char
+    (:before (&rest args) ido-cr+-fallback)
   "Allow falling back in ido-completing-read+."
   (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
 
-(defadvice ido-magic-backward-char (before ido-cr+-fallback activate)
+(define-advice ido-magic-backward-char
+    (:before (&rest args) ido-cr+-fallback)
   "Allow falling back in ido-completing-read+."
   (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
 
-(defadvice ido-select-text (around fix-require-match-behavior activate)
+(define-advice ido-select-text
+    (:around (orig-fun &rest args) ido-cr+-fix-require-match)
   "Fix ido behavior when `require-match' is non-nil.
 
 Standard ido will allow C-j to exit with an incomplete completion
@@ -631,23 +637,27 @@ even when `require-match' is non-nil. Ordinary completion does
 not allow this. In ordinary completion, RET on an incomplete
 match is equivalent to TAB, and C-j selects the first match.
 Since RET in ido already selects the first match, this advice
-sets up C-j to be equivalent to TAB in the same situation."
+sets up C-j to be equivalent to TAB in the same situation.
+
+This advice only activates if the current ido completion was
+called through ido-cr+."
   (if (and
        ;; Only override C-j behavior if...
        ;; We're using ico-cr+
        (ido-cr+-active)
        ;; Require-match is non-nil
        ido-require-match
-       ;; Current text is not a complete choice
+       ;; Current text is incomplete
        (not (member ido-text ido-cur-list)))
       (progn
         (ido-cr+--debug-message
          "Overriding C-j behavior for require-match: performing completion instead of exiting with current text. (This might still exit with a match if `ido-confirm-unique-completion' is nil)")
         (ido-complete))
-    ad-do-it))
+    (apply orig-fun args)))
 
-(defadvice ido-exhibit (before ido-cr+-update-dynamic-collection activate)
-  "Maybe update the set of completions when ido-text changes."
+(define-advice ido-exhibit
+    (:before (&rest args) ido-cr+-update-dynamic-collection)
+  "Maybe update the set of completions when `ido-text' changes."
   (when ido-cr+-dynamic-collection
     (let ((prev-ido-text ido-text)
           (current-ido-text (buffer-substring-no-properties (minibuffer-prompt-end) (point-max))))
@@ -678,7 +688,8 @@ sets up C-j to be equivalent to TAB in the same situation."
 
 ;; Interoperation with minibuffer-electric-default-mode: only show the
 ;; default when the input is empty and the empty string is the selected
-(defadvice minibuf-eldef-update-minibuffer (around ido-cr+-compat activate)
+(define-advice minibuf-eldef-update-minibuffer
+    (:around (orig-fun &rest args) ido-cr+-compat)
   "This advice allows minibuffer-electric-default-mode to work with ido-cr+."
   (if (ido-cr+-active)
       (unless (eq minibuf-eldef-showing-default-in-prompt
@@ -689,7 +700,7 @@ sets up C-j to be equivalent to TAB in the same situation."
               (not minibuf-eldef-showing-default-in-prompt))
         (overlay-put minibuf-eldef-overlay 'invisible
                      (not minibuf-eldef-showing-default-in-prompt)))
-    ad-do-it))
+    (apply orig-fun args)))
 
 ;;;###autoload
 (define-minor-mode ido-ubiquitous-mode
