@@ -101,7 +101,24 @@ Debug info is printed to the *Messages* buffer."
   (when ido-cr+-debug-mode
     (apply #'message (concat "ido-completing-read+: " format-string) args)))
 
-;;; Core code
+;;; Ido variables
+
+;; For unknown reasons, these variables need to be re-declared here to
+;; silence byte-compiler warnings, despite already being declared in
+;; ido.el.
+
+;;;###autoload
+(defvar ido-context-switch-command nil
+  "Variable holding the command used for switching to another completion mode.
+
+This variable is originally declared in `ido.el', but it is not
+given a value (or a docstring). This documentation comes from a
+re-declaration in `ido-completing-read+.el' that initializes it
+to nil, which should suppress some byte-compilation warnings in
+Emacs 25. Setting another package's variable is not safe in
+general, but in this case it should be, because ido always
+let-binds this variable before using it, so the initial value
+shouldn't matter.")
 
 (defvar ido-cur-list nil
   "Internal ido variable.
@@ -114,6 +131,8 @@ Emacs 25. Setting another package's variable is not safe in
 general, but in this case it should be, because ido always
 let-binds this variable before using it, so the initial value
 shouldn't matter.")
+
+;;; Core code
 
 ;;;###autoload
 (defvar ido-cr+-minibuffer-depth -1
@@ -589,19 +608,6 @@ See `ido-cr+-current-command'."
     ad-do-it))
 
 ;; Fallback on magic C-f and C-b
-;;;###autoload
-(defvar ido-context-switch-command nil
-  "Variable holding the command used for switching to another completion mode.
-
-This variable is originally declared in `ido.el', but it is not
-given a value (or a docstring). This documentation comes from a
-re-declaration in `ido-completing-read+.el' that initializes it
-to nil, which should suppress some byte-compilation warnings in
-Emacs 25. Setting another package's variable is not safe in
-general, but in this case it should be, because ido always
-let-binds this variable before using it, so the initial value
-shouldn't matter.")
-
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
   (when (ido-cr+-active)
@@ -632,7 +638,7 @@ sets up C-j to be equivalent to TAB in the same situation."
        ;; Require-match is non-nil
        (with-no-warnings ido-require-match)
        ;; Current text is not a complete choice
-       (not (member ido-text (with-no-warnings ido-cur-list))))
+       (not (member ido-text ido-cur-list)))
       (progn
         (ido-cr+--debug-message
          "Overriding C-j behavior for require-match: performing completion instead of exiting with current text. (This might still exit with a match if `ido-confirm-unique-completion' is nil)")
