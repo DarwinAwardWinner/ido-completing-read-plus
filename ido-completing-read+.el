@@ -115,18 +115,6 @@ general, but in this case it should be, because ido always
 let-binds this variable before using it, so the initial value
 shouldn't matter.")
 
-(defvar ido-cr+-minibuffer-depth -1
-  "Minibuffer depth of the most recent ido-cr+ activation.
-
-If this equals the current minibuffer depth, then the minibuffer
-is currently being used by ido-cr+, and ido-cr+ feature will be
-active. Otherwise, something else is using the minibuffer and
-ido-cr+ features will be deactivated to avoid interfering with
-the other command.
-
-This is set to -1 by default, since `(minibuffer-depth)' should
-never return this value.")
-
 (defvar ido-cr+-assume-static-collection nil
   "If non-nil, ido-cr+ will assume that the collection is static.
 
@@ -304,6 +292,19 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
       (setq arg (cadr arg)))
     (ido-cr+--debug-message "Falling back to `%s' because %s."
                             ido-cr+-fallback-function arg)))
+
+;;;###autoload
+(defvar ido-cr+-minibuffer-depth -1
+  "Minibuffer depth of the most recent ido-cr+ activation.
+
+If this equals the current minibuffer depth, then the minibuffer
+is currently being used by ido-cr+, and ido-cr+ feature will be
+active. Otherwise, something else is using the minibuffer and
+ido-cr+ features will be deactivated to avoid interfering with
+the other command.
+
+This is set to -1 by default, since `(minibuffer-depth)' should
+never return this value.")
 
 ;;;###autoload
 (defsubst ido-cr+-active ()
