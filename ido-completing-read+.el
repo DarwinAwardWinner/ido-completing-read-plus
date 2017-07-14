@@ -783,7 +783,7 @@ blacklist was modified."
          (curval ido-cr+-function-blacklist)
          (defval (eval (car (get 'ido-cr+-function-blacklist 'standard-value))))
          (newval (delete-dups (append defval curval)))
-         (new-entries (cl-set-difference curval defval :test #'equal))
+         (new-entries (cl-set-difference defval curval :test #'equal))
          (modified nil)
          (saved nil)
          (message-lines ()))
@@ -812,7 +812,7 @@ blacklist was modified."
           (if saved
               (push "Saved the new value of `ido-cr+-function-blacklist' to your Custom file."
                     message-lines)
-            (push "Hoever, the new value of `ido-cr+-function-blacklist' has not yet been saved for future sessions. To save it. re-run this command with a prefix argument:  `C-u M-x ido-cr+-update-blacklist'; or else manually inspect and save the value using `M-x customize-variable ido-cr+-function-blacklist'."
+            (push "However, the new value of `ido-cr+-function-blacklist' has not yet been saved for future sessions. To save it. re-run this command with a prefix argument:  `C-u M-x ido-cr+-update-blacklist'; or else manually inspect and save the value using `M-x customize-variable ido-cr+-function-blacklist'."
                   message-lines)))
       (push "No updates were required to `ido-cr+-function-blacklist'." message-lines))
     (unless quiet
