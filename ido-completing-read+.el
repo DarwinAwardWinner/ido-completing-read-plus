@@ -259,6 +259,8 @@ disable fallback based on collection size, set this to nil."
     grep-read-files
     ;; Magit already supports ido on its own
     magit-builtin-completing-read
+    ;; ESS already supports ido on its own
+    ess-completing-read
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/39
     Info-read-node-name
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
