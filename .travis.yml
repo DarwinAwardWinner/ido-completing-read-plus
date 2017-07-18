@@ -1,0 +1,20 @@
+language: generic
+
+before_script:
+  # Install evm
+  - git clone https://github.com/rejeep/evm.git ~/.evm
+  - export PATH="$HOME/.evm/bin:$PATH"
+  - evm config path /tmp
+  - evm list
+  # use this version of emacs for tests
+  - evm install emacs-25.2-travis --use --skip
+  - evm list
+  - emacs --version
+  # Install cask
+  - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
+  - export PATH="$HOME/.cask/bin:$PATH"
+  # Install elisp dependencies
+  - cask install
+
+script:
+  cask exec ert-runner --no-win
