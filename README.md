@@ -16,7 +16,7 @@ Long-time users should know that ido-completing-read+ version 4.0 is a
 major update. The previously separate ido-ubiquitous package has been
 merged into ido-completing-read+, which now provides all the features
 of both packages. The distinction between "new" and "old" default
-selection styles has been eliminated (see FAQ for details), and the
+selection styles has been eliminated (see [FAQ][1] for details), and the
 override system has been accordingly simplified into just a blacklist
 and a whitelist. If you have previously customized any ido-ubiquitous
 options, be sure to check out 
@@ -28,6 +28,8 @@ liking.
 
 This short-lived ido-describe-fns package has likewise been subsumed
 into this one.
+
+[1]: #why-does-ret-sometimes-not-select-the-first-completion-on-the-list--why-is-there-an-empty-entry-at-the-beginning-of-the-completion-list--what-happened-to-old-style-default-selection
 
 # How to enable ido in as many places as possible #
 

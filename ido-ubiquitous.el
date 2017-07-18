@@ -47,7 +47,8 @@ be updated until you restart Emacs.")
 
 (require 'ido-completing-read+)
 
-(display-warning 'ido-ubiquitous "The ido-ubiquitous package is now redundant. All functionality, including ido-ubiquitous-mode, has been merged into the ido-completing-read+ package. You should replace ido-ubiquitous with ido-completing-read+ in your Emacs config.")
+(display-warning 'ido-ubiquitous "The ido-ubiquitous package is now redundant. All functionality, including ido-ubiquitous-mode, has been merged into the ido-completing-read+ package. You should replace ido-ubiquitous with ido-completing-read+ in your Emacs config. For more information, see:
+https://github.com/DarwinAwardWinner/ido-ubiquitous#version-40-changes")
 
 (define-obsolete-function-alias 'completing-read-ido-ubiquitous 'ido-completing-read+
   "ido-completing-read+ 4.0")
