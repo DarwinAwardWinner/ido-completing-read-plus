@@ -1,6 +1,6 @@
 # ido-completing-read+ (formerly ido-ubiquitous) #
 
-[![Travis CI Status](https://travis-ci.org/DarwinAwardWinner/ido-ubiquitous.svg?branch=master)](https://travis-ci.org/DarwinAwardWinner/ido-ubiquitous)
+[![Build Status](https://travis-ci.org/DarwinAwardWinner/ido-ubiquitous.svg?branch=master)](https://travis-ci.org/DarwinAwardWinner/ido-ubiquitous)
 [![MELPA Stable](https://stable.melpa.org/packages/ido-ubiquitous-badge.svg)](https://stable.melpa.org/#/ido-ubiquitous)
 [![Join the chat at https://gitter.im/DarwinAwardWinner/ido-ubiquitous](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/DarwinAwardWinner/ido-ubiquitous?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
