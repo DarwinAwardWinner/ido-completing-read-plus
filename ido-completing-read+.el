@@ -352,8 +352,13 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
        ;; Symbol: Compare names and function definitions
        ((symbolp entry)
         (or (eq entry fun)
-            (eq (indirect-function entry)
-                (indirect-function fun))))
+            (let ((entry-def (ignore-errors (indirect-function entry)))
+                  (fun-def (ignore-errors (indirect-function fun))))
+              (and
+               fun-def entry-def
+               (eq
+                (indirect-function entry-def)
+                (indirect-function fun-def))))))
        ;; String: Do regexp matching against function name if it is a
        ;; symbol
        ((stringp entry)
