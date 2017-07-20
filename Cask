@@ -6,9 +6,4 @@
 
 (development
  (depends-on "f")
- (depends-on "ert-runner"
-             :git "https://github.com/DarwinAwardWinner/ert-runner.el.git"
-             :branch "win-fix"
-             :files ("*.el"
-                     ("bin" "bin/*")
-                     ("reporters" "reporters/*.el"))))
+ (depends-on "ert-runner"))

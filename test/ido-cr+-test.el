@@ -26,27 +26,76 @@ noninteractive use. As such, BODY should not invoke
 `keyboard-quit' under normal operation, and KEYS should not
 include C-g, or this macro will interpret it as reading past the
 end of input."
-  ;; It would be better to detect end-of-input by overriding
-  ;; `read-event' to throw an error, since theoretically C-g could be
-  ;; rebound to something other than `keyboard-quit'. But apparently
-  ;; some functions read input directly in C code, and redefining
-  ;; `read-event' has no effect on those. So the suboptimal solution
-  ;; is to rely on C-g.
   (declare (indent 1))
-  `(let* ((key-sequence (listify-key-sequence (kbd ,keys)))
-          (C-g-key-sequence
-           (listify-key-sequence
-            ;; We *really* want to trigger `keyboard-quit' if we reach
-            ;; the end of the input.
-            (kbd "C-g C-g C-g C-g C-g C-g C-g")))
-          (unread-command-events
-           (append key-sequence C-g-key-sequence)))
-     (when (member (car C-g-key-sequence) key-sequence)
-       (error "KEYS must not include C-g"))
-     (condition-case nil
-         (progn ,@body)
-       (quit
-        (error "Reached end of simulated input while evaluating body")))))
+  (let ((temp-cmd (cl-gensym "temp-cmd"))
+        (cmd-finished-tag (cl-gensym "cmd-finished"))
+        (temp-var (cl-gensym "temp-var"))
+        (canary-sym (cl-gensym "canary")))
+    `(cl-letf*
+         (;; Wrap BODY in a command that evaluates BODY and throws the
+          ;; result with `cmd-finished-tag'.
+          ((symbol-function ',temp-cmd)
+           (lambda ()
+             (interactive)
+             (throw ',cmd-finished-tag (progn ,@body))))
+          ;; Set up the keymap for invoking the temp command
+          (transient-map (make-sparse-keymap))
+          (command-invoke-key-sequence "C-c e")
+          (simulated-key-sequence ,keys)
+          (trailing-C-g-key-sequence
+           ;; We *really* want to trigger `keyboard-quit' if we reach
+           ;; the end KEYS.
+           "C-g C-g C-g C-g C-g C-g C-g")
+          (full-key-sequence
+           (mapconcat #'identity
+                      (list
+                       command-invoke-key-sequence
+                       simulated-key-sequence
+                       trailing-C-g-key-sequence)
+                      " ")))
+       (when (seq-contains (kbd simulated-key-sequence) (elt (kbd "C-g") 0))
+         (error "KEYS must not include C-g"))
+       ;; Finish setting up the keymap for the temp command
+       (define-key transient-map (kbd command-invoke-key-sequence) ',temp-cmd)
+       (set-transient-map transient-map)
+       ;; Run the command followed by KEYS followed by C-g. The
+       ;; `catch' ensures that the keyboard macro stops executing as
+       ;; soon as BODY has finished evaluating, even if there are more
+       ;; keys to interpret.
+       (let ((result
+              (condition-case err
+                  (catch ',cmd-finished-tag
+                    (execute-kbd-macro (kbd full-key-sequence))
+                    ;; If the above doesn't throw, return the canary
+                    ',canary-sym)
+                ;; On `keyboard-quit', return canary
+                (quit ',canary-sym))))
+         (if (eq result ',canary-sym)
+             (error "Reached end of simulated input while evaluating body")
+           result)))))
+
+(ert-deftest simulate-input ()
+  "Tests for the basic functionality of the `with-simulated-input' macro.
+
+This macro is used in testing ido-cr+."
+  ;; Basic string input
+  (should
+   (string= "hello"
+            (with-simulated-input "hello RET"
+              (read-string "Enter a string: "))))
+  ;; Error if RET is not pressed to finish the input
+  (should-error
+   (with-simulated-input "hello"
+     (read-string "Enter a string: ")))
+  ;; Can throw an error manually
+  (should-error
+   (with-simulated-input "(error SPC \"Manually SPC throwing SPC an SPC error\") RET"
+     (command-execute 'eval-expression)))
+  ;; Extra keys should not cause errors
+  (should
+   (string= "hello"
+            (with-simulated-input "hello RET M-x eval-expression (error SPC \"Manually SPC throwing SPC an SPC error\") RET"
+              (read-string "Enter a string: ")))))
 
 (defmacro with-mode (mode arg &rest body)
   "Eval (MODE ARG), then body, then restore previous status of MODE.
@@ -60,7 +109,6 @@ for activation and deactivation."
          (progn
            (,mode ,arg)
            ,@body)
-       (message "Restoring mode %s to %s" ',mode restore-arg)
        (,mode restore-arg))))
 
 (defmacro with-ido-cr+-standard-env (&rest body)
@@ -384,7 +432,7 @@ passed to `all-completions' and `try-completion'."
       (with-simulated-input "b C-j b C-j e C-j C-j"
         (ido-completing-read+
          "Prompt: "
-         '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))))
+         '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))))
     ;; The "C-j" should complete to "bluegrass" and return, because
     ;; `ido-confirm-unique-completion is nil.
     (should
