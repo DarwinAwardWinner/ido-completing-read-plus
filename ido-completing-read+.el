@@ -594,7 +594,7 @@ completion for them."
 
 ;;;###autoload
 (defun ido-completing-read@ido-cr+-replace (orig-fun &rest args)
-  "This advice allows ido-cr+ to coompletely replace `ido-completing-read'.
+  "This advice allows ido-cr+ to completely replace `ido-completing-read'.
 
 See the varaible `ido-cr+-replace-completely' for more information."
   ;; If this advice is autoloaded, then we need to force loading of
