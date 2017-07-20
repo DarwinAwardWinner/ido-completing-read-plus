@@ -238,31 +238,20 @@ Otherwise, normal users don't need to think about this branch.
 
 # Running the tests #
 
-Since ido-completing-read+ is a package that is fundamentally about
-user interaction, testing it is a bit tricky. In particular, it cannot
-be tested if Emacs in running in batch mode, because there are is no
-way to read user input. Nevertheless, ido-completing-read+ has a test
-suite, which must be run in a special way to avoid running Emacs in
-batch mode. First, install
+ido-completing-read+ comes with a test suite. If you want to run it
+yourself, first install
 the [cask](http://cask.readthedocs.io/en/latest/) dependency manager.
 Then, from the ido-ubiqutous directory, run `cask install` to install
 all the development dependencies, in
 particular [ert-runner](https://github.com/rejeep/ert-runner.el).
-Finally, to run the tests, you must instruct ert-runner not to use
-batch mode using either the `--win` option. (The `--no-win` option
-also works.) So the command to run the tests is:
-
-    cask exec ert-runner --win
-    
-An emacs window will briefly appear and the tests will run, and
-finally the test results will be printed. You should see something
-like this:
+Finally, to run the tests, execute `cask exec ert-runner`. You should
+see something like this:
 
 ```
 $ cask exec ert-runner --no-win
-........
+.........
 
-Ran 8 tests in 0.088 seconds
+Ran 9 tests in 0.082 seconds
 ````
 
 Please run this test suite before submitting any pull requests, and
