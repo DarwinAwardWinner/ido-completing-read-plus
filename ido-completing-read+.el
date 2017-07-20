@@ -313,10 +313,8 @@ incompatibilities, please file a bug report at
 https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :type 'boolean)
 
-;; Signal used to trigger fallback (don't use `define-error' because
-;; it's only supported in 24.4 and up)
-(put 'ido-cr+-fallback 'error-conditions '(ido-cr+-fallback error))
-(put 'ido-cr+-fallback 'error-message "ido-cr+-fallback")
+;; Signal used to trigger fallback
+(define-error 'ido-cr+-fallback "ido-cr+-fallback")
 
 (defsubst ido-cr+--explain-fallback (arg)
   ;; This function accepts a string, or an ido-cr+-fallback
