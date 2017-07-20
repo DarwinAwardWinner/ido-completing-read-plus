@@ -7,13 +7,6 @@
 ;; This is a series of macros to facilitate the non-interactive
 ;; testing of interactive functions by simulating user input.
 
-(defmacro keyboard-quit-to-error (&rest body)
-  "Evaluate BODY but signal an error on `keyboard-quit'."
-  `(condition-case nil
-       (progn ,@body)
-     (quit
-      (error "Caught `keyboard-quit'"))))
-
 (defmacro with-simulated-input (keys &rest body)
   "Eval body with KEYS as simulated input.
 
