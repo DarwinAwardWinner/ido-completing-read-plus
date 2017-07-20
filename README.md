@@ -248,7 +248,7 @@ Finally, to run the tests, execute `cask exec ert-runner`. You should
 see something like this:
 
 ```
-$ cask exec ert-runner --no-win
+$ cask exec ert-runner
 .........
 
 Ran 9 tests in 0.082 seconds
