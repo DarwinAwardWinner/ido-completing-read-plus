@@ -23,7 +23,6 @@ end of input."
   (declare (indent 1))
   (let ((temp-cmd (cl-gensym "temp-cmd"))
         (cmd-finished-tag (cl-gensym "cmd-finished"))
-        (temp-var (cl-gensym "temp-var"))
         (canary-sym (cl-gensym "canary")))
     `(cl-letf*
          (;; Wrap BODY in a command that evaluates BODY and throws the
