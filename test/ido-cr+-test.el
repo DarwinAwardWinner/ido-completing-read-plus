@@ -3,6 +3,7 @@
 (require 'ido-completing-read+)
 (require 'ert)
 (require 'cl-lib)
+(require 'seq)
 
 ;; This is a series of macros to facilitate the non-interactive
 ;; testing of interactive functions by simulating user input.
