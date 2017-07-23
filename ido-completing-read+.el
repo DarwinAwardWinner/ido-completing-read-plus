@@ -340,63 +340,60 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   (equal (cadr (backtrace-frame 1 'ido-completing-read+))
          'completing-read))
 
+(defmacro ido-cr+-function-is-in-list (fun fun-list &optional list-name)
+  "Return non-nil if FUN matches an entry in FUN-LIST.
+
+This is used to check for matches to `ido-cr+-function-blacklist'
+and `ido-cr+-function-whitelist'.
+
+This is declared as macro only in order to extract the variable
+name used for the second argument so it can be used in a debug
+message. It should be called as if it were a normal function."
+  (when (null list-name)
+    (if (symbolp fun-list)
+        (setq list-name (symbol-name fun-list))
+      (setq list-name "list")))
+  `(cl-loop
+    for entry in ,fun-list
+    if (cond
+        ;; Nil: Never matches anything
+        ((null entry)
+         nil)
+        ;; Symbol: Compare names and function definitions
+        ((symbolp entry)
+         (or (eq entry ,fun)
+             (let ((entry-def (ignore-errors (indirect-function entry)))
+                   (fun-def (ignore-errors (indirect-function ,fun))))
+               (and
+                fun-def entry-def
+                (eq
+                 (indirect-function entry-def)
+                 (indirect-function fun-def))))))
+        ;; String: Do regexp matching against function name if it is a
+        ;; symbol
+        ((stringp entry)
+         (and (symbolp ,fun)
+              (string-match-p entry (symbol-name ,fun))))
+        ;; Anything else: invalid blacklist entry
+        (t
+         (ido-cr+--debug-message "Ignoring invalid entry in %s: `%S'" ,list-name entry)
+         nil))
+    return entry
+    ;; If no blacklist entry matches, return nil
+    finally return nil))
+
 (defun ido-cr+-function-is-blacklisted (fun)
-  (cl-loop
-   for entry in ido-cr+-function-blacklist
-   if (cond
-       ;; Nil: Never matches anything
-       ((null entry)
-        nil)
-       ;; Symbol: Compare names and function definitions
-       ((symbolp entry)
-        (or (eq entry fun)
-            (let ((entry-def (ignore-errors (indirect-function entry)))
-                  (fun-def (ignore-errors (indirect-function fun))))
-              (and
-               fun-def entry-def
-               (eq
-                (indirect-function entry-def)
-                (indirect-function fun-def))))))
-       ;; String: Do regexp matching against function name if it is a
-       ;; symbol
-       ((stringp entry)
-        (and (symbolp fun)
-             (string-match-p entry (symbol-name fun))))
-       ;; Anything else: invalid blacklist entry
-       (t
-        (ido-cr+--debug-message "Ignoring invalid entry in ido-cr+-function-blacklist: `%S'" entry)
-        nil))
-   return entry
-   ;; If no blacklist entry matches, return nil
-   finally return nil))
+  "Return non-nil if FUN is blacklisted.
+
+See `ido-cr+-function-blacklist'."
+  (ido-cr+-function-is-in-list fun ido-cr+-function-blacklist))
 
 (defun ido-cr+-function-is-whitelisted (fun)
-  (if (null ido-cr+-function-whitelist)
-      ;; Empty whitelist means everything is whitelisted
-      t
-    (cl-loop
-     for entry in ido-cr+-function-whitelist
-     if (cond
-         ;; Nil: Never matches anything
-         ((null entry)
-          nil)
-         ;; Symbol: Compare names and function definitions
-         ((symbolp entry)
-          (or (eq entry fun)
-              (eq (indirect-function entry)
-                  (indirect-function fun))))
-         ;; String: Do regexp matching against function name if it is a
-         ;; symbol
-         ((stringp entry)
-          (and (symbolp fun)
-               (string-match-p entry (symbol-name fun))))
-         ;; Anything else: invalid whitelist entry
-         (t
-          (ido-cr+--debug-message "Ignoring invalid entry in ido-cr+-function-whitelist: `%S'" entry)
-          nil))
-     return entry
-     ;; If no whitelist entry matches, return nil
-     finally return nil)))
+  "Return non-nil if FUN is whitelisted.
+
+See `ido-cr+-function-whitelist'."
+  (or (null ido-cr+-function-whitelist)
+      (ido-cr+-function-is-in-list fun ido-cr+-function-whitelist)))
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
