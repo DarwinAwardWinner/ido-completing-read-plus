@@ -244,14 +244,14 @@ the [cask](http://cask.readthedocs.io/en/latest/) dependency manager.
 Then, from the ido-ubiqutous directory, run `cask install` to install
 all the development dependencies, in
 particular [ert-runner](https://github.com/rejeep/ert-runner.el).
-Finally, to run the tests, execute `cask exec ert-runner`. You should
+Finally, to run the tests, execute `cask exec ert-runner -L .`. You should
 see something like this:
 
 ```
-$ cask exec ert-runner
-.........
+$ cask exec ert-runner -L .
+........
 
-Ran 9 tests in 0.082 seconds
+Ran 8 tests in 0.082 seconds
 ````
 
 Please run this test suite before submitting any pull requests, and
