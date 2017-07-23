@@ -6,7 +6,6 @@
 (package "ido-ubiquitous" "4.0" "Use ido (nearly) everywhere.")
 
 (development
- (depends-on "seq")
  (depends-on "with-simulated-input"
              :git "https://github.com/DarwinAwardWinner/with-simulated-input.git"
              :files ("*.el"))
