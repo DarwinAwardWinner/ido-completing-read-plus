@@ -667,34 +667,42 @@ called through ido-cr+."
 (advice-add 'ido-select-text :around
             #'ido-select-text@ido-cr+-fix-require-match)
 
+(defun ido-cr+-update-dynamic-collection ()
+  "Update the set of completions for a dynamic collection.
+
+This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
+  (when ido-cr+-dynamic-collection
+    (let ((current-match (car ido-matches))
+          (def (nth 6 ido-cr+-orig-completing-read-args))
+          (predicate (nth 2 ido-cr+-orig-completing-read-args)))
+      (setq ido-cur-list
+            (delete-dups
+             (append
+              (all-completions
+               (buffer-substring-no-properties
+                (minibuffer-prompt-end) (point-max))
+               ido-cr+-dynamic-collection
+               predicate)
+              (all-completions
+               ""
+               ido-cr+-dynamic-collection
+               predicate))))
+      (unless (listp def)
+        (setq def (list def)))
+      (when def
+        (setq ido-cur-list
+              (append def (cl-set-difference ido-cur-list def
+                                             :test #'equal))))
+      (when (and current-match (member current-match ido-cur-list))
+        (setq ido-cur-list (ido-chop ido-cur-list current-match))))))
+
 (defun ido-exhibit@ido-cr+-update-dynamic-collection (&rest args)
   "Maybe update the set of completions when `ido-text' changes."
   (when ido-cr+-dynamic-collection
     (let ((prev-ido-text ido-text)
           (current-ido-text (buffer-substring-no-properties (minibuffer-prompt-end) (point-max))))
       (when (not (string= prev-ido-text current-ido-text))
-        (let ((current-match (car ido-matches))
-              (def (nth 6 ido-cr+-orig-completing-read-args))
-              (predicate (nth 2 ido-cr+-orig-completing-read-args)))
-          (setq ido-cur-list
-                (delete-dups
-                 (append
-                  (all-completions
-                   current-ido-text
-                   ido-cr+-dynamic-collection
-                   predicate)
-                  (all-completions
-                   ""
-                   ido-cr+-dynamic-collection
-                   predicate))))
-          (unless (listp def)
-            (setq def (list def)))
-          (when def
-            (setq ido-cur-list
-                  (append def (cl-set-difference ido-cur-list def
-                                                 :test #'equal))))
-          (when (and current-match (member current-match ido-cur-list))
-            (setq ido-cur-list (ido-chop ido-cur-list current-match))))
+        (ido-cr+-update-dynamic-collection)
         (ido-cr+--debug-message "Updated completion candidates for dynamic collection because `ido-text' changed from %S to %S. `ido-cur-list' now has %s elements" prev-ido-text current-ido-text (length ido-cur-list))))))
 (advice-add 'ido-exhibit :before
             #'ido-exhibit@ido-cr+-update-dynamic-collection)
