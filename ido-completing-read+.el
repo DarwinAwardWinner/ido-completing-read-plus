@@ -700,7 +700,8 @@ called through ido-cr+."
             #'ido-exhibit@ido-cr+-update-dynamic-collection)
 
 ;; Interoperation with minibuffer-electric-default-mode: only show the
-;; default when the input is empty and the empty string is the selected
+;; default when the input is empty and the empty string is the
+;; selected choice
 (defun minibuf-eldef-update-minibuffer@ido-cr+-compat (orig-fun &rest args)
   "This advice allows minibuffer-electric-default-mode to work with ido-cr+."
   (if (ido-cr+-active)
