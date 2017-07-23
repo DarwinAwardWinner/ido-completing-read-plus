@@ -29,11 +29,14 @@ restored to what they were previously after BODY exits."
   (let*
       ((options
         '(ido-cr+-debug-mode
+          ido-cr+-auto-update-blacklist
           ido-cr+-fallback-function
           ido-cr+-max-items
           ido-cr+-function-blacklist
           ido-cr+-function-whitelist
-          ido-confirm-unique-completion))
+          ido-cr+-replace-completely
+          ido-confirm-unique-completion
+          ido-enable-flex-matching))
        (bindings
         (cl-loop for var in options collect
                  (list var
@@ -433,6 +436,70 @@ information on this bug."
         "aab"
         (with-simulated-input "a a b RET"
           (ido-completing-read+ "Pick: " '("" "aaa" "aab" "aac"))))))))
+
+(defvar mycollection)
+
+(ert-deftest ido-cr+-dynamic-collection ()
+  :tags '(ido ico=cr+)
+  "Test whether dynamic collection updating works."
+  (with-ido-cr+-standard-env
+    (let ((ido-enable-flex-matching t)
+          (mycollection
+           (completion-table-dynamic
+            (lambda (text)
+              (cond
+               ;; Sub-completions for "hello"
+               ((s-prefix-p "hello" text)
+                '("hello" "hello-world" "hello-everyone" "hello-universe"))
+               ;; Sub-completions for "goodbye"
+               ((s-prefix-p "goodbye" text)
+                '("goodbye" "goodbye-world" "goodbye-everyone" "goodbye-universe"))
+               ;; General completions
+               (t
+                '("hello" "goodbye" "helicopter" "goodness")))))))
+      (should
+       (string=
+        (with-simulated-input "hello- RET"
+          (completing-read "Say something: " mycollection))
+        "hello-world"))
+      ;; Flex-matching should work in dynamic collections
+      (should
+       (string=
+        (with-simulated-input "hello-ld RET"
+          (completing-read "Say something: " mycollection))
+        "hello-world"))
+      ;; TAB should do a dynamic update, and if the update makes the
+      ;; completion no longer unique, it should not exit when
+      ;; `ido-confirm-unique-completion' is non-nil
+      (should
+       (string=
+        (with-simulated-input '("hell TAB <right> RET")
+          (completing-read "Say something: " mycollection))
+        "hello-world"))
+      ;; But if the completion is unique after updating, then it should exit
+      (should
+       (string=
+        (with-simulated-input '("heli TAB")
+          (completing-read "Say something: " mycollection))
+        "helicopter"))
+      ;; Waiting idly should do a dynamic update
+      (should
+       (string=
+        (with-simulated-input '("hello"
+                                (wsi-simulate-idle-time (1+ ido-cr+-dynamic-update-idle-time)) "<right> RET")
+          (completing-read "Say something: " mycollection))
+        "hello-world"))
+      ;; Dynamic update should optimistically check the first
+      ;; available match for extended completions. ("hell" causes
+      ;; "hello" to be the first and only match, which causes an
+      ;; immediate update that checks "hello" for completions even
+      ;; though it hasn't been typed in yet, which makes "hello-world"
+      ;; available, which is flex-matched by the "ld".)
+      (should
+       (string=
+        (with-simulated-input '("hellld RET")
+          (completing-read "Say something: " mycollection))
+        "hello-world")))))
 
 (defun ido-cr+-run-all-tests ()
   (interactive)
