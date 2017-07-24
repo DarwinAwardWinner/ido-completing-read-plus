@@ -168,11 +168,12 @@ either of those functions directly won't set `this-command'.")
 This allows ido-cr+ to update the set of completion candidates
 dynamically.")
 
-(defvar ido-cr+-last-dynamic-update-text nil
-  "Value of `ido-text' last time the dynamic collection was updated.
+(defvar ido-cr+-previous-dynamic-update-texts nil
+  "Values of `ido-text' for the last few dynamic collection updates.
 
-This is used in `ido-cr+-update-dynamic-collection' to determine
-whether an update is necessary.")
+This is used in `ido-cr+-update-dynamic-collection' as an LRU
+cache of recent values of `ido-text' in order to skip re-checking
+prefixes of these strings.")
 
 (defvar ido-cr+-dynamic-update-idle-time 0.25
   "Time to wait before updating dynamic completion list.")
@@ -434,6 +435,17 @@ completion for them."
         ;; clear out any temporary minibuffer hooks, which need to get
         ;; restored before falling back.
         (orig-minibuffer-setup-hook minibuffer-setup-hook)
+        ;; Need just the string part of INITIAL-INPUT
+        (initial-input-string
+         (cond
+          ((consp initial-input)
+           (car initial-input))
+          ((stringp initial-input)
+           initial-input)
+          ((null initial-input)
+           "")
+          (t
+           (signal 'wrong-type-argument (list 'stringp initial-input)))))
         ;; If collection is a function, save it for later, unless
         ;; instructed not to
         (ido-cr+-dynamic-collection
@@ -471,7 +483,11 @@ completion for them."
               (setq whitelisted t)))
 
           ;; Expand all currently-known completions.
-          (setq collection (all-completions "" collection predicate))
+          (setq collection
+                (if ido-cr+-assume-static-collection
+                    (all-completions "" collection predicate)
+                  (ido-cr+-all-dynamic-completions
+                   initial-input-string collection predicate)))
           ;; No point in using ido unless there's a collection
           (when (and (= (length collection) 0)
                      (not ido-cr+-dynamic-collection))
@@ -593,7 +609,8 @@ completion for them."
           (prog1
               (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth)))
                     ;; Initialize dynamic update vars
-                    (ido-cr+-last-dynamic-update-text "")
+                    (ido-cr+-previous-dynamic-update-texts
+                     (list initial-input-string))
                     (ido-cr+-dynamic-update-timer nil)
                     (ido-cr+-exhibit-pending t)
                     ;; Reset these for the next call to ido-cr+
@@ -709,71 +726,170 @@ called through ido-cr+."
   (setq ido-cr+-exhibit-pending nil))
 (advice-add 'ido-exhibit :before 'ido-exhibit@ido-cr+-clear-exhibit-pending)
 
+(cl-defun ido-cr+-all-dynamic-completions
+    (string collection &optional predicate
+            &key prev-string (rmdups t))
+  "Run `all-completions' on every prefix of STRING.
+
+Arguments COLLECTION and PREDICATE are as in `all-completions'.
+Note that \"all prefixes\" includes both STRING itself and the
+empty string.
+
+If keyword argument RMDUPS is non-nil, call `delete-dups' on the
+result before returning. This is the default. You can pass nil
+for this argument if the caller is already going to do its own
+duplicate removal.
+
+As an optimization, if keyword argument PREV-STRING is non-nil,
+then prefixes of STRING that are also prefixes of PREV-STRING
+will be skipped. This is used to avoid duplicating work if the
+caller already knows about the completions for PREV-STRING.
+PREV-STRING can also be a list of previous strings, in which case
+all prefixes of all previous strings will be skipped. In
+particular, note that if PREV-STRING equals STRING, this function
+will return nil.
+
+This function is only useful if COLLECTION is a function that
+might return additional completions for certain non-empty strings
+that it wouldn't return for the empty string. If COLLECTION is
+not a function, this is equivalent to
+`(all-completions \"\" COLELCTION PREDICATE)'."
+  (cond
+   ;; Dynamic collection.
+   ((functionp collection)
+    (let ((prev-strings (if (listp prev-string)
+                            prev-string
+                          (list prev-string)))
+          (common-prefix-length -1))
+      ;; Get the length of the longest common prefix, or -1 if no
+      ;; previous strings.
+      (cl-loop for ps in prev-strings
+               for common-prefix = (s-shared-start ps string)
+               maximize (length common-prefix) into prefix-length
+               finally do (setq common-prefix-length
+                                (or prefix-length -1)))
+      ;; Get completions for all prefixes starting after the longest
+      ;; previous prefix, or starting from "" if no previous prefix.
+      (cl-loop
+       with start-index = (1+ common-prefix-length)
+       ;; This might execute zero times, if common-prefix = string
+       for i from start-index upto (length string)
+       append (all-completions
+               (s-left i string)
+               collection
+               predicate)
+       into completion-list
+       finally return (when completion-list
+                        (funcall
+                         (if rmdups #'delete-dups #'identity)
+                         completion-list)))))
+   ;; If COLLECTION is not a function and PREV-STRING is non-nil, then
+   ;; the caller already has all the possible completions, so return
+   ;; nil.
+   (prev-string
+    nil)
+   ;; Otherwise, just call `all-completions' on the empty string to
+   ;; get every possible completions for a static COLLECTION.
+   (t
+    (unless prev-string
+      (all-completions "" collection predicate)))))
+
 (defun ido-cr+-update-dynamic-collection ()
   "Update the set of completions for a dynamic collection.
 
 This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
   (when (and (ido-cr+-active)
              ido-cr+-dynamic-collection)
-    (unwind-protect
-        (let ((ido-text (buffer-substring-no-properties (minibuffer-prompt-end) ido-eoinput)))
-          (when (not (string= ido-text
-                              ido-cr+-last-dynamic-update-text))
-            (setq
-             ido-cur-list
-             (cl-loop
-              with predicate = (nth 2 ido-cr+-orig-completing-read-args)
-              with def = (nth 6 ido-cr+-orig-completing-read-args)
-              with new-cur-list = '()
-              ;; Any strings in the common prefix have already been
-              ;; checked for completions, so we can start after the
-              ;; common prefix.
-              with common-prefix = (s-shared-start ido-cr+-last-dynamic-update-text
-                                                   ido-text)
-              ;; In addition to the currently-input text, we also
-              ;; check the first match for completions, since each
-              ;; match might be the prefix for a set of matches that
-              ;; are dynamically revealed once the match is input. By
-              ;; checking now, we can optimistically add these to the
-              ;; completion list before the user has finished typing
-              ;; the match. TODO: Maybe do a configurable number of
-              ;; top matches rather than just the first?
-              with first-match = (car ido-matches)
-              initially do
-              (when (and first-match
-                         (not (string= ido-text first-match)))
-                (ido-cr+--debug-message "Getting completions for first match %S"
-                                        first-match)
-                (setq new-cur-list
-                      (all-completions
-                       first-match
-                       ido-cr+-dynamic-collection
-                       predicate)))
-              for i from (1+ (length common-prefix)) upto (length ido-text)
-              do (ido-cr+--debug-message "Getting completions for %S"
-                                         (s-left i ido-text))
-              append (all-completions
-                      (s-left i ido-text)
-                      ido-cr+-dynamic-collection
-                      predicate)
-              into new-cur-list
-              finally return (delete-dups (append ido-cur-list new-cur-list))))
-            (let ((current-match (car ido-matches)))
-              (when (and current-match (member current-match ido-cur-list))
-                (setq ido-cur-list (ido-chop ido-cur-list current-match))))
-            (ido-cr+--debug-message
-             "Updated completion candidates for dynamic collection because `ido-text' changed from %S to %S. `ido-cur-list' now has %s elements"
-             ido-cr+-last-dynamic-update-text ido-text
-             (length ido-cur-list))
-            (setq ido-cr+-last-dynamic-update-text ido-text)))
-      ;; Compute new matches
-      (setq ido-rescan t)
-      (ido-set-matches)
-      ;; Rebuild the completion display unless ido is already planning
-      ;; to do it anyway
-      (unless ido-cr+-exhibit-pending
-        (ido-tidy)
-        (ido-exhibit))))
+    (let* ((ido-text
+            (buffer-substring-no-properties (minibuffer-prompt-end)
+                                            ido-eoinput))
+           (predicate (nth 2 ido-cr+-orig-completing-read-args))
+           (first-match (car ido-matches))
+           (remembered-new-string nil)
+           (strings-to-check
+            ;; If `ido-text' is a prefix of `first-match', then we
+            ;; only need to check the latter, because that will
+            ;; implicitly check the former as well.
+            (cond
+             ((null first-match)
+              (list ido-text))
+             ((and first-match
+                   (s-prefix? ido-text first-match))
+              (list first-match))
+             (t
+              (list ido-text first-match))))
+           (new-completions
+            (cl-loop
+             with checked-strings = '()
+             for string in strings-to-check
+             nconc
+             (ido-cr+-all-dynamic-completions
+              string ido-cr+-dynamic-collection predicate
+              :rmdups nil
+              :prev-string (append checked-strings
+                                   ido-cr+-previous-dynamic-update-texts))
+             into result
+             collect string into checked-strings
+             finally return result)))
+      (when new-completions
+        ;; Merge new completions into `ido-cur-list'
+        (setq
+         ido-cur-list
+         (delete-dups (nconc ido-cur-list new-completions)))
+        ;; Ensure that the currently-selected match is still at the head
+        ;; of the list
+        (let ((current-match (car ido-matches)))
+          (when (and current-match (member current-match ido-cur-list))
+            (setq ido-cur-list (ido-chop ido-cur-list current-match))))
+        (ido-cr+--debug-message
+         "Updated completion candidates for dynamic collection because `ido-text' changed to %S. `ido-cur-list' now has %s elements"
+         ido-text (length ido-cur-list))
+
+        ;; Recompute matches with new completions
+        (setq ido-rescan t)
+        (ido-set-matches)
+        ;; Rebuild the completion display unless ido is already planning
+        ;; to do it anyway
+        (unless ido-cr+-exhibit-pending
+          (ido-tidy)
+          (ido-exhibit)))
+      ;; Add `ido-text' and/or `first-match' to the list of remembered
+      ;; previous update texts. This is used to avoid re-computing
+      ;; completions on previously-seen string prefixes (since those
+      ;; completions have already been added to `ido-cur-list')
+      (cl-loop
+       for new-text in strings-to-check
+       do
+       (cond
+        ;; Common case optimization: if eitehr new element or first
+        ;; element of list is a prefix of the other, just keep the
+        ;; longer one.
+        ((s-prefix? new-text (car ido-cr+-previous-dynamic-update-texts))
+         nil)
+        ((s-prefix? (car ido-cr+-previous-dynamic-update-texts) new-text)
+         (setf (car ido-cr+-previous-dynamic-update-texts) new-text))
+        ;; General case: just prepend it to the list
+        (t
+         (setq remembered-new-string t)
+         (push new-text ido-cr+-previous-dynamic-update-texts))))
+      ;; Remove duplicates and trim the list down to the last 5
+      ;; remembered texts
+      (when remembered-new-string
+        (setq
+         ido-cr+-previous-dynamic-update-texts
+         ;; Elisp doesn't seem to have a "take first N elements"
+         ;; function that returns the entire list if it's shorter than
+         ;; N instead of signaling an error
+         (cl-loop
+          with result = '()
+          with n-taken = 0
+          for item in ido-cr+-previous-dynamic-update-texts
+          if (not (member item) result)
+          collect item into result and
+          sum 1 into n-taken
+          if (>= n-taken 5)
+          return result
+          finally return result))))))
   ;; Always cancel an active timer when this function is called.
   (when ido-cr+-dynamic-update-timer
     (cancel-timer ido-cr+-dynamic-update-timer)
