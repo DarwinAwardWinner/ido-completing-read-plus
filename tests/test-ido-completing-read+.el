@@ -335,26 +335,34 @@ passed to `all-completions' and `try-completion'."
         (setq my-dynamic-collection nil))
       (before-each
         (setq ido-enable-flex-matching t
-              ido-confirm-unique-completion nil))
+              ido-confirm-unique-completion nil)
+        (spy-on 'ido-cr+-update-dynamic-collection
+                :and-call-through))
 
       (it "should allow selection of dynamically-added completions"
         (expect
          (with-simulated-input "hello- RET"
            (ido-completing-read+ "Say something: " my-dynamic-collection))
-         :to-equal "hello-world"))
+         :to-equal "hello-world")
+        (expect 'ido-cr+-update-dynamic-collection
+                :to-have-been-called))
 
       (it "should allow ido flex-matching of dynamically-added completions"
         (expect
          (with-simulated-input "hello-ld RET"
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
-         "hello-world"))
+         "hello-world")
+        (expect 'ido-cr+-update-dynamic-collection
+                :to-have-been-called))
       (it "should do a dynamic update when pressing TAB"
         (expect
          (with-simulated-input "h TAB -ld RET"
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
-         "hello-world"))
+         "hello-world")
+        (expect 'ido-cr+-update-dynamic-collection
+                :to-have-been-called))
       (it "should do a dynamic update when idle"
         (expect
          (with-simulated-input
@@ -363,25 +371,33 @@ passed to `all-completions' and `try-completion'."
                "-ld RET")
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
-         "hello-world"))
+         "hello-world")
+        (expect 'ido-cr+-update-dynamic-collection
+                :to-have-been-called))
       (it "should do a dynamic update when there is only one match remaining"
         (expect
          (with-simulated-input "hell-ld RET"
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
-         "hello-world"))
+         "hello-world")
+        (expect 'ido-cr+-update-dynamic-collection
+                :to-have-been-called))
       (it "should not exit with a unique match if new matches are dynamically added"
         (expect
          (with-simulated-input '("hell TAB -ld RET")
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
-         "hello-world"))
+         "hello-world")
+        (expect 'ido-cr+-update-dynamic-collection
+                :to-have-been-called))
       (it "should exit with a match that is still unique after dynamic updating"
         (expect
          (with-simulated-input '("helic TAB")
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
-         "helicopter"))))
+         "helicopter")
+        (expect 'ido-cr+-update-dynamic-collection
+                :to-have-been-called))))
 
   (describe "ido-ubiquitous-mode"
     ;; Set up a test command that calls `completing-read'
