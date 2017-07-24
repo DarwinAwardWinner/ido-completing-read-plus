@@ -236,23 +236,14 @@ to the master branch. If you report a bug, I might develop a fix for
 it on the bleeding edge branch and ask then you to try this branch.
 Otherwise, normal users don't need to think about this branch.
 
-# Running the tests #
+## Running the tests
 
-ido-completing-read+ comes with a test suite. If you want to run it
-yourself, first install
-the [cask](http://cask.readthedocs.io/en/latest/) dependency manager.
-Then, from the ido-ubiqutous directory, run `cask install` to install
-all the development dependencies, in
-particular [ert-runner](https://github.com/rejeep/ert-runner.el).
-Finally, to run the tests, execute `cask exec ert-runner -L .`. You should
-see something like this:
-
-```
-$ cask exec ert-runner -L .
-........
-
-Ran 8 tests in 0.082 seconds
-````
-
-Please run this test suite before submitting any pull requests, and
-note in the pull request whether any of the tests fail.
+This package comes with a test suite. If you want to run it yourself,
+first install the [cask](http://cask.readthedocs.io/en/latest/)
+dependency manager. Then, from the package directory, run `cask
+install` to install all the development dependencies, in
+particular
+[buttercup](https://github.com/jorgenschaefer/emacs-buttercup).
+Finally, to run the tests, execute `cask exec buttercup -L .`. Please
+run this test suite before submitting any pull requests, and note in
+the pull request whether any of the tests fail.
