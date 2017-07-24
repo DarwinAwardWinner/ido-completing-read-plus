@@ -580,6 +580,15 @@ completion for them."
             (signal 'ido-cr+-fallback
                     '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
 
+          ;; Fix ido handling of cons-style INITIAL-INPUT. TODO add a
+          ;; version check after this bug is fixed:
+          ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27807
+          (when (consp initial-input)
+            (setq initial-input
+                  (cons (car initial-input)
+                        ;; `completing-read' uses 0-based index while
+                        ;; `read-from-minibuffer' uses 1-based index.
+                        (1+ (cdr initial-input)))))
           ;; Finally ready to do actual ido completion
           (prog1
               (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth)))
