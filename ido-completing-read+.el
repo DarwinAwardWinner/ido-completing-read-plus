@@ -605,7 +605,8 @@ completion for them."
                      predicate require-match initial-input hist def
                      inherit-input-method)
                   (when ido-cr+-dynamic-update-timer
-                    (cancel-timer ido-cr+-dynamic-update-timer))))
+                    (cancel-timer ido-cr+-dynamic-update-timer)
+                    (setq ido-cr+-dynamic-update-timer nil))))
             ;; This detects when the user triggered fallback mode
             ;; manually.
             (when (eq ido-exit 'fallback)
@@ -773,8 +774,10 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
       (unless ido-cr+-exhibit-pending
         (ido-tidy)
         (ido-exhibit))))
+  ;; Always cancel an active timer when this function is called.
   (when ido-cr+-dynamic-update-timer
-    (cancel-timer ido-cr+-dynamic-update-timer)))
+    (cancel-timer ido-cr+-dynamic-update-timer)
+    (setq ido-cr+-dynamic-update-timer nil))
 
 (defun ido-cr+-schedule-dynamic-collection-update ()
   "Schedule a dynamic collection update for now or in the future."
@@ -782,14 +785,15 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
              ido-cr+-dynamic-collection)
     ;; Cancel the previous timer
     (when ido-cr+-dynamic-update-timer
-      (cancel-timer ido-cr+-dynamic-update-timer))
+      (cancel-timer ido-cr+-dynamic-update-timer)
+      (setq ido-cr+-dynamic-update-timer nil))
     (if (<= (length ido-matches) 1)
         ;; If we've narrowed it down to zero or one matches, update
         ;; immediately.
         (ido-cr+-update-dynamic-collection)
       ;; If there are still several choices, defer update until idle
       (setq ido-cr+-dynamic-update-timer
-            (run-with-idle-timer ido-cr+-dynamic-update-idle-time nil
+            (run-with-idle-timer (max 0.01 ido-cr+-dynamic-update-idle-time) nil
                                  #'ido-cr+-update-dynamic-collection)))))
 
 (defun ido-cr+-minibuffer-setup ()
