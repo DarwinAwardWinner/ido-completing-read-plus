@@ -884,7 +884,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
           with result = '()
           with n-taken = 0
           for item in ido-cr+-previous-dynamic-update-texts
-          if (not (member item) result)
+          if (not (member item result))
           collect item into result and
           sum 1 into n-taken
           if (>= n-taken 5)
