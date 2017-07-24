@@ -1,3 +1,11 @@
+2017-07-24  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el: Further improvements to handling of
+	dynamic completion tables. Among other things, flex matching is
+	now supported for dynamic tables, and idle timers are used to
+	avoid recalculating the list of completions between every
+	keystroke.
+
 2017-07-08  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el: Internal change: switch to the new
