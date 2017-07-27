@@ -19,24 +19,22 @@ passed to `all-completions' and `try-completion'."
    do (error "Variable `%s' is not a customizable variable" var)
    for curval = (symbol-value var)
    for stdval = (eval (car (get var 'standard-value)))
-   for setter = (or (get var 'custom-set) 'set-default)
    do
    (progn
      ;; Save the current value
      (put var 'test-saved-value curval)
      ;; Set it to the standard value, using it's custom setter
      ;; function
-     (funcall setter var stdval))))
+     (customize-set-variable var stdval))))
 
 (defun test-restore-custom-vars (vars)
   (cl-loop
    for var in vars
    for savedval = (get var 'test-saved-value)
-   for setter = (or (get var 'custom-set) 'set-default)
    do
    (progn
      ;; Set it to the saved value, using it's custom setter function
-     (funcall setter var savedval)
+     (customize-set-variable var savedval)
      ;; Delete the saved value from the symbol plist
      (put var 'test-saved-value nil))))
 
