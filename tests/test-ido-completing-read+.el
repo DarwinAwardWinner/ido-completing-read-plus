@@ -42,19 +42,6 @@ passed to `all-completions' and `try-completion'."
 
 (describe "Within the `ido-completing-read+' package"
 
-  ;; All these need to be saved before and restored after each each test
-  :var (ido-mode
-        ido-ubiquitous-mode
-        ido-cr+-debug-mode
-        ido-cr+-auto-update-blacklist
-        ido-cr+-fallback-function
-        ido-cr+-max-items
-        ido-cr+-function-blacklist
-        ido-cr+-function-whitelist
-        ido-cr+-replace-completely
-        ido-confirm-unique-completion
-        ido-enable-flex-matching)
-
   ;; Reset all of these variables to their standard values before each
   ;; test
   (before-each
