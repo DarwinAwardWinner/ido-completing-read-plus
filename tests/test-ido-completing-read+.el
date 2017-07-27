@@ -12,7 +12,7 @@ The returned function will work equivalently to COLLECTION when
 passed to `all-completions' and `try-completion'."
   (completion-table-dynamic (lambda (string) (all-completions string collection))))
 
-(defun ido-cr+-test-save-custom-vars (vars)
+(defun test-save-custom-vars (vars)
   (cl-loop
    for var in vars
    if (not (custom-variable-p var))
@@ -23,29 +23,29 @@ passed to `all-completions' and `try-completion'."
    do
    (progn
      ;; Save the current value
-     (put var 'ido-cr+-test-saved-value curval)
+     (put var 'test-saved-value curval)
      ;; Set it to the standard value, using it's custom setter
      ;; function
      (funcall setter var stdval))))
 
-(defun ido-cr+-test-restore-custom-vars (vars)
+(defun test-restore-custom-vars (vars)
   (cl-loop
    for var in vars
-   for savedval = (get var 'ido-cr+-test-saved-value)
+   for savedval = (get var 'test-saved-value)
    for setter = (or (get var 'custom-set) 'set-default)
    do
    (progn
      ;; Set it to the saved value, using it's custom setter function
      (funcall setter var savedval)
      ;; Delete the saved value from the symbol plist
-     (put var 'ido-cr+-test-saved-value nil))))
+     (put var 'test-saved-value nil))))
 
 (describe "Within the `ido-completing-read+' package"
 
   ;; Reset all of these variables to their standard values before each
   ;; test
   (before-each
-    (ido-cr+-test-save-custom-vars
+    (test-save-custom-vars
      '(ido-mode
        ido-ubiquitous-mode
        ido-cr+-debug-mode
@@ -63,7 +63,7 @@ passed to `all-completions' and `try-completion'."
 
   ;; Restore the saved value after each test
   (after-each
-    (ido-cr+-test-restore-custom-vars
+    (test-restore-custom-vars
      '(ido-mode
        ido-ubiquitous-mode
        ido-cr+-debug-mode
