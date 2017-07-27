@@ -563,6 +563,8 @@ completion for them."
             ;; Ensure DEF is a list
             (setq def (list def)))
           (when def
+            ;; Ensure DEF are strings
+            (setq def (mapcar (apply-partially #'format "%s") def))
             (setq collection (append def (cl-set-difference collection def
                                                             :test #'equal))
                   def nil))

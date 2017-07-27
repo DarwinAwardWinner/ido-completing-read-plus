@@ -397,7 +397,49 @@ passed to `all-completions' and `try-completion'."
          :to-equal
          "helicopter")
         (expect 'ido-cr+-update-dynamic-collection
-                :to-have-been-called))))
+                :to-have-been-called)))
+
+    (describe "with unusual inputs"
+      (it "should accept a COLLECTION of symbols"
+        (expect
+         (with-simulated-input "g RET"
+           (ido-completing-read+ "Prompt: " '(blue yellow green)))
+         :to-equal "green"))
+      (it "should accept a mix of strings and symbols in COLLECTION"
+        (expect
+         (with-simulated-input "g RET"
+           (ido-completing-read+ "Prompt: " '(blue "yellow" green)))
+         :to-equal "green"))
+      (it "should accept symbols in DEF"
+        (expect
+         (with-simulated-input "RET"
+           (ido-completing-read+ "Prompt: " '("blue" "yellow" "brown") nil t nil nil '(brown "green")))
+         :to-equal "brown"))
+      (it "should accept an alist COLLECTION"
+        (expect
+         (with-simulated-input "RET"
+           (ido-completing-read+
+            "Prompt: "
+            '(("blue" . blue-value)
+              ("yellow" . yellow-value)
+              (green . green-value))
+            nil nil nil nil "green"))
+         :to-equal "green"))
+      (it "should accept a hash table COLLECTION"
+        (expect
+         (with-simulated-input "RET"
+           (let ((collection (make-hash-table)))
+             (puthash "blue" 'blue-value collection)
+             (puthash "yellow" 'yellow-value collection)
+             (puthash 'green 'green-value collection)
+             (ido-completing-read+ "Prompt: " collection nil nil nil nil "green")))
+         :to-equal "green"))
+      (it "should accept an obarray COLLECTION"
+        (expect
+         (with-simulated-input "forward-char RET"
+           (ido-completing-read+ "Prompt: " obarray #'commandp
+                                 t nil nil "backward-char"))
+         :to-equal "forward-char"))))
 
   (describe "ido-ubiquitous-mode"
     ;; Set up a test command that calls `completing-read'
