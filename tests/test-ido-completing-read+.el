@@ -126,9 +126,8 @@ also accept a quoted list for the sake of convenience."
        ido-cr+-max-items
        ido-cr+-function-blacklist
        ido-cr+-function-whitelist
+       ido-cr+-nil-def-alternate-behavior-list
        ido-cr+-replace-completely
-       ;; Not a custom var; must specify new value
-       (ido-cr+-no-default-action 'prepend-empty-string)
        ido-confirm-unique-completion
        ido-enable-flex-matching)))
 
@@ -318,62 +317,7 @@ also accept a quoted list for the sake of convenience."
            (ido-completing-read
             "Prompt: "
             '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
-         :to-equal "b"))
-
-      (describe "with `ido-cr+-no-default-action'"
-
-        (describe "set to `prepend-empty-string'"
-          (before-each
-            (setq ido-cr+-no-default-action 'prepend-empty-string))
-          (it "should complete the empty string on RET if DEF is nil"
-            (expect
-             (with-simulated-input "RET"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
-             :to-equal ""))
-          (it "should complete DEF on RET if provided"
-            (expect
-             (with-simulated-input "RET"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "green"))
-             :to-equal "green")))
-
-        ;; TODO: Remove this mode?
-        (xdescribe "set to `append-empty-string'"
-          (before-each
-            (setq ido-cr+-no-default-action 'append-empty-string))
-          (it "should complete the first option on RET if DEF is nil"
-            (expect
-             (with-simulated-input "RET"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
-             :to-equal "blue"))
-          (it "should allow exiting with an empty string if DEF is nil"
-            (expect
-             (with-simulated-input "C-j"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
-             :to-equal ""))
-          (it "should complete DEF on RET if provided"
-            (expect
-             (with-simulated-input "RET"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "green"))
-             :to-equal "green")))
-
-        (describe "set to `nil'"
-          (before-each
-            (setq ido-cr+-no-default-action nil))
-          (it "should complete the first option on RET if DEF is nil"
-            (expect
-             (with-simulated-input "RET"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
-             :to-equal "blue"))
-          (it "should not allow exiting with an empty string if DEF is nil"
-            (expect-error
-             (with-simulated-input "C-j"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))))
-          (it "should complete DEF on RET if provided"
-            (expect
-             (with-simulated-input "RET"
-               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "green"))
-             :to-equal "green")))
-        ))
+         :to-equal "b")))
 
     (describe "with manual fallback shortcuts"
       (it "should not fall back when C-b or C-f is used in the middle of the input"
@@ -710,7 +654,74 @@ also accept a quoted list for the sake of convenience."
           (expect
            (with-simulated-input "g RET"
              (ido-completing-read+ "Prompt: " 'whitelisted-collection))
-           :to-equal "g"))))))
+           :to-equal "g"))))
+
+    (describe "with `ido-cr+-nil-def-alternate-behavior-list'"
+      (before-all
+        (setf (symbol-function 'def-nil-command)
+              (lambda (arg)
+                (interactive
+                 (list
+                  (completing-read "Prompt: " '("blue" "yellow" "green") nil t)))
+                arg)
+              (symbol-function 'def-nil-function)
+              (lambda ()
+                (completing-read "Prompt: " '("blue" "yellow" "green") nil t))
+              (symbol-function 'cmd-that-calls-def-nil-function)
+              (lambda ()
+                (interactive)
+                (funcall 'def-nil-function))
+              (symbol-function 'def-nil-collection)
+              (lambda (string pred action)
+                (complete-with-action action '("blue" "yellow" "green") string pred))))
+      (after-all
+        (setf (symbol-function 'def-nil-command) nil
+              (symbol-function 'def-nil-function) nil
+              (symbol-function 'cmd-that-calls-def-nil-function) nil
+              (symbol-function 'def-nil-collection) nil))
+
+      (describe "when the specified functions are not in the list"
+        (before-each
+          (setq ido-cr+-nil-def-alternate-behavior-list nil))
+
+        (it "should use empty string default in a command"
+          (expect
+           (with-simulated-input "RET"
+             (call-interactively 'def-nil-command))
+           :to-equal ""))
+        (it "should use empty string default in a function"
+          (expect
+           (with-simulated-input "RET"
+             (call-interactively 'cmd-that-calls-def-nil-function))
+           :to-equal ""))
+        (it "should use empty string default for a collection"
+          (expect
+           (with-simulated-input "RET"
+             (ido-completing-read+ "Prompt: " 'def-nil-collection nil t))
+           :to-equal "")))
+
+      (describe "when the specified functions are in the list"
+        (before-each
+          (setq ido-cr+-nil-def-alternate-behavior-list
+                (append '(def-nil-command
+                          def-nil-function
+                          def-nil-collection)
+                        ido-cr+-nil-def-alternate-behavior-list)))
+        (it "should not use empty string default in a command"
+          (expect
+           (with-simulated-input "RET"
+             (call-interactively 'def-nil-command))
+           :to-equal "blue"))
+        (it "should not use empty string default in a function"
+          (expect
+           (with-simulated-input "RET"
+             (call-interactively 'cmd-that-calls-def-nil-function))
+           :to-equal "blue"))
+        (it "should not use empty string default for a collection"
+          (expect
+           (with-simulated-input "RET"
+             (ido-completing-read+ "Prompt: " 'def-nil-collection nil t))
+           :to-equal "blue"))))))
 
 ;; (defun ido-cr+-run-all-tests ()
 ;;   (interactive)

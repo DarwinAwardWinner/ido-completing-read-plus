@@ -189,30 +189,10 @@ other times, since those two functions are in `pre-command-hook'
 and `post-command-hook' respectively. In particular, this will
 generally be nil while running an idle timer.")
 
-(defvar ido-cr+-no-default-action 'prepend-empty-string
-  "Controls the behavior of ido-cr+ when DEF is nil and REQUIRE-MATCH is non-nil.
-
-Possible values:
-
-- `prepend-empty-string': The empty string will be added to the
-  front of COLLECTION, making it the default. This is the
-  standard behavior since it mimics the semantics of
-  `completing-read-default'.
-
-- `append-empty-string': The empty string will be added to the
-  end of COLLECTION, thus keeping the original default while
-  making the empty string available as a completion.
-
-- `nil': No action will be taken.
-
-- Any other value: The value will be interpreted as a 1-argument
-  function, which will receive the current collection as its
-  argument and return the collection with any necessary
-  modifications applied.
-
-This is not meant to be set permanently, but rather let-bound
-before calling `ido-completing-read+' under controlled
-circumstances.")
+(make-obsolete-variable
+ 'ido-cr+-no-default-action
+ " This variable no longer has any effect. Customize `ido-cr+-nil-def-alternate-behavior-list' instead."
+ "4.2")
 
 (defvar ido-cr+-orig-completing-read-args nil
   "Original arguments passed to `ido-completing-read+'.
@@ -322,6 +302,43 @@ precedence over whitelisting."
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
 
+(defcustom ido-cr+-nil-def-alternate-behavior-list
+  '(
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/127#issuecomment-318954232
+    "ebal-"
+    )
+  "Functions & commands with alternate behavior when DEF is nil.
+
+This variable has the same format as
+`ido-cr+-function-blacklist'. When `ido-completing-read+` is
+called through `completing-read' by/with any command, function,
+or collection matched by entries in this list, it will behave
+differently when DEF is nil. Instead of using the empty string as
+the default value, it will use the first element of COLLECTION.
+
+This is needed for optimal compatibility with commands written
+under the assumption that REQUIRE-MATCH means that a match is
+required."
+  :group 'ido-completing-read-plus
+  :type '(repeat (choice (symbol :tag "Function or command name")
+                         (string :tag "Regexp"))))
+
+(defvaralias 'ido-cr+-nil-def-wall-of-shame 'ido-cr+-nil-def-alternate-behavior-list
+  "Functions and commands whose authors need to read the docstring for `completing-read'.
+
+Many functions that call `completing-read' are written with the
+assumption that the setting the REQUIRE-MATCH argument of
+`completing-read' to t means it is required to return a match.
+While that would make logical sense, it's wrong. the docstring
+for `completing-read' describes the correct behavior.
+
+> If the input is null, ‘completing-read’ returns DEF, or the
+> first element of the list of default values, or an empty string
+> if DEF is nil, regardless of the value of REQUIRE-MATCH.
+
+This can be avoided by passing an element of COLLECTION as DEF
+instead of leaving it as nil.")
+
 ;;;###autoload
 (defcustom ido-cr+-replace-completely nil
   "If non-nil, replace `ido-completeing-read' completely with ido-cr+.
@@ -363,7 +380,8 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   "Return non-nil if FUN matches an entry in FUN-LIST.
 
 This is used to check for matches to `ido-cr+-function-blacklist'
-and `ido-cr+-function-whitelist'.
+and `ido-cr+-function-whitelist'. Read those docstrings to see
+how the matching is done.
 
 This is declared as macro only in order to extract the variable
 name used for the second argument so it can be used in a debug
@@ -453,7 +471,9 @@ completion for them."
                     (functionp collection))
            collection))
         ;; If the whitelist is empty, everything is whitelisted
-        (whitelisted (not ido-cr+-function-whitelist)))
+        (whitelisted (not ido-cr+-function-whitelist))
+        ;; If non-nil, we need alternate nil DEF handling
+        (alt-nil-def nil))
     (condition-case sig
         (progn
           ;; Check a bunch of fallback conditions
@@ -480,7 +500,18 @@ completion for them."
                (if (symbolp collection)
                    (format "Collection function `%S' is whitelisted" collection)
                  "Collection function is whitelisted"))
-              (setq whitelisted t)))
+              (setq whitelisted t))
+            ;; nil DEF list
+            (when (and
+                   require-match (null def)
+                   (ido-cr+-function-is-in-list
+                    collection
+                    ido-cr+-nil-def-alternate-behavior-list))
+              (ido-cr+--debug-message
+               (if (symbolp collection)
+                   (format "Using alternate nil DEF handling for collection function `%S'" collection)
+                 "Using alternate nil DEF handling for collection function"))
+              (setq alt-nil-def t)))
 
           ;; Expand all currently-known completions.
           (setq collection
@@ -504,22 +535,28 @@ completion for them."
           ;; If called from `completing-read', check for
           ;; black/white-listed commands/callers
           (when (ido-cr+--called-from-completing-read)
-            ;; Check calling command
-            (when (ido-cr+-function-is-blacklisted this-command)
-              (signal 'ido-cr+-fallback
-                      (list "calling command `%S' is blacklisted" this-command)))
-            (when (and (not whitelisted)
-                       (ido-cr+-function-is-whitelisted this-command))
-              (ido-cr+--debug-message "Command `%S' is whitelisted" this-command)
-              (setq whitelisted t))
-            ;; Also need to check `ido-cr+-current-command'
-            (when (ido-cr+-function-is-blacklisted ido-cr+-current-command)
-              (signal 'ido-cr+-fallback
-                      (list "calling command `%S' is blacklisted" ido-cr+-current-command)))
-            (when (and (not whitelisted)
-                       (ido-cr+-function-is-whitelisted ido-cr+-current-command))
-              (ido-cr+--debug-message "Command `%S' is whitelisted" ido-cr+-current-command)
-              (setq whitelisted t))
+            ;; Check calling command and `ido-cr+-current-command'
+            (cl-loop
+             for cmd in (list this-command ido-cr+-current-command)
+
+             if (ido-cr+-function-is-blacklisted cmd)
+             do (signal 'ido-cr+-fallback
+                        (list "calling command `%S' is blacklisted" cmd))
+
+             if (and (not whitelisted)
+                     (ido-cr+-function-is-whitelisted cmd))
+             do (progn
+                  (ido-cr+--debug-message "Command `%S' is whitelisted" cmd)
+                  (setq whitelisted t))
+
+             if (and
+                 require-match (null def) (not alt-nil-def)
+                 (ido-cr+-function-is-in-list
+                  cmd ido-cr+-nil-def-alternate-behavior-list))
+             do (progn
+                  (ido-cr+--debug-message
+                   "Using alternate nil DEF handling for command `%S'" cmd)
+                  (setq alt-nil-def t)))
 
             ;; Check every function in the call stack starting after
             ;; `completing-read' until to the first
@@ -534,11 +571,13 @@ completion for them."
                      while (not (memq (indirect-function caller)
                                       '(internal--funcall-interactively
                                         (indirect-function 'call-interactively))))
+
                      if (ido-cr+-function-is-blacklisted caller)
                      do (signal 'ido-cr+-fallback
                                 (list (if (symbolp caller)
                                           (format "calling function `%S' is blacklisted" caller)
                                         "a calling function is blacklisted")))
+
                      if (and (not whitelisted)
                              (ido-cr+-function-is-whitelisted caller))
                      do (progn
@@ -546,50 +585,47 @@ completion for them."
                            (if (symbolp caller)
                                (format "Calling function `%S' is whitelisted" caller)
                              "A calling function is whitelisted"))
-                          (setq whitelisted t))))
+                          (setq whitelisted t))
+
+                     if (and require-match (null def) (not alt-nil-def)
+                             (ido-cr+-function-is-in-list
+                              caller ido-cr+-nil-def-alternate-behavior-list))
+                     do (progn
+                          (ido-cr+--debug-message
+                           (if (symbolp caller)
+                               (format "Using alternate nil DEF handling for calling function `%S'" caller)
+                             "Using alternate nil DEF handling for a calling function"))
+                          (setq alt-nil-def t))))
 
           (unless whitelisted
             (signal 'ido-cr+-fallback
                     (list "no functions or commands matched the whitelist for this call")))
 
+          (when (and require-match (null def))
+            ;; Replace nil with "" for DEF if match is required, unless
+            ;; alternate nil DEF handling is enabled
+            (if alt-nil-def
+                (ido-cr+--debug-message
+                 "Leaving the default at nil because alternate nil DEF handling is enabled.")
+              (ido-cr+--debug-message
+               "Adding \"\" as the default completion since no default was provided.")
+              (setq def (list ""))))
+
           ;; In ido, the semantics of "default" are simply "put it at
-          ;; the front of the list". Furthermore, ido has certain
-          ;; issues with a non-nil DEF arg. Specifically, it can't
-          ;; handle list defaults or providing both DEF and
-          ;; INITIAL-INPUT. So, just pre-process the collection to put
-          ;; the default(s) at the front and then set DEF to nil in
-          ;; the call to ido to avoid these issues.
+          ;; the front of the list". Furthermore, ido can't handle a
+          ;; list of defaults, nor can it handle both DEF and
+          ;; INITIAL-INPUT being non-nil. So, just pre-process the
+          ;; collection to put the default(s) at the front and then
+          ;; set DEF to nil in the call to ido to avoid these issues.
           (unless (listp def)
             ;; Ensure DEF is a list
             (setq def (list def)))
           (when def
             ;; Ensure DEF are strings
             (setq def (mapcar (apply-partially #'format "%s") def))
-            (setq collection (append def (cl-set-difference collection def
-                                                            :test #'equal))
-                  def nil))
-
-          ;; If DEF was nil and REQUIRE-MATCH was non-nil, then we need to
-          ;; add the empty string as the first option, because RET on
-          ;; an empty input needs to return "". (Or possibly we need
-          ;; to take some other action based on the value of
-          ;; `ido-cr+-no-default-action'.)
-          (when (and require-match
-                     ido-cr+-no-default-action
-                     (not (ido-cr+-default-was-provided)))
-            (cl-case ido-cr+-no-default-action
-              (nil
-               ;; Take no action
-               t)
-              (prepend-empty-string
-               (ido-cr+--debug-message "Adding \"\" as the default completion since no default was provided.")
-               (setq collection (cons "" collection)))
-              (append-empty-string
-               (ido-cr+--debug-message "Adding \"\" as a completion option since no default was provided.")
-               (setq collection (append collection '(""))))
-              (otherwise
-               (ido-cr+--debug-message "Running custom action function since no default was provided.")
-               (setq collection (funcall ido-cr+-no-default-action collection)))))
+            ;; Prepend DEF to COLLECTION and remove duplicates
+            (setq collection (delete-dups (append def collection)))
+                  def nil)
 
           ;; Check for a specific bug
           (when (and ido-enable-dot-prefix
@@ -602,11 +638,10 @@ completion for them."
           ;; version check after this bug is fixed:
           ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27807
           (when (consp initial-input)
-            (setq initial-input
-                  (cons (car initial-input)
-                        ;; `completing-read' uses 0-based index while
-                        ;; `read-from-minibuffer' uses 1-based index.
-                        (1+ (cdr initial-input)))))
+            ;; `completing-read' uses 0-based index while
+            ;; `read-from-minibuffer' uses 1-based index.
+            (cl-incf (cdr initial-input)))
+
           ;; Finally ready to do actual ido completion
           (prog1
               (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth)))
