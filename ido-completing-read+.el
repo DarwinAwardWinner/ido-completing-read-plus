@@ -303,9 +303,22 @@ precedence over whitelisting."
                          (string :tag "Regexp"))))
 
 (defcustom ido-cr+-nil-def-alternate-behavior-list
-  '(
-    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/127#issuecomment-318954232
-    "ebal-"
+  '("\\`describe-\\(function\\|variable\\)\\'"
+    "\\`wl-"
+    ;; https://github.com/mrkkrp/ebal/issues/12
+    "\\`ebal-"
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/4
+    webjump
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/83
+    where-is
+     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/51
+    find-tag
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/89
+    "\\`etags-select-"
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/58
+    imenu--completion-buffer
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/116
+    project--completing-read-strict
     )
   "Functions & commands with alternate behavior when DEF is nil.
 
