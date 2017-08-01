@@ -249,30 +249,24 @@ also accept a quoted list for the sake of convenience."
       ;; "C-j" should NOT be allowed to return an empty string if
       ;; require-match and default are both non-nil.
       (it "should not alow exiting with an empty string if DEF is non-nil"
-        (expect
-         (lambda ()
-           (with-simulated-input "C-j"
-             (ido-completing-read+
-              "Prompt: "
-              '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow")))
-         :to-throw))
+        (expect-error
+         (with-simulated-input "C-j"
+           (ido-completing-read+
+            "Prompt: "
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow"))))
       (it "shouldn't allow C-j to select an ambiguous match"
-        (expect
-         (lambda ()
-           (with-simulated-input "b C-j C-j C-j"
-             (ido-completing-read+
-              "Prompt: "
-              '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
-         :to-throw)
+        (expect-error
+         (with-simulated-input "b C-j C-j C-j"
+           (ido-completing-read+
+            "Prompt: "
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
         ;; First press of C-j should complete to "blue" after the
         ;; first b, but then get stuck on the choice for the second b.
-        (expect
-         (lambda ()
-           (with-simulated-input "b C-j b C-j C-j"
-             (ido-completing-read+
-              "Prompt: "
-              '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
-         :to-throw))
+        (expect-error
+         (with-simulated-input "b C-j b C-j C-j C-j"
+           (ido-completing-read+
+            "Prompt: "
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))))
       (it "should allow exiting with an unambiguous match"
         (expect
          (with-simulated-input "b C-j b C-j e C-j C-j"
@@ -292,13 +286,11 @@ also accept a quoted list for the sake of convenience."
         (setq ido-confirm-unique-completion t)
         ;; Now the first "C-j" should complete to "bluegrass" but should
         ;; not return.
-        (expect
-         (lambda ()
-           (with-simulated-input "b l u e g C-j"
-             (ido-completing-read+
-              "Prompt: "
-              '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
-         :to-throw)
+        (expect-error
+         (with-simulated-input "b l u e g C-j"
+           (ido-completing-read+
+            "Prompt: "
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
         ;; The first "C-j" should complete to "bluegrass", and the second
         ;; should return.
         (expect
@@ -704,8 +696,8 @@ also accept a quoted list for the sake of convenience."
         (before-each
           (setq ido-cr+-nil-def-alternate-behavior-list
                 (append '(def-nil-command
-                          def-nil-function
-                          def-nil-collection)
+                           def-nil-function
+                           def-nil-collection)
                         ido-cr+-nil-def-alternate-behavior-list)))
         (it "should not use empty string default in a command"
           (expect
