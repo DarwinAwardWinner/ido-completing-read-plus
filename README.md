@@ -16,10 +16,11 @@ Long-time users should know that ido-completing-read+ version 4.0 is a
 major update. The previously separate ido-ubiquitous package has been
 merged into ido-completing-read+, which now provides all the features
 of both packages. The distinction between "new" and "old" default
-selection styles has been eliminated (see [FAQ][1] for details), and the
+selection styles has been eliminated and replaced by a new variable
+`ido-cr+-no-default-action` (see [FAQ][1] for details), and the
 override system has been accordingly simplified into just a blacklist
 and a whitelist. If you have previously customized any ido-ubiquitous
-options, be sure to check out 
+options, be sure to check out
 
     `M-x customize-group ido-completing-read+`
     
@@ -178,7 +179,12 @@ select this empty option and return "":
     Pick a fruit: { | apple | banana | cherry | date}
 
 To select "apple" instead, you must first press the right arrow key
-once, or type an "a", before pressing RET:
+once, or type an "a", before pressing RET.
+
+However, some commands don't take this quirk of `completing-read` into
+account and don't expect it to ever return an empty string when
+`require-match` is non-nil. You can accommodate these functions by
+adding them to `ido-cr+-nil-def-alternate-behavior-list`.
 
 ## How can I troubleshoot when ido-completing-read+ isn't doing what I want? ##
 
