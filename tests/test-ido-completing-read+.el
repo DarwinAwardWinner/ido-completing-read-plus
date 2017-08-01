@@ -318,7 +318,62 @@ also accept a quoted list for the sake of convenience."
            (ido-completing-read
             "Prompt: "
             '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
-         :to-equal "b")))
+         :to-equal "b"))
+
+      (describe "with `ido-cr+-no-default-action'"
+
+        (describe "set to `prepend-empty-string'"
+          (before-each
+            (setq ido-cr+-no-default-action 'prepend-empty-string))
+          (it "should complete the empty string on RET if DEF is nil"
+            (expect
+             (with-simulated-input "RET"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
+             :to-equal ""))
+          (it "should complete DEF on RET if provided"
+            (expect
+             (with-simulated-input "RET"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "green"))
+             :to-equal "green")))
+
+        ;; TODO: Remove this mode?
+        (xdescribe "set to `append-empty-string'"
+          (before-each
+            (setq ido-cr+-no-default-action 'append-empty-string))
+          (it "should complete the first option on RET if DEF is nil"
+            (expect
+             (with-simulated-input "RET"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
+             :to-equal "blue"))
+          (it "should allow exiting with an empty string if DEF is nil"
+            (expect
+             (with-simulated-input "C-j"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
+             :to-equal ""))
+          (it "should complete DEF on RET if provided"
+            (expect
+             (with-simulated-input "RET"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "green"))
+             :to-equal "green")))
+
+        (describe "set to `nil'"
+          (before-each
+            (setq ido-cr+-no-default-action nil))
+          (it "should complete the first option on RET if DEF is nil"
+            (expect
+             (with-simulated-input "RET"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
+             :to-equal "blue"))
+          (it "should not allow exiting with an empty string if DEF is nil"
+            (expect-error
+             (with-simulated-input "C-j"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))))
+          (it "should complete DEF on RET if provided"
+            (expect
+             (with-simulated-input "RET"
+               (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "green"))
+             :to-equal "green")))
+        ))
 
     (describe "with manual fallback shortcuts"
       (it "should not fall back when C-b or C-f is used in the middle of the input"
