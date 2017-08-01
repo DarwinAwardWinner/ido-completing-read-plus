@@ -319,6 +319,8 @@ precedence over whitelisting."
     imenu--completion-buffer
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/116
     project--completing-read-strict
+    ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/127#issuecomment-319463217
+    bookmark-completing-read
     )
   "Functions & commands with alternate behavior when DEF is nil.
 
