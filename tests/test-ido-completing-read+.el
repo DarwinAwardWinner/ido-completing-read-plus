@@ -38,6 +38,10 @@ passed to `all-completions' and `try-completion'."
      ;; Delete the saved value from the symbol plist
      (put var 'test-saved-value nil))))
 
+(cl-defmacro expect-error (expr &key (error-symbol 'error))
+  "Shortcut for `(expect (lambda () ...) :to-throw)'"
+  `(expect (lambda () ,expr) :to-throw ',error-symbol))
+
 (describe "Within the `ido-completing-read+' package"
 
   ;; Reset all of these variables to their standard values before each
