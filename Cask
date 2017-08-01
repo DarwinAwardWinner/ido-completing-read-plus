@@ -3,7 +3,7 @@
 (source gnu)
 (source melpa)
 
-(package "ido-ubiquitous" "4.1" "Use ido (nearly) everywhere.")
+(package "ido-ubiquitous" "4.2" "Use ido (nearly) everywhere.")
 
 (depends-on "s")
 
