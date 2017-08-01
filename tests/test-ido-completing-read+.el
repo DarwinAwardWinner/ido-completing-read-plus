@@ -1,5 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 
+(require 'ido)
 (require 'ido-completing-read+)
 (require 'buttercup)
 (require 'cl-lib)
@@ -12,31 +13,100 @@ The returned function will work equivalently to COLLECTION when
 passed to `all-completions' and `try-completion'."
   (completion-table-dynamic (lambda (string) (all-completions string collection))))
 
-(defun test-save-custom-vars (vars)
-  (cl-loop
-   for var in vars
-   if (not (custom-variable-p var))
-   do (error "Variable `%s' is not a customizable variable" var)
-   for curval = (symbol-value var)
-   for stdval = (eval (car (get var 'standard-value)))
-   do
-   (progn
-     ;; Save the current value
-     (put var 'test-saved-value curval)
-     ;; Set it to the standard value, using it's custom setter
-     ;; function
-     (customize-set-variable var stdval))))
+(defun shadow-var (var &optional temp-value)
+  "Shadow the value of VAR.
 
-(defun test-restore-custom-vars (vars)
+This will push the current value of VAR to VAR's
+`shadowed-values' property, and then set it to TEMP-VALUE. To
+reverse this process, call `unshadow-var' on VAR. Vars can
+be shadowed recursively, and must be unshadowed once for each
+shadowing in order to restore the original value. You can think
+of shadowing as dynamic binding with `let', but with manual
+control over when bindings start and end.
+
+If VAR is a Custom variable (see `custom-variable-p'), it will be
+set using `customize-set-variable', and if TEMP-VALUE is nil it
+will be replaces with VAR's standard value.
+
+ Other variables will be set with `set-default', and a TEMP-VALUE
+ of nil will not be treated specially.
+
+`shadow-var' only works on variables declared as special (i.e.
+using `defvar' or similar). It will not work on lexically bound
+variables."
+  (unless (special-variable-p var)
+    (error "Cannot shadow lexical var `%s'" var))
+  (let* ((use-custom (custom-variable-p var))
+         (setter (if use-custom 'customize-set-variable 'set-default))
+         (temp-value (or temp-value
+                         (and use-custom
+                              (eval (car (get var 'standard-value)))))))
+    ;; Push the current value on the stack
+    (push (symbol-value var) (get var 'shadowed-values))
+    (funcall setter var temp-value)))
+
+(defun var-shadowed-p (var)
+  "Return non-nil if VAR is shadowed by `shadow-var'."
+  ;; We don't actually want to return that list if it's non-nil.
+  (and (get var 'shadowed-values) t))
+
+(defun unshadow-var (var)
+  "Reverse the last call to `shadow-var' on VAR."
+  (if (var-shadowed-p var)
+      (let* ((use-custom (custom-variable-p var))
+             (setter (if use-custom 'customize-set-variable 'set-default))
+             (value (pop (get var 'shadowed-values))))
+        (funcall setter var value))
+    (error "Var is not shadowed: %s" var)))
+
+(defun fully-unshadow-var (var)
+  "Reverse *all* calls to `shadow-var' on VAR."
+  (when (var-shadowed-p var)
+    (let* ((use-custom (custom-variable-p var))
+           (setter (if use-custom 'customize-set-variable 'set-default))
+           (value (car (last (get var 'shadowed-values)))))
+      (put var 'shadowed-values nil)
+      (funcall setter var value))))
+
+(defun fully-unshadow-all-vars (&optional vars)
+  "Reverse *all* calls to `shadow-var' on VARS.
+
+If VARS is nil, unshadow *all* variables."
+  (if vars
+      (mapc #'fully-unshadow-var vars)
+    (mapatoms #'fully-unshadow-var))
+  nil)
+
+(defmacro shadow-vars (varlist)
+  "Shadow a list of vars with new values.
+
+VARLIST describes the variables to be shadowed with the same
+syntax as `let'.
+
+See `shadow-var'."
+  (declare (indent 0))
   (cl-loop
-   for var in vars
-   for savedval = (get var 'test-saved-value)
-   do
-   (progn
-     ;; Set it to the saved value, using it's custom setter function
-     (customize-set-variable var savedval)
-     ;; Delete the saved value from the symbol plist
-     (put var 'test-saved-value nil))))
+   with var = nil
+   with value = nil
+   for binding in varlist
+   if (symbolp binding)
+   do (setq var binding
+            value nil)
+   else
+   do (setq var (car binding)
+            value (cadr binding))
+   collect `(shadow-var ',var ,value) into exprs
+   finally return `(progn ,@exprs)))
+
+(defmacro unshadow-vars (vars)
+  "Un-shadow a list of VARS.
+
+This is a macro for consistency with `shadow-vars', but it will
+also accept a quoted list for the sake of convenience."
+  (declare (indent 0))
+  (when (eq (car vars) 'quote)
+    (setq vars (eval vars)))
+  `(mapc #'unshadow-var ',vars))
 
 (cl-defmacro expect-error (expr &key (error-symbol 'error))
   "Shortcut for `(expect (lambda () ...) :to-throw)'"
@@ -45,11 +115,11 @@ passed to `all-completions' and `try-completion'."
 (describe "Within the `ido-completing-read+' package"
 
   ;; Reset all of these variables to their standard values before each
-  ;; test
+  ;; test, saving the previous values for later restoration.
   (before-each
-    (test-save-custom-vars
-     '(ido-mode
-       ido-ubiquitous-mode
+    (shadow-vars
+      ((ido-mode t)
+       (ido-ubiquitous-mode t)
        ido-cr+-debug-mode
        ido-cr+-auto-update-blacklist
        ido-cr+-fallback-function
@@ -57,27 +127,14 @@ passed to `all-completions' and `try-completion'."
        ido-cr+-function-blacklist
        ido-cr+-function-whitelist
        ido-cr+-replace-completely
-       ido-confirm-unique-completion
-       ido-enable-flex-matching))
-    ;; Now enable ido-mode and ido-ubiquitous-mode
-    (ido-mode 1)
-    (ido-ubiquitous-mode 1))
-
-  ;; Restore the saved value after each test
-  (after-each
-    (test-restore-custom-vars
-     '(ido-mode
-       ido-ubiquitous-mode
-       ido-cr+-debug-mode
-       ido-cr+-auto-update-blacklist
-       ido-cr+-fallback-function
-       ido-cr+-max-i
-       tems
-       ido-cr+-function-blacklist
-       ido-cr+-function-whitelist
-       ido-cr+-replace-completely
+       ;; Not a custom var; must specify new value
+       (ido-cr+-no-default-action 'prepend-empty-string)
        ido-confirm-unique-completion
        ido-enable-flex-matching)))
+
+  ;; Restore the saved values after each test
+  (after-each
+    (fully-unshadow-all-vars))
 
   (describe "the `ido-completing-read+' function"
 
