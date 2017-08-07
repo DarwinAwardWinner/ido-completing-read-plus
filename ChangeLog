@@ -1,3 +1,15 @@
+2017-08-07  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el: Declare missing dependency on "s"
+	pacakge.
+	(ido-completing-read+): Allow DEF to be a string (or list of
+	strings).
+	(ido-cr+-nil-def-alternate-behavior-list): Support commands that
+	behave badly when "require-match" is non-nil and "def" is nil.
+	(ido-select-text@ido-cr+-fix-require-match): If the collection is
+	dynamic, use "try-completion" as an alternative way to check for a
+	match.
+
 2017-07-24  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el: Further improvements to handling of
