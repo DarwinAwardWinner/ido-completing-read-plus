@@ -757,12 +757,17 @@ This advice only activates if the current ido completion was
 called through ido-cr+."
   (if (and
        ;; Only override C-j behavior if...
-       ;; We're using ico-cr+
+       ;; We're using ico-cr+, and...
        (ido-cr+-active)
-       ;; Require-match is non-nil
+       ;; Require-match is non-nil, and...
        ido-require-match
-       ;; Current text is incomplete
-       (not (member ido-text ido-cur-list)))
+       ;; The current input doesn't exactly match a known option, and...
+       (not (member ido-text ido-cur-list))
+       ;; The current input doesn't exactly match an option according
+       ;; to `try-completion' (or the collection is not dynamic).
+       (or (not ido-cr+-dynamic-collection)
+           (eq t (try-completion ido-text ido-cr+-dynamic-collection
+                                 (nth 2 ido-cr+-orig-completing-read-args)))))
       (progn
         (ido-cr+--debug-message
          "Overriding C-j behavior for require-match: performing completion instead of exiting with current text. (This might still exit with a match if `ido-confirm-unique-completion' is nil)")
