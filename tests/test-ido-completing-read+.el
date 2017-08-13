@@ -434,7 +434,24 @@ also accept a quoted list for the sake of convenience."
          :to-equal
          "helicopter")
         (expect 'ido-cr+-update-dynamic-collection
-                :to-have-been-called)))
+                :to-have-been-called))
+      (it "should respect `ido-restrict-to-matches' when doing dynamic updates"
+        ;; First verify it without a dynamic collection
+        (expect
+         (with-simulated-input "aa C-SPC b RET"
+           (completing-read
+            "Pick: "
+            '(aaa aab aac bba bbb bbc cca ccb ccc)
+            nil t nil nil "aaa"))
+         :to-equal "aab")
+        ;; Now test the same with a dynamic collection
+        (expect
+         (with-simulated-input "aa C-SPC b RET"
+           (completing-read
+            "Pick: "
+            (collection-as-function '(aaa aab aac bba bbb bbc cca ccb ccc))
+            nil t nil nil "aaa"))
+         :to-equal "aab")))
 
     (describe "with unusual inputs"
       (it "should accept a COLLECTION of symbols"
