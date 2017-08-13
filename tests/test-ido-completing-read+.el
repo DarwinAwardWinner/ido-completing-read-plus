@@ -108,10 +108,6 @@ also accept a quoted list for the sake of convenience."
     (setq vars (eval vars)))
   `(mapc #'unshadow-var ',vars))
 
-(cl-defmacro expect-error (expr &key (error-symbol 'error))
-  "Shortcut for `(expect (lambda () ...) :to-throw)'"
-  `(expect (lambda () ,expr) :to-throw ',error-symbol))
-
 (describe "Within the `ido-completing-read+' package"
 
   ;; Reset all of these variables to their standard values before each
@@ -249,24 +245,27 @@ also accept a quoted list for the sake of convenience."
       ;; "C-j" should NOT be allowed to return an empty string if
       ;; require-match and default are both non-nil.
       (it "should not alow exiting with an empty string if DEF is non-nil"
-        (expect-error
+        (expect
          (with-simulated-input "C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow"))))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow"))
+         :to-throw))
       (it "shouldn't allow C-j to select an ambiguous match"
-        (expect-error
+        (expect
          (with-simulated-input "b C-j C-j C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+         :to-throw)
         ;; First press of C-j should complete to "blue" after the
         ;; first b, but then get stuck on the choice for the second b.
-        (expect-error
+        (expect
          (with-simulated-input "b C-j b C-j C-j C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
+         :to-throw))
       (it "should allow exiting with an unambiguous match"
         (expect
          (with-simulated-input "b C-j b C-j e C-j C-j"
@@ -286,11 +285,12 @@ also accept a quoted list for the sake of convenience."
         (setq ido-confirm-unique-completion t)
         ;; Now the first "C-j" should complete to "bluegrass" but should
         ;; not return.
-        (expect-error
+        (expect
          (with-simulated-input "b l u e g C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t)))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+         :to-throw)
         ;; The first "C-j" should complete to "bluegrass", and the second
         ;; should return.
         (expect
