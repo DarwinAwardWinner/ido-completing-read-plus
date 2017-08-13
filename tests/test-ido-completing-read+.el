@@ -338,12 +338,12 @@ also accept a quoted list for the sake of convenience."
            (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))
          :to-equal "g")))
 
-    (describe "with a work workaround for an bug with `ido-enable-dot-prefix'"
+    (describe "with a workaround for an bug with non-nil `ido-enable-dot-prefix'"
       ;; See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997
       ;; for more information on this bug.
       (before-each
         (setq ido-enable-dot-prefix t))
-      (it "should not throw an error when `ido-enable-dot-prefix' is non-nil and \"\" is in the collection"
+      (it "should not throw an error when \"\" is in the collection"
         (expect
          (with-simulated-input "RET"
            (ido-completing-read+ "Pick: " '("" "aaa" "aab" "aac")))
@@ -436,22 +436,36 @@ also accept a quoted list for the sake of convenience."
         (expect 'ido-cr+-update-dynamic-collection
                 :to-have-been-called))
       (it "should respect `ido-restrict-to-matches' when doing dynamic updates"
-        ;; First verify it without a dynamic collection
-        (expect
-         (with-simulated-input "aa C-SPC b RET"
-           (completing-read
-            "Pick: "
-            '(aaa aab aac bba bbb bbc cca ccb ccc)
-            nil t nil nil "aaa"))
-         :to-equal "aab")
-        ;; Now test the same with a dynamic collection
-        (expect
-         (with-simulated-input "aa C-SPC b RET"
-           (completing-read
-            "Pick: "
-            (collection-as-function '(aaa aab aac bba bbb bbc cca ccb ccc))
-            nil t nil nil "aaa"))
-         :to-equal "aab")))
+        (let ((collection
+               (list "aaa-ddd-ggg" "aaa-eee-ggg" "aaa-fff-ggg"
+                     "bbb-ddd-ggg" "bbb-eee-ggg" "bbb-fff-ggg"
+                     "ccc-ddd-ggg" "ccc-eee-ggg" "ccc-fff-ggg"
+                     "aaa-ddd-hhh" "aaa-eee-hhh" "aaa-fff-hhh"
+                     "bbb-ddd-hhh" "bbb-eee-hhh" "bbb-fff-hhh"
+                     "ccc-ddd-hhh" "ccc-eee-hhh" "ccc-fff-hhh"
+                     "aaa-ddd-iii" "aaa-eee-iii" "aaa-fff-iii"
+                     "bbb-ddd-iii" "bbb-eee-iii" "bbb-fff-iii"
+                     "ccc-ddd-iii" "ccc-eee-iii" "ccc-fff-iii")))
+          ;; Test the internal function
+          (expect
+           (ido-cr+-apply-restrictions
+            collection
+            (list (cons nil "bbb")
+                  (cons nil "eee")))
+           :to-equal '("bbb-eee-ggg" "bbb-eee-hhh" "bbb-eee-iii"))
+
+          ;; First verify it without a dynamic collection
+          (expect
+           (with-simulated-input "eee C-SPC bbb C-SPC ggg RET"
+             (ido-completing-read+
+              "Pick: " collection nil t nil nil (car collection)))
+           :to-equal "bbb-eee-ggg")
+          ;; Now test the same with a dynamic collection
+          (expect
+           (with-simulated-input "eee C-SPC bbb C-SPC ggg RET"
+             (ido-completing-read+
+              "Pick: " (collection-as-function collection) nil t nil nil (car collection)))
+           :to-equal "bbb-eee-ggg"))))
 
     (describe "with unusual inputs"
       (it "should accept a COLLECTION of symbols"

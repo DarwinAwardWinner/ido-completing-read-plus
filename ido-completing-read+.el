@@ -135,6 +135,7 @@ using it, so the initial value shouldn't matter.")))
 (define-ido-internal-var ido-cur-list)
 (define-ido-internal-var ido-cur-item)
 (define-ido-internal-var ido-require-match)
+(define-ido-internal-var ido-process-ignore-lists)
 
 ;;;###autoload
 (defvar ido-cr+-minibuffer-depth -1
@@ -869,12 +870,12 @@ result."
    for restriction-matches =
    (let ((ido-text text)
          (ido-cur-item (or ido-cur-item 'list)))
-     (ido-set-matches-1 collection t))
-   for filtered-collection =
-   (if removep
-       (seq-difference filtered-collection restriction-matches)
-     (setq need-reverse (not need-reverse))
-     restriction-matches)
+     (ido-set-matches-1 filtered-collection t))
+   do (setq filtered-collection
+            (if removep
+                (seq-difference filtered-collection restriction-matches)
+              (setq need-reverse (not need-reverse))
+              restriction-matches))
    ;; Each run of `ido-set-matches-1' reverses the order, so reverse
    ;; it one more time if it had an odd number of reverses
    finally return
