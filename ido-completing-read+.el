@@ -87,6 +87,7 @@ not be updated until you restart Emacs.")
 (require 'cl-lib)
 (require 'cus-edit)
 (require 's)
+(require 'memoize)
 
 ;;; Debug messages
 
@@ -199,6 +200,18 @@ generally be nil while running an idle timer.")
   "Original arguments passed to `ido-completing-read+'.
 
 These are used for falling back to `completing-read-default'.")
+
+(defvar ido-cr+-all-completions-memoized nil
+  "Memoized version of `all-completions'.
+
+During completion with dynamic collection, this variable is set
+to a memoized copy of `all-completions'.")
+
+(defvar ido-cr+-all-prefix-completions-memoized nil
+  "Memoized version of `ido-cr+-all-prefix-completions'.
+
+During completion with dynamic collection, this variable is set
+to a memoized copy of `ido-cr+-all-prefix-completions'.")
 
 (defgroup ido-completing-read-plus nil
   "Extra features and compatibility for `ido-completing-read'."
@@ -460,36 +473,45 @@ This function is a wrapper for `ido-completing-read' designed to
 be used as the value of `completing-read-function'. Importantly,
 it detects edge cases that ido cannot handle and uses normal
 completion for them."
-  (let (;; Save the original arguments in case we need to do the
-        ;; fallback
-        (ido-cr+-orig-completing-read-args
-         (list prompt collection predicate require-match
-               initial-input hist def inherit-input-method))
-        ;; Need to save this since activating the minibuffer once will
-        ;; clear out any temporary minibuffer hooks, which need to get
-        ;; restored before falling back.
-        (orig-minibuffer-setup-hook minibuffer-setup-hook)
-        ;; Need just the string part of INITIAL-INPUT
-        (initial-input-string
-         (cond
-          ((consp initial-input)
-           (car initial-input))
-          ((stringp initial-input)
-           initial-input)
-          ((null initial-input)
-           "")
-          (t
-           (signal 'wrong-type-argument (list 'stringp initial-input)))))
-        ;; If collection is a function, save it for later, unless
-        ;; instructed not to
-        (ido-cr+-dynamic-collection
-         (when (and (not ido-cr+-assume-static-collection)
-                    (functionp collection))
-           collection))
-        ;; If the whitelist is empty, everything is whitelisted
-        (whitelisted (not ido-cr+-function-whitelist))
-        ;; If non-nil, we need alternate nil DEF handling
-        (alt-nil-def nil))
+  (let* (;; Save the original arguments in case we need to do the
+         ;; fallback
+         (ido-cr+-orig-completing-read-args
+          (list prompt collection predicate require-match
+                initial-input hist def inherit-input-method))
+         ;; Need to save this since activating the minibuffer once will
+         ;; clear out any temporary minibuffer hooks, which need to get
+         ;; restored before falling back.
+         (orig-minibuffer-setup-hook minibuffer-setup-hook)
+         ;; Need just the string part of INITIAL-INPUT
+         (initial-input-string
+          (cond
+           ((consp initial-input)
+            (car initial-input))
+           ((stringp initial-input)
+            initial-input)
+           ((null initial-input)
+            "")
+           (t
+            (signal 'wrong-type-argument (list 'stringp initial-input)))))
+         ;; If collection is a function, save it for later, unless
+         ;; instructed not to
+         (ido-cr+-dynamic-collection
+          (when (and (not ido-cr+-assume-static-collection)
+                     (functionp collection))
+            collection))
+         ;; Only memoize if the collection is dynamic.
+         (ido-cr+-all-prefix-completions-memoized
+          (if ido-cr+-dynamic-collection
+              (memoize (indirect-function 'ido-cr+-all-prefix-completions))
+            'ido-cr+-all-prefix-completions))
+         (ido-cr+-all-completions-memoized
+          (if ido-cr+-dynamic-collection
+              (memoize (indirect-function 'all-completions))
+            'all-completions))
+         ;; If the whitelist is empty, everything is whitelisted
+         (whitelisted (not ido-cr+-function-whitelist))
+         ;; If non-nil, we need alternate nil DEF handling
+         (alt-nil-def nil))
     (condition-case sig
         (progn
           ;; Check a bunch of fallback conditions
@@ -531,10 +553,10 @@ completion for them."
 
           ;; Expand all currently-known completions.
           (setq collection
-                (if ido-cr+-assume-static-collection
-                    (all-completions "" collection predicate)
-                  (ido-cr+-all-dynamic-completions
-                   initial-input-string collection predicate)))
+                (if ido-cr+-dynamic-collection
+                    (funcall ido-cr+-all-prefix-completions-memoized
+                             initial-input-string collection predicate)
+                  (all-completions "" collection predicate)))
           ;; No point in using ido unless there's a collection
           (when (and (= (length collection) 0)
                      (not ido-cr+-dynamic-collection))
@@ -640,8 +662,8 @@ completion for them."
             ;; Ensure DEF are strings
             (setq def (mapcar (apply-partially #'format "%s") def))
             ;; Prepend DEF to COLLECTION and remove duplicates
-            (setq collection (delete-dups (append def collection)))
-                  def nil)
+            (setq collection (delete-dups (append def collection))
+                  def nil))
 
           ;; Check for a specific bug
           (when (and ido-enable-dot-prefix
@@ -784,28 +806,14 @@ called through ido-cr+."
   (setq ido-cr+-exhibit-pending nil))
 (advice-add 'ido-exhibit :before 'ido-exhibit@ido-cr+-clear-exhibit-pending)
 
-(cl-defun ido-cr+-all-dynamic-completions
-    (string collection &optional predicate
-            &key prev-string (rmdups t))
+(defun ido-cr+-all-prefix-completions
+    (string collection &optional predicate)
   "Run `all-completions' on every prefix of STRING.
 
 Arguments COLLECTION and PREDICATE are as in `all-completions'.
 Note that \"all prefixes\" includes both STRING itself and the
-empty string.
-
-If keyword argument RMDUPS is non-nil, call `delete-dups' on the
-result before returning. This is the default. You can pass nil
-for this argument if the caller is already going to do its own
-duplicate removal.
-
-As an optimization, if keyword argument PREV-STRING is non-nil,
-then prefixes of STRING that are also prefixes of PREV-STRING
-will be skipped. This is used to avoid duplicating work if the
-caller already knows about the completions for PREV-STRING.
-PREV-STRING can also be a list of previous strings, in which case
-all prefixes of all previous strings will be skipped. In
-particular, note that if PREV-STRING equals STRING, this function
-will return nil.
+empty string. The return value is the union of all the returned
+lists, with elements ordered by their first occurrence.
 
 This function is only useful if COLLECTION is a function that
 might return additional completions for certain non-empty strings
@@ -815,42 +823,22 @@ not a function, this is equivalent to
   (cond
    ;; Dynamic collection.
    ((functionp collection)
-    (let ((prev-strings (if (listp prev-string)
-                            prev-string
-                          (list prev-string)))
-          (common-prefix-length -1))
-      ;; Get the length of the longest common prefix, or -1 if no
-      ;; previous strings.
-      (cl-loop for ps in prev-strings
-               for common-prefix = (s-shared-start ps string)
-               maximize (length common-prefix) into prefix-length
-               finally do (setq common-prefix-length
-                                (or prefix-length -1)))
-      ;; Get completions for all prefixes starting after the longest
-      ;; previous prefix, or starting from "" if no previous prefix.
-      (cl-loop
-       with start-index = (1+ common-prefix-length)
-       ;; This might execute zero times, if common-prefix = string
-       for i from start-index upto (length string)
-       append (all-completions
-               (s-left i string)
-               collection
-               predicate)
-       into completion-list
-       finally return (when completion-list
-                        (funcall
-                         (if rmdups #'delete-dups #'identity)
-                         completion-list)))))
-   ;; If COLLECTION is not a function and PREV-STRING is non-nil, then
-   ;; the caller already has all the possible completions, so return
-   ;; nil.
-   (prev-string
-    nil)
+    ;; Collect completions for all prefixes of STRING starting from
+    ;; "".
+    (cl-loop
+     for i from 0 upto (length string)
+     append (funcall
+             (or ido-cr+-all-completions-memoized
+                 'all-completions)
+             (s-left i string)
+             collection
+             predicate)
+     into completion-list
+     finally return (delete-dups completion-list)))
    ;; Otherwise, just call `all-completions' on the empty string to
    ;; get every possible completions for a static COLLECTION.
    (t
-    (unless prev-string
-      (all-completions "" collection predicate)))))
+    (all-completions "" collection predicate))))
 
 (defun ido-cr+-update-dynamic-collection ()
   "Update the set of completions for a dynamic collection.
@@ -881,11 +869,10 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
              with checked-strings = '()
              for string in strings-to-check
              nconc
-             (ido-cr+-all-dynamic-completions
-              string ido-cr+-dynamic-collection predicate
-              :rmdups nil
-              :prev-string (append checked-strings
-                                   ido-cr+-previous-dynamic-update-texts))
+             (funcall
+              (or ido-cr+-all-prefix-completions-memoized
+                  'ido-cr+-all-prefix-completions)
+              string ido-cr+-dynamic-collection predicate)
              into result
              collect string into checked-strings
              finally return result)))
