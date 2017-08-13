@@ -978,13 +978,6 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
 (add-hook 'ido-minibuffer-setup-hook
           'ido-cr+-minibuffer-setup)
 
-;; (defadvice ido-complete (around dynamic activate)
-;;   (let ((ido-confirm-unique-completion
-;;          (if ido-cr+-dynamic-collection
-;;              t
-;;            ido-confirm-unique-completion)))
-;;     ad-do-it))
-
 ;; Also need to update dynamic collections on TAB, and do so *before*
 ;; deciding to exit based on `ido-confirm-unique-completion'
 (defun ido-complete@ido-cr+-update-dynamic-collection (oldfun &rest args)
