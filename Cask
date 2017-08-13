@@ -3,7 +3,7 @@
 (source gnu)
 (source melpa)
 
-(package "ido-ubiquitous" "4.3" "Use ido (nearly) everywhere.")
+(package-file "ido-completing-read+.el")
 
 (depends-on "s")
 
