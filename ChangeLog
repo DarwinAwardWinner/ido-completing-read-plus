@@ -1,11 +1,25 @@
+2017-08-13  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-cr+-apply-restrictions): Make
+	"ido-restrict-to-matches" work with dynamic completion tables.
+
+	(ido-cr+-update-dynamic-collection): Make behavior on dynamic
+	completion tables more deterministic. The set of offered
+	completions now only depends on the current input, not the precise
+	sequence of insertions and deletions the user used to end up
+	there. ido-completing-read+ now depends on the memoize package.
+
 2017-08-07  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el: Declare missing dependency on "s"
 	pacakge.
+
 	(ido-completing-read+): Allow DEF to be a string (or list of
 	strings).
+
 	(ido-cr+-nil-def-alternate-behavior-list): Support commands that
 	behave badly when "require-match" is non-nil and "def" is nil.
+
 	(ido-select-text@ido-cr+-fix-require-match): If the collection is
 	dynamic, use "try-completion" as an alternative way to check for a
 	match.
