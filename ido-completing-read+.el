@@ -480,10 +480,13 @@ completion for them."
          (ido-cr+-orig-completing-read-args
           (list prompt collection predicate require-match
                 initial-input hist def inherit-input-method))
-         ;; Need to save this since activating the minibuffer once will
-         ;; clear out any temporary minibuffer hooks, which need to get
-         ;; restored before falling back.
-         (orig-minibuffer-setup-hook minibuffer-setup-hook)
+         ;; Need to save a copy of this since activating the
+         ;; minibuffer once will clear out any temporary minibuffer
+         ;; hooks, which need to get restored before falling back so
+         ;; that they will trigger again when the fallback function
+         ;; uses the minibuffer. We make a copy in case the original
+         ;; list gets modified in place.
+         (orig-minibuffer-setup-hook (cl-copy-list minibuffer-setup-hook))
          ;; Need just the string part of INITIAL-INPUT
          (initial-input-string
           (cond
