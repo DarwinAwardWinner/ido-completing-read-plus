@@ -9,6 +9,7 @@
 (depends-on "memoize" "1.1")
 
 (development
+ (depends-on "flx-ido")
  (depends-on "with-simulated-input"
              :git "https://github.com/DarwinAwardWinner/with-simulated-input.git"
              :files ("*.el"))

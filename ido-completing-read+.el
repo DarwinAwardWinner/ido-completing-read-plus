@@ -137,6 +137,10 @@ using it, so the initial value shouldn't matter.")))
 (define-ido-internal-var ido-require-match)
 (define-ido-internal-var ido-process-ignore-lists)
 
+;; Vars and functions from flx-ido package
+(defvar flx-ido-mode)
+(declare-function flx-ido-reset "ext:flx-ido.el")
+
 ;;;###autoload
 (defvar ido-cr+-minibuffer-depth -1
   "Minibuffer depth of the most recent ido-cr+ activation.
@@ -868,7 +872,7 @@ result."
               (setq need-reverse (not need-reverse))
               restriction-matches))
    ;; Each run of `ido-set-matches-1' reverses the order, so reverse
-   ;; it one more time if it had an odd number of reverses
+   ;; it one more time if it had an odd number of reverses.
    finally return
    (if need-reverse
        (nreverse filtered-collection)
@@ -908,7 +912,11 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
               string ido-cr+-dynamic-collection predicate)
              into result
              finally return result)))
-      (when new-completions
+      (when (not (equal new-completions ido-cur-list))
+        (when (and (bound-and-true-p flx-ido-mode)
+                   (functionp 'flx-ido-reset))
+          ;; Reset flx-ido since the set of completions has changed
+          (funcall 'flx-ido-reset))
         (setq ido-cur-list (delete-dups new-completions))
         (when ido-cr+-active-restrictions
           (setq ido-cur-list (ido-cr+-apply-restrictions
