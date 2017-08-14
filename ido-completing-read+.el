@@ -172,13 +172,6 @@ either of those functions directly won't set `this-command'.")
 This allows ido-cr+ to update the set of completion candidates
 dynamically.")
 
-(defvar ido-cr+-previous-dynamic-update-texts nil
-  "Values of `ido-text' for the last few dynamic collection updates.
-
-This is used in `ido-cr+-update-dynamic-collection' as an LRU
-cache of recent values of `ido-text' in order to skip re-checking
-prefixes of these strings.")
-
 (defvar ido-cr+-dynamic-update-idle-time 0.25
   "Time to wait before updating dynamic completion list.")
 
@@ -693,13 +686,9 @@ completion for them."
           ;; Finally ready to do actual ido completion
           (prog1
               (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth)))
-                    ;; Initialize dynamic update vars
-                    (ido-cr+-previous-dynamic-update-texts
-                     (list initial-input-string))
                     (ido-cr+-dynamic-update-timer nil)
                     (ido-cr+-exhibit-pending t)
-                    ;; Reset these for the next call to ido-cr+
-                    (ido-cr+-no-default-action 'prepend-empty-string)
+                    ;; Reset this for recursive calls to ido-cr+
                     (ido-cr+-assume-static-collection nil))
                 (unwind-protect
                     (ido-completing-read
@@ -718,8 +707,7 @@ completion for them."
       (ido-cr+-fallback
        (let (;; Reset `minibuffer-setup-hook' to original value
              (minibuffer-setup-hook orig-minibuffer-setup-hook)
-             ;; Reset these for the next call to ido-cr+
-             (ido-cr+-no-default-action 'prepend-empty-string)
+             ;; Reset this for recursive calls to ido-cr+
              (ido-cr+-assume-static-collection nil))
          (ido-cr+--explain-fallback sig)
          (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args))))))
