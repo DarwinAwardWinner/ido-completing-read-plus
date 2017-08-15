@@ -884,57 +884,73 @@ result."
 This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
   (when (and (ido-cr+-active)
              ido-cr+-dynamic-collection)
-    (let* ((ido-text
-            (buffer-substring-no-properties (minibuffer-prompt-end)
-                                            ido-eoinput))
-           (predicate (nth 2 ido-cr+-orig-completing-read-args))
-           (first-match (car ido-matches))
-           (strings-to-check
-            (cond
-             ;; If no match, then we only check `ido-text'
-             ((null first-match)
-              (list ido-text))
-             ;; If `ido-text' is a prefix of `first-match', then we
-             ;; only need to check `first-match'
-             ((and first-match
-                   (s-prefix? ido-text first-match))
-              (list first-match))
-             ;; Otherwise we need to check both
-             (t
-              (list ido-text first-match))))
-           (new-completions
-            (cl-loop
-             for string in strings-to-check
-             nconc
-             (funcall
-              (or ido-cr+-all-prefix-completions-memoized
-                  'ido-cr+-all-prefix-completions)
-              string ido-cr+-dynamic-collection predicate)
-             into result
-             finally return result)))
-      (when (not (equal new-completions ido-cur-list))
-        (when (and (bound-and-true-p flx-ido-mode)
-                   (functionp 'flx-ido-reset))
-          ;; Reset flx-ido since the set of completions has changed
-          (funcall 'flx-ido-reset))
-        (setq ido-cur-list (delete-dups new-completions))
-        (when ido-cr+-active-restrictions
-          (setq ido-cur-list (ido-cr+-apply-restrictions
-                              ido-cur-list
-                              ido-cr+-active-restrictions)))
-        (when (and first-match (member first-match ido-cur-list))
-          (setq ido-cur-list (ido-chop ido-cur-list first-match)))
-        (ido-cr+--debug-message
-         "Updated completion candidates for dynamic collection because `ido-text' changed to %S. `ido-cur-list' now has %s elements"
-         ido-text (length ido-cur-list))
-        ;; Recompute matches with new completions
-        (setq ido-rescan t)
-        (ido-set-matches)
-        ;; Rebuild the completion display unless ido is already planning
-        ;; to do it anyway
-        (unless ido-cr+-exhibit-pending
-          (ido-tidy)
-          (ido-exhibit)))))
+    (let ((orig-ido-cur-list ido-cur-list))
+      (condition-case err
+          (let* ((ido-text
+                  (buffer-substring-no-properties (minibuffer-prompt-end)
+                                                  ido-eoinput))
+                 (predicate (nth 2 ido-cr+-orig-completing-read-args))
+                 (first-match (car ido-matches))
+                 (strings-to-check
+                  (cond
+                   ;; If no match, then we only check `ido-text'
+                   ((null first-match)
+                    (list ido-text))
+                   ;; If `ido-text' is a prefix of `first-match', then we
+                   ;; only need to check `first-match'
+                   ((and first-match
+                         (s-prefix? ido-text first-match))
+                    (list first-match))
+                   ;; Otherwise we need to check both
+                   (t
+                    (list ido-text first-match))))
+                 (new-completions
+                  (cl-loop
+                   for string in strings-to-check
+                   nconc
+                   (funcall
+                    (or ido-cr+-all-prefix-completions-memoized
+                        'ido-cr+-all-prefix-completions)
+                    string ido-cr+-dynamic-collection predicate)
+                   into result
+                   finally return result)))
+            ;; Put the previous first match back at the front if possible
+            (when (and new-completions
+                       first-match
+                       (member first-match new-completions))
+              (setq new-completions
+                    (ido-chop new-completions first-match)))
+            (when (not (equal new-completions ido-cur-list))
+              (when (and (bound-and-true-p flx-ido-mode)
+                         (functionp 'flx-ido-reset))
+                ;; Reset flx-ido since the set of completions has changed
+                (funcall 'flx-ido-reset))
+              (setq ido-cur-list (delete-dups new-completions))
+              (when ido-cr+-active-restrictions
+                (setq ido-cur-list (ido-cr+-apply-restrictions
+                                    ido-cur-list
+                                    ido-cr+-active-restrictions)))
+              (ido-cr+--debug-message
+               "Updated completion candidates for dynamic collection because `ido-text' changed to %S. `ido-cur-list' now has %s elements"
+               ido-text (length ido-cur-list))
+              ;; Recompute matches with new completions
+              (setq ido-rescan t)
+              (ido-set-matches)
+              ;; Rebuild the completion display unless ido is already planning
+              ;; to do it anyway
+              (unless ido-cr+-exhibit-pending
+                (ido-tidy)
+                (ido-exhibit))))
+        (error
+         (display-warning 'ido-cr+
+                          (format
+                           "Disabling dynamic update due to error: %S"
+                           err))
+         ;; Reset any variables that might have been modified during
+         ;; the failed update
+         (setq ido-cur-list orig-ido-cur-list)
+         ;; Prevent any further attempts at dynamic updating
+         (setq ido-cr+-dynamic-collection nil)))))
   ;; Always cancel an active timer when this function is called.
   (when ido-cr+-dynamic-update-timer
     (cancel-timer ido-cr+-dynamic-update-timer)

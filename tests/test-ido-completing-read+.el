@@ -453,6 +453,21 @@ also accept a quoted list for the sake of convenience."
          "helicopter")
         (expect 'ido-cr+-update-dynamic-collection
                 :to-have-been-called))
+
+      (it "should suppress errors raised by dynamic completion updates"
+        (let ((collection
+               (completion-table-dynamic
+                (lambda (text)
+                  (cond
+                   ((equal text "")
+                    '("hello" "goodbye" "helicopter" "helium" "goodness" "goodwill"))
+                   (t (error "This collection throws an error on a nonempty prefix")))))))
+          (expect
+           (with-simulated-input '("hell TAB RET")
+             (ido-completing-read+ "Say something: " collection))
+           :to-equal
+           "hello")))
+
       (it "should respect `ido-restrict-to-matches' when doing dynamic updates"
         (let ((collection
                (list "aaa-ddd-ggg" "aaa-eee-ggg" "aaa-fff-ggg"
