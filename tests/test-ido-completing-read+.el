@@ -141,11 +141,13 @@ also accept a quoted list for the sake of convenience."
        (with-simulated-input "g RET"
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))
        :to-equal "green"))
+
     (it "should complete with the first match when multiple matches are available"
       (expect
        (with-simulated-input "b RET"
          (ido-completing-read+ "Prompt: " '("brown" "blue" "yellow" "green")))
        :to-equal "brown"))
+
     (it "should allow <left> and <right> to cycle completions, with wrap-around"
       (expect
        (with-simulated-input "b <right> <right> <right> <right> <left> RET"
@@ -228,6 +230,7 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "g RET"
            (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))
          :to-equal "green"))
+
       (it "should trigger a fallback for large collections"
         (expect
          ;; With max-items negative, all collections are considered "too
@@ -254,6 +257,7 @@ also accept a quoted list for the sake of convenience."
             "Prompt: "
             '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow"))
          :to-throw))
+
       (it "shouldn't allow C-j to select an ambiguous match"
         (expect
          (with-simulated-input "b C-j C-j C-j"
@@ -269,6 +273,7 @@ also accept a quoted list for the sake of convenience."
             "Prompt: "
             '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
          :to-throw))
+
       (it "should allow exiting with an unambiguous match"
         (expect
          (with-simulated-input "b C-j b C-j e C-j C-j"
@@ -284,6 +289,7 @@ also accept a quoted list for the sake of convenience."
             "Prompt: "
             '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
          :to-equal "bluegrass"))
+
       (it "should require an extra C-j to exit when `ido-confirm-unique-completion' is non-nil"
         (setq ido-confirm-unique-completion t)
         ;; Now the first "C-j" should complete to "bluegrass" but should
@@ -321,18 +327,21 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "g C-b C-f RET"
            (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))
          :to-equal "green"))
+
       (it "should fall back on C-f at end of input"
         (expect
          ;; C-f at end of input should fall back
          (with-simulated-input "g C-f RET"
            (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))
          :to-equal "g"))
+
       (it "should not fall back from repeated C-b that hits the start of input"
         (expect
          ;; Repeated C-b should not fall back
          (with-simulated-input "g C-b C-b C-b C-b RET"
            (ido-completing-read+ "Prompt: " '("blue" "yellow" "green")))
          :to-equal "green"))
+
       (it "should fall back on C-b at beginning of input (if previous action was not C-b)"
         (expect
          ;; C-b at beginning of line should fall back (if previous action
@@ -346,6 +355,7 @@ also accept a quoted list for the sake of convenience."
       ;; for more information on this bug.
       (before-each
         (setq ido-enable-dot-prefix t))
+
       (it "should not throw an error when \"\" is in the collection"
         (expect
          (with-simulated-input "RET"
@@ -395,6 +405,7 @@ also accept a quoted list for the sake of convenience."
          "hello-world")
         (expect 'ido-cr+-update-dynamic-collection
                 :to-have-been-called))
+
       (it "should do a dynamic update when pressing TAB"
         (expect
          (with-simulated-input "h TAB -ld RET"
@@ -403,6 +414,7 @@ also accept a quoted list for the sake of convenience."
          "hello-world")
         (expect 'ido-cr+-update-dynamic-collection
                 :to-have-been-called))
+
       (it "should do a dynamic update when idle"
         (expect
          (with-simulated-input
@@ -414,6 +426,7 @@ also accept a quoted list for the sake of convenience."
          "hello-world")
         (expect 'ido-cr+-update-dynamic-collection
                 :to-have-been-called))
+
       (it "should do a dynamic update when there is only one match remaining"
         (expect
          (with-simulated-input "hell-ld RET"
@@ -422,6 +435,7 @@ also accept a quoted list for the sake of convenience."
          "hello-world")
         (expect 'ido-cr+-update-dynamic-collection
                 :to-have-been-called))
+
       (it "should not exit with a unique match if new matches are dynamically added"
         (expect
          (with-simulated-input '("hell TAB -ld RET")
@@ -430,6 +444,7 @@ also accept a quoted list for the sake of convenience."
          "hello-world")
         (expect 'ido-cr+-update-dynamic-collection
                 :to-have-been-called))
+
       (it "should exit with a match that is still unique after dynamic updating"
         (expect
          (with-simulated-input '("helic TAB")
@@ -491,6 +506,7 @@ also accept a quoted list for the sake of convenience."
            "hello-world")
           (expect 'ido-cr+-update-dynamic-collection
                   :to-have-been-called))
+
         (it "should do a dynamic update when pressing TAB"
           (expect
            (with-simulated-input "h TAB -ld RET"
@@ -499,6 +515,7 @@ also accept a quoted list for the sake of convenience."
            "hello-world")
           (expect 'ido-cr+-update-dynamic-collection
                   :to-have-been-called))
+
         (it "should do a dynamic update when idle"
           (expect
            (with-simulated-input
@@ -510,6 +527,7 @@ also accept a quoted list for the sake of convenience."
            "hello-world")
           (expect 'ido-cr+-update-dynamic-collection
                   :to-have-been-called))
+
         (it "should do a dynamic update when there is only one match remaining"
           (expect
            (with-simulated-input "hell-ld RET"
@@ -518,6 +536,7 @@ also accept a quoted list for the sake of convenience."
            "hello-world")
           (expect 'ido-cr+-update-dynamic-collection
                   :to-have-been-called))
+
         (it "should not exit with a unique match if new matches are dynamically added"
           (expect
            (with-simulated-input '("hell TAB -ld RET")
@@ -526,6 +545,7 @@ also accept a quoted list for the sake of convenience."
            "hello-world")
           (expect 'ido-cr+-update-dynamic-collection
                   :to-have-been-called))
+
         (it "should exit with a match that is still unique after dynamic updating"
           (expect
            (with-simulated-input '("helic TAB")
@@ -534,6 +554,7 @@ also accept a quoted list for the sake of convenience."
            "helicopter")
           (expect 'ido-cr+-update-dynamic-collection
                   :to-have-been-called))
+
         (it "should respect `ido-restrict-to-matches' when doing dynamic updates"
           (let ((collection
                  (list "aaa-ddd-ggg" "aaa-eee-ggg" "aaa-fff-ggg"
@@ -572,16 +593,19 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "g RET"
            (ido-completing-read+ "Prompt: " '(blue yellow green)))
          :to-equal "green"))
+
       (it "should accept a mix of strings and symbols in COLLECTION"
         (expect
          (with-simulated-input "g RET"
            (ido-completing-read+ "Prompt: " '(blue "yellow" green)))
          :to-equal "green"))
+
       (it "should accept symbols in DEF"
         (expect
          (with-simulated-input "RET"
            (ido-completing-read+ "Prompt: " '("blue" "yellow" "brown") nil t nil nil '(brown "green")))
          :to-equal "brown"))
+
       (it "should accept an alist COLLECTION"
         (expect
          (with-simulated-input "RET"
@@ -592,6 +616,7 @@ also accept a quoted list for the sake of convenience."
               (green . green-value))
             nil nil nil nil "green"))
          :to-equal "green"))
+
       (it "should accept a hash table COLLECTION"
         (expect
          (with-simulated-input "RET"
@@ -601,6 +626,7 @@ also accept a quoted list for the sake of convenience."
              (puthash 'green 'green-value collection)
              (ido-completing-read+ "Prompt: " collection nil nil nil nil "green")))
          :to-equal "green"))
+
       (it "should accept an obarray COLLECTION"
         (expect
          (with-simulated-input "forward-char RET"
@@ -627,6 +653,7 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "g RET"
            (command-execute 'test-command)))
        :to-equal "green"))
+
     (it "should disable itself properly"
       (expect
        (progn
@@ -650,6 +677,7 @@ also accept a quoted list for the sake of convenience."
                 (funcall 'blacklisted-function))
               (symbol-function 'blacklisted-collection)
               (collection-as-function '("blue" "yellow" "green"))))
+
       (after-all
         (setf (symbol-function 'blacklisted-command) nil
               (symbol-function 'blacklisted-function) nil
@@ -662,11 +690,13 @@ also accept a quoted list for the sake of convenience."
            (with-simulated-input "g RET"
              (call-interactively 'blacklisted-command))
            :to-equal "green"))
+
         (it "should not affect a non-blacklisted function"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'cmd-that-calls-blacklisted-function))
            :to-equal "green"))
+
         (it "should not affect a non-blacklisted collection"
           (expect
            (with-simulated-input "g RET"
@@ -680,16 +710,19 @@ also accept a quoted list for the sake of convenience."
                           blacklisted-function
                           blacklisted-collection)
                         ido-cr+-function-blacklist)))
+
         (it "should prevent ido in a blacklisted command"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'blacklisted-command))
            :to-equal "g"))
+
         (it "should prevent ido in a blacklisted function"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'cmd-that-calls-blacklisted-function))
            :to-equal "g"))
+
         (it "should prevent ido with a blacklisted collection"
           (expect
            (with-simulated-input "g RET"
@@ -714,29 +747,35 @@ also accept a quoted list for the sake of convenience."
               (symbol-function 'whitelisted-collection)
               (lambda (string pred action)
                 (complete-with-action action '("blue" "yellow" "green") string pred))))
+
       (after-all
         (setf (symbol-function 'whitelisted-command) nil
               (symbol-function 'whitelisted-function) nil
               (symbol-function 'cmd-that-calls-whitelisted-function) nil
               (symbol-function 'whitelisted-collection) nil))
+
       (describe "when the whitelist is inactive (i.e. everything is whitelisted)"
         (before-each
           (setq ido-cr+-function-whitelist nil))
+
         (it "should enable ido in a command"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'whitelisted-command))
            :to-equal "green"))
+
         (it "should enable ido in a function"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'cmd-that-calls-whitelisted-function))
            :to-equal "green"))
+
         (it "should enable ido for a collection"
           (expect
            (with-simulated-input "g RET"
              (ido-completing-read+ "Prompt: " 'whitelisted-collection))
            :to-equal "green")))
+
       (describe "when the specified functions are whitelisted"
         (before-each
           (setq ido-cr+-function-whitelist
@@ -744,34 +783,41 @@ also accept a quoted list for the sake of convenience."
                           whitelisted-function
                           whitelisted-collection)
                         ido-cr+-function-whitelist)))
+
         (it "should enable ido in a whitelisted command"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'whitelisted-command))
            :to-equal "green"))
+
         (it "should enable ido in a whitelisted function"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'cmd-that-calls-whitelisted-function))
            :to-equal "green"))
+
         (it "should enable ido for a whitelisted collection"
           (expect
            (with-simulated-input "g RET"
              (ido-completing-read+ "Prompt: " 'whitelisted-collection))
            :to-equal "green")))
+
       (describe "when the whitelist is active but empty (i.e. nothing whitelisted)"
         (before-each
           (setq ido-cr+-function-whitelist (list nil)))
+
         (it "should prevent ido in a command"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'whitelisted-command))
            :to-equal "g"))
+
         (it "should prevent ido in a function"
           (expect
            (with-simulated-input "g RET"
              (call-interactively 'cmd-that-calls-whitelisted-function))
            :to-equal "g"))
+
         (it "should prevent ido for a collection"
           (expect
            (with-simulated-input "g RET"
@@ -796,6 +842,7 @@ also accept a quoted list for the sake of convenience."
               (symbol-function 'def-nil-collection)
               (lambda (string pred action)
                 (complete-with-action action '("blue" "yellow" "green") string pred))))
+
       (after-all
         (setf (symbol-function 'def-nil-command) nil
               (symbol-function 'def-nil-function) nil
@@ -811,11 +858,13 @@ also accept a quoted list for the sake of convenience."
            (with-simulated-input "RET"
              (call-interactively 'def-nil-command))
            :to-equal ""))
+
         (it "should use empty string default in a function"
           (expect
            (with-simulated-input "RET"
              (call-interactively 'cmd-that-calls-def-nil-function))
            :to-equal ""))
+
         (it "should use empty string default for a collection"
           (expect
            (with-simulated-input "RET"
@@ -829,16 +878,19 @@ also accept a quoted list for the sake of convenience."
                            def-nil-function
                            def-nil-collection)
                         ido-cr+-nil-def-alternate-behavior-list)))
+
         (it "should not use empty string default in a command"
           (expect
            (with-simulated-input "RET"
              (call-interactively 'def-nil-command))
            :to-equal "blue"))
+
         (it "should not use empty string default in a function"
           (expect
            (with-simulated-input "RET"
              (call-interactively 'cmd-that-calls-def-nil-function))
            :to-equal "blue"))
+
         (it "should not use empty string default for a collection"
           (expect
            (with-simulated-input "RET"
