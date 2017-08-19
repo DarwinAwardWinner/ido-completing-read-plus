@@ -1,5 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 
+(require 'undercover)
+(undercover "*.el"
+            (:exclude "test-*.el"))
+
 (require 'ido)
 (require 'flx-ido)
 (require 'ido-completing-read+)
