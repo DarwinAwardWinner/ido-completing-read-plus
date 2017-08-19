@@ -521,9 +521,9 @@ completion for them."
     (condition-case sig
         (progn
           ;; Check a bunch of fallback conditions
-          (when inherit-input-method
+          (when (and inherit-input-method current-input-method)
             (signal 'ido-cr+-fallback
-                    '("ido cannot handle non-nil INHERIT-INPUT-METHOD")))
+                    '("ido cannot handle alternate input methods")))
 
           ;; Check for black/white-listed collection function
           (when (functionp collection)
