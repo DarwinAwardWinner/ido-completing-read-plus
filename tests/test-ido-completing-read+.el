@@ -121,7 +121,7 @@ also accept a quoted list for the sake of convenience."
     (shadow-vars
      ((ido-mode t)
       (ido-ubiquitous-mode t)
-      ido-cr+-debug-mode
+      (ido-cr+-debug-mode t)
       ido-cr+-auto-update-blacklist
       ido-cr+-fallback-function
       ido-cr+-max-items
@@ -132,7 +132,10 @@ also accept a quoted list for the sake of convenience."
       ido-confirm-unique-completion
       ido-enable-flex-matching
       ido-enable-dot-prefix
-      flx-ido-mode)))
+      flx-ido-mode))
+
+    ;; Suppress all messages during tests
+    (spy-on 'message))
 
   ;; Restore the saved values after each test
   (after-each
