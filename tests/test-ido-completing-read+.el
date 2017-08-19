@@ -327,6 +327,27 @@ also accept a quoted list for the sake of convenience."
             '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
          :to-equal "b")))
 
+    (describe "when INHERIT-INPUT-METHOD is non-nil"
+
+      (before-each
+        (spy-on 'ido-completing-read :and-call-through))
+
+      (it "should not fall back if `current-input-method' is non-nil"
+        (expect
+         (let ((current-input-method nil))
+           (with-simulated-input "g RET"
+             (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil nil nil nil t))
+           :to-equal "green"))
+        (expect 'ido-completing-read :to-have-been-called))
+
+      (it "should not fall back if `current-input-method' is non-nil"
+        (expect
+         (let ((current-input-method 'ucs))
+           (with-simulated-input "g RET"
+             (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil nil nil nil t))
+           :to-equal "green"))
+        (expect 'ido-completing-read :not :to-have-been-called)))
+
     (describe "with manual fallback shortcuts"
       (it "should not fall back when C-b or C-f is used in the middle of the input"
         (expect
