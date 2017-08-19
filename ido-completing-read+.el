@@ -717,10 +717,6 @@ completion for them."
   "This advice allows ido-cr+ to completely replace `ido-completing-read'.
 
 See the varaible `ido-cr+-replace-completely' for more information."
-  ;; If this advice is autoloaded, then we need to force loading of
-  ;; the rest of the file so all the variables will be defined.
-  (when (not (featurep 'ido-completing-read+))
-    (require 'ido-completing-read+))
   (if (or (ido-cr+-active)
           (not ido-cr+-replace-completely))
       ;; ido-cr+ has either already activated or isn't going to
