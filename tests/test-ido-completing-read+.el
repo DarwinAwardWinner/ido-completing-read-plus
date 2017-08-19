@@ -6,6 +6,7 @@
 
 (require 'ido)
 (require 'flx-ido)
+(require 'minibuf-eldef)
 (require 'ido-completing-read+)
 (require 'buttercup)
 (require 'cl-lib)
@@ -132,7 +133,8 @@ also accept a quoted list for the sake of convenience."
       ido-confirm-unique-completion
       ido-enable-flex-matching
       ido-enable-dot-prefix
-      flx-ido-mode))
+      flx-ido-mode
+      (minibuffer-electric-default-mode t)))
 
     ;; Suppress all messages during tests
     (spy-on 'message))
