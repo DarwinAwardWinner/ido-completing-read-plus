@@ -182,38 +182,39 @@ also accept a quoted list for the sake of convenience."
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
        :to-equal ""))
 
-    ;; Verify that DEF works, whether or not it is an element of
-    ;; COLLECTION
     (it "should accept all the same forms of DEF as `completing-read-default'"
+      ;; DEF in COLLECTION
       (expect
        (with-simulated-input "RET"
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil nil nil "green"))
        :to-equal "green")
+      ;; Same, with REQUIRE-MATCH
       (expect
        (with-simulated-input "RET"
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "green"))
        :to-equal "green")
+      ;; DEF not in COLLECTION
       (expect
        (with-simulated-input "RET"
-         (ido-completing-read+ "Prompt: " '("blue" "yellow" "brown") nil nil nil nil "brown"))
+         (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil nil nil "brown"))
        :to-equal "brown")
+      ;; Same, with REQUIRE-MATCH
       (expect
        (with-simulated-input "RET"
-         (ido-completing-read+ "Prompt: " '("blue" "yellow" "brown") nil t nil nil "brown"))
+         (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil "brown"))
        :to-equal "brown")
+      ;; List DEF, partially in COLLECTION
       (expect
        (with-simulated-input "RET"
-         (ido-completing-read+ "Prompt: " '("blue" "yellow" "brown") nil t nil nil '("brown" "green")))
+         (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t nil nil '("brown" "green")))
        :to-equal "brown"))
 
-    ;; Verify that INITIAL-INPUT works
     (it "should work with INITIAL-INPUT"
       (expect
        (with-simulated-input "RET"
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil "gr"))
        :to-equal "green"))
 
-    ;; Verify that INITIAL-INPUT and DEF don't interfere with each other
     (it "should properly handle both INITIAL-INPUT and DEF at the same time"
       (expect
        (with-simulated-input "RET"
@@ -224,7 +225,6 @@ also accept a quoted list for the sake of convenience."
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil "gr" nil "blue"))
        :to-equal "blue"))
 
-    ;; Verify that ido-cr+ works on function collections
     (it "should work when COLLECTION is a function"
       (expect
        (with-simulated-input "g RET"
