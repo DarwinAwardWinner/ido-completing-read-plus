@@ -522,6 +522,7 @@ also accept a quoted list for the sake of convenience."
            "hello")))
 
       (it "should respect `ido-restrict-to-matches' when doing dynamic updates"
+        (assume (version<= "25" emacs-version))
         (let ((collection
                (list "aaa-ddd-ggg" "aaa-eee-ggg" "aaa-fff-ggg"
                      "bbb-ddd-ggg" "bbb-eee-ggg" "bbb-fff-ggg"
@@ -539,7 +540,6 @@ also accept a quoted list for the sake of convenience."
             (list (cons nil "bbb")
                   (cons nil "eee")))
            :to-equal '("bbb-eee-ggg" "bbb-eee-hhh" "bbb-eee-iii"))
-
           ;; First verify it without a dynamic collection
           (expect
            (with-simulated-input "eee C-SPC bbb C-SPC ggg RET"
