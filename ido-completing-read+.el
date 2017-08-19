@@ -524,9 +524,6 @@ completion for them."
           (when inherit-input-method
             (signal 'ido-cr+-fallback
                     '("ido cannot handle non-nil INHERIT-INPUT-METHOD")))
-          (when (bound-and-true-p completion-extra-properties)
-            (signal 'ido-cr+-fallback
-                    '("ido cannot handle non-nil `completion-extra-properties'")))
 
           ;; Check for black/white-listed collection function
           (when (functionp collection)
