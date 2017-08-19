@@ -3,7 +3,7 @@
 [![MELPA Stable](https://stable.melpa.org/packages/ido-ubiquitous-badge.svg)](https://stable.melpa.org/#/ido-ubiquitous)
 [![Join the chat at https://gitter.im/DarwinAwardWinner/ido-ubiquitous](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/DarwinAwardWinner/ido-ubiquitous?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/DarwinAwardWinner/ido-completing-read-plus.svg?branch=master)](https://travis-ci.org/DarwinAwardWinner/ido-completing-read-plus)
-[![Coverage Status](https://coveralls.io/repos/github/DarwinAwardWinner/ido-completing-read-plus/badge.svg?branch=bleeding-edge)](https://coveralls.io/github/DarwinAwardWinner/ido-completing-read-plus?branch=bleeding-edge)
+[![Coverage Status](https://coveralls.io/repos/github/DarwinAwardWinner/ido-completing-read-plus/badge.svg?branch=master)](https://coveralls.io/github/DarwinAwardWinner/ido-completing-read-plus?branch=master)
 
 This package replaces stock emacs completion with ido completion
 wherever it is possible to do so without breaking things (i.e. what
