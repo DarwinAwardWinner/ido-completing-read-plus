@@ -806,7 +806,40 @@ also accept a quoted list for the sake of convenience."
           (expect
            (with-simulated-input "g RET"
              (ido-completing-read+ "Prompt: " 'blacklisted-collection))
-           :to-equal "g"))))
+           :to-equal "g")))
+
+      (describe "when updating ido-cr+"
+
+        (before-each
+          (spy-on 'ido-cr+-update-blacklist :and-call-through))
+
+        (it "should update the blacklist when `ido-cr+-auto-update-blacklist' is t"
+          (assume ido-cr+-function-blacklist)
+          (let ((orig-blacklist ido-cr+-function-blacklist))
+            (customize-set-variable 'ido-cr+-auto-update-blacklist t)
+            (customize-set-variable 'ido-cr+-function-blacklist nil)
+            (ido-cr+-maybe-update-blacklist)
+            (expect 'ido-cr+-update-blacklist :to-have-been-called)
+            (expect ido-cr+-function-blacklist :to-have-same-items-as orig-blacklist)))
+        (it "should not update the blacklist when `ido-cr+-auto-update-blacklist' is nil"
+          (assume ido-cr+-function-blacklist)
+          (let ((orig-blacklist ido-cr+-function-blacklist))
+            (customize-set-variable 'ido-cr+-auto-update-blacklist nil)
+            (customize-set-variable 'ido-cr+-function-blacklist nil)
+            (ido-cr+-maybe-update-blacklist)
+            (expect 'ido-cr+-update-blacklist :not :to-have-been-called)
+            (expect ido-cr+-function-blacklist :to-have-same-items-as nil)))
+
+        (it "should notify about blacklist updates when `ido-cr+-auto-update-blacklist' is `notify'"
+          (assume ido-cr+-function-blacklist)
+          (spy-on 'display-warning)
+          (let ((orig-blacklist ido-cr+-function-blacklist))
+            (customize-set-variable 'ido-cr+-auto-update-blacklist 'notify)
+            (customize-set-variable 'ido-cr+-function-blacklist nil)
+            (ido-cr+-maybe-update-blacklist)
+            (expect 'ido-cr+-update-blacklist :not :to-have-been-called)
+            (expect 'display-warning :to-have-been-called)
+            (expect ido-cr+-function-blacklist :to-have-same-items-as nil)))))
 
     (describe "with `ido-cr+-function-whitelist'"
       (before-all

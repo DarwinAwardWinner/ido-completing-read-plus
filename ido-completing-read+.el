@@ -1140,7 +1140,7 @@ blacklist was modified."
   (if ido-cr+-auto-update-blacklist
       (let* ((curval ido-cr+-function-blacklist)
              (defval (eval (car (get 'ido-cr+-function-blacklist 'standard-value))))
-             (new-entries (cl-set-difference curval defval :test #'equal)))
+             (new-entries (cl-set-difference defval curval :test #'equal)))
         (if new-entries
             (if (eq ido-cr+-auto-update-blacklist 'notify)
                 (display-warning 'ido-completing-read+ "There are %s new blacklist entries available. Use `M-x ido-cr+-update-blacklist' to install them. (See `ido-cr+-auto-update-blacklist' for more information.)")
