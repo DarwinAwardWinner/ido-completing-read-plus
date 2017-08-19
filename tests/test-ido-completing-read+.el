@@ -544,9 +544,19 @@ also accept a quoted list for the sake of convenience."
              (ido-completing-read+
               "Pick: " collection nil t nil nil (car collection)))
            :to-equal "bbb-eee-ggg")
+          (expect
+           (with-simulated-input "eee C-SPC aaa C-u C-SPC ccc C-u C-SPC ggg RET"
+             (ido-completing-read+
+              "Pick: " collection nil t nil nil (car collection)))
+           :to-equal "bbb-eee-ggg")
           ;; Now test the same with a dynamic collection
           (expect
            (with-simulated-input "eee C-SPC bbb C-SPC ggg RET"
+             (ido-completing-read+
+              "Pick: " (collection-as-function collection) nil t nil nil (car collection)))
+           :to-equal "bbb-eee-ggg")
+          (expect
+           (with-simulated-input "eee C-SPC aaa C-u C-SPC ccc C-u C-SPC ggg RET"
              (ido-completing-read+
               "Pick: " (collection-as-function collection) nil t nil nil (car collection)))
            :to-equal "bbb-eee-ggg")))
