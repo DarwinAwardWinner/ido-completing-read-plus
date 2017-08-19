@@ -245,6 +245,15 @@ also accept a quoted list for the sake of convenience."
        :to-equal "g")
       (expect 'ido-completing-read :not :to-have-been-called))
 
+    (it "should replace `ido-completing-read' when `ido-cr+-replace-completely' is non-nil"
+      (customize-set-variable 'ido-cr+-replace-completely t)
+      (spy-on 'ido-completing-read+ :and-call-through)
+      (expect
+       (with-simulated-input "g RET"
+         (ido-completing-read "Prompt: " '("blue" "yellow" "green")))
+       :to-equal "green")
+      (expect 'ido-completing-read+ :to-have-been-called))
+
     (describe "when `ido-cr+-max-items' is set"
       (it "should not trigger a fallback for small collections"
         (expect
