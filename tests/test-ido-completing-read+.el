@@ -231,6 +231,14 @@ also accept a quoted list for the sake of convenience."
          (ido-completing-read+ "Prompt: " (collection-as-function '("blue" "yellow" "green"))))
        :to-equal "green"))
 
+    (it "should fall back when COLLECTION is empty"
+      (spy-on 'ido-completing-read :and-call-through)
+      (expect
+       (with-simulated-input "g RET"
+         (ido-completing-read+ "Prompt: " nil))
+       :to-equal "g")
+      (expect 'ido-completing-read :not :to-have-been-called))
+
     (describe "when `ido-cr+-max-items' is set"
       (it "should not trigger a fallback for small collections"
         (expect
@@ -727,7 +735,8 @@ also accept a quoted list for the sake of convenience."
               (symbol-function 'cmd-that-calls-blacklisted-function) nil
               (symbol-function 'blacklisted-collection) nil))
       ;; First verify that they work normally before blacklisting them
-      (describe "when the blacklist is empty"
+      (describe "when the specified functions are not blacklisted"
+
         (it "should not affect a non-blacklisted command"
           (expect
            (with-simulated-input "g RET"
