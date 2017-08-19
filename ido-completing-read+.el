@@ -402,10 +402,6 @@ https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues"
   "Returns non-nil if ido-cr+ is currently using the minibuffer."
   (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
 
-(defsubst ido-cr+-default-was-provided ()
-  "Returns non-nil if ido-cr+ was passed a non-nil default argument."
-  (and (nth 6 ido-cr+-orig-completing-read-args)))
-
 (defun ido-cr+--called-from-completing-read ()
   "Returns non-nil if the most recent call to ido-cr+ was from `completing-read'."
   (equal (cadr (backtrace-frame 1 'ido-completing-read+))
