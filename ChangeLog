@@ -1,3 +1,8 @@
+2017-08-19  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-cr+-maybe-update-blacklist): Fix a
+	bug in blacklist update functionality
+
 2017-08-13  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-cr+-apply-restrictions): Make
