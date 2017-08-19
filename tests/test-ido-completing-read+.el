@@ -215,6 +215,12 @@ also accept a quoted list for the sake of convenience."
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil "gr"))
        :to-equal "green"))
 
+    (it "should properly handle a cons INITIAL-INPUT"
+      (expect
+       (with-simulated-input "ee RET"
+         (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil nil (cons "gr" 2)))
+       :to-equal "green"))
+
     (it "should properly handle both INITIAL-INPUT and DEF at the same time"
       (expect
        (with-simulated-input "RET"
