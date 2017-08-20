@@ -84,10 +84,16 @@ Note that when you update ido-completing-read+, this variable may
 not be updated until you restart Emacs.")
 
 (require 'ido)
+(require 'minibuf-eldef)
 (require 'cl-lib)
 (require 'cus-edit)
 (require 's)
 (require 'memoize)
+
+;; Silence some byte-compiler warnings
+(eval-when-compile
+  (require 'minibuf-eldef)
+  (require 'flx-ido nil t))
 
 ;;; Debug messages
 
