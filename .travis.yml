@@ -30,4 +30,5 @@ before_script:
   - cask install
 
 script:
-  cask exec buttercup -L .
+  - cask exec buttercup -L .
+  - cask exec emacs -Q -L . -batch -f batch-byte-compile *.el
