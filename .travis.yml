@@ -32,4 +32,5 @@ before_script:
   - cask install
 
 script:
+  - make compile
   - make test
