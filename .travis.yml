@@ -33,7 +33,7 @@ before_script:
   # Fix cask (See https://github.com/cask/cask/issues/399#issuecomment-331640427)
   - perl -ibak -lape 's{#!/usr/bin/env python}{#!/usr/bin/python}' "$(which cask)"
   # Check that cask is finding the right emacs
-  - cask exec emacs --version
+  - cask emacs --version
   # Install elisp dependencies
   - cask install
 
