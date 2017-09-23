@@ -28,6 +28,10 @@ before_script:
   # Install cask
   - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
   - export PATH="$HOME/.cask/bin:$PATH"
+  # Fix cask (See https://github.com/cask/cask/issues/399#issuecomment-331640427)
+  - perl -ibak -lape 's{#!/usr/bin/env python}{#!/usr/bin/python}' "$(which cask)"
+  # Check that cask is finding the right emacs
+  - cask exec emacs --version
   # Install elisp dependencies
   - cask install
 
