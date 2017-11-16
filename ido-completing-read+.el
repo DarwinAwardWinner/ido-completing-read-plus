@@ -747,7 +747,7 @@ See `ido-cr+-current-command' for more information."
             #'call-interactively@ido-cr+-record-current-command)
 
 ;; Fallback on magic C-f and C-b
-(defun ido-magic-forward-char@ido-cr+-fallback (&rest args)
+(defun ido-magic-forward-char@ido-cr+-fallback (&rest _args)
   "Allow falling back in ido-completing-read+."
   (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
@@ -756,7 +756,7 @@ See `ido-cr+-current-command' for more information."
 (advice-add 'ido-magic-forward-char :before
             #'ido-magic-forward-char@ido-cr+-fallback)
 
-(defun ido-magic-backward-char@ido-cr+-fallback (&rest args)
+(defun ido-magic-backward-char@ido-cr+-fallback (&rest _args)
   "Allow falling back in ido-completing-read+."
   (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
@@ -798,11 +798,11 @@ called through ido-cr+."
 (advice-add 'ido-select-text :around
             #'ido-select-text@ido-cr+-fix-require-match)
 
-(defun ido-tidy@ido-cr+-set-exhibit-pending (&rest args)
+(defun ido-tidy@ido-cr+-set-exhibit-pending (&rest _args)
   (setq ido-cr+-exhibit-pending t))
 (advice-add 'ido-tidy :after 'ido-tidy@ido-cr+-set-exhibit-pending)
 
-(defun ido-exhibit@ido-cr+-clear-exhibit-pending (&rest args)
+(defun ido-exhibit@ido-cr+-clear-exhibit-pending (&rest _args)
   (setq ido-cr+-exhibit-pending nil))
 (advice-add 'ido-exhibit :before 'ido-exhibit@ido-cr+-clear-exhibit-pending)
 
