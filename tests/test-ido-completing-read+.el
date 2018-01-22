@@ -514,7 +514,11 @@ also accept a quoted list for the sake of convenience."
                   (cond
                    ((equal text "")
                     '("hello" "goodbye" "helicopter" "helium" "goodness" "goodwill"))
-                   (t (error "This collection throws an error on a nonempty prefix")))))))
+                   (t (error "This collection throws an error on a nonempty prefix"))))))
+              ;; The test framework uses the debugger to catch error
+              ;; stack traces, but we want to run this code as if it
+              ;; was not being debugged.
+              (debug-on-error nil))
           (expect
            (with-simulated-input '("hell TAB RET")
              (ido-completing-read+ "Say something: " collection))
