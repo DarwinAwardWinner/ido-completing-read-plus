@@ -357,7 +357,7 @@ also accept a quoted list for the sake of convenience."
       (before-each
         (spy-on 'ido-completing-read :and-call-through))
 
-      (it "should not fall back if `current-input-method' is non-nil"
+      (it "should not fall back if `current-input-method' is nil"
         (expect
          (let ((current-input-method nil))
            (with-simulated-input "g RET"
@@ -365,7 +365,7 @@ also accept a quoted list for the sake of convenience."
            :to-equal "green"))
         (expect 'ido-completing-read :to-have-been-called))
 
-      (it "should not fall back if `current-input-method' is non-nil"
+      (it "should fall back if `current-input-method' is non-nil"
         (expect
          (let ((current-input-method 'ucs))
            (with-simulated-input "g RET"
