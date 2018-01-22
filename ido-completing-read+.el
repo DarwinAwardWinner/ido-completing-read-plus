@@ -880,7 +880,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
   (when (and (ido-cr+-active)
              ido-cr+-dynamic-collection)
     (let ((orig-ido-cur-list ido-cur-list))
-      (condition-case err
+      (condition-case-unless-debug err
           (let* ((ido-text
                   (buffer-substring-no-properties (minibuffer-prompt-end)
                                                   ido-eoinput))
