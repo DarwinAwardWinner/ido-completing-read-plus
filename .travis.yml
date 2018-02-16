@@ -9,11 +9,13 @@ env:
     - EMACS_VERSION=emacs-25.1
     - EMACS_VERSION=emacs-25.2
     - EMACS_VERSION=emacs-25.3
+    - EMACS_VERSION=emacs-26-pretest
     - EMACS_VERSION=emacs-git-snapshot
     - EMACS_VERSION=remacs-git-snapshot
 
 matrix:
   allow_failures:
+  - env: EMACS_VERSION=emacs-26-pretest
   - env: EMACS_VERSION=remacs-git-snapshot
   - env: EMACS_VERSION=emacs-git-snapshot
 
