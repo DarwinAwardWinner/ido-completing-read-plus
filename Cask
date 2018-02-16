@@ -1,5 +1,3 @@
-;; -*- mode: emacs-lisp -*-
-
 (source gnu)
 (source melpa)
 
@@ -10,8 +8,6 @@
 
 (development
  (depends-on "flx-ido")
- (depends-on "with-simulated-input"
-             :git "https://github.com/DarwinAwardWinner/with-simulated-input.git"
-             :files ("*.el"))
- (depends-on "buttercup")
+ (depends-on "with-simulated-input" "2.2")
+ (depends-on "buttercup" "1.9")
  (depends-on "undercover"))
