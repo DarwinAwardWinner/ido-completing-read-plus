@@ -1157,6 +1157,17 @@ blacklist was modified."
 
 (ido-cr+-maybe-update-blacklist)
 
+;; Temporary fix for #146, copied from:
+;; https://github.com/kurnevsky/dotfiles/commit/b4daed5ea3d554b816767dbb1284bf5ea7e82de9
+(when (and (version<= "26" emacs-version) (fboundp 'add-variable-watcher))
+  (add-variable-watcher
+   'ido-cr+-dynamic-collection
+   (lambda (_symbol newval _operation _where)
+     (when (fboundp 'flx-ido-mode)
+       (if newval
+           (flx-ido-mode 0)
+         (flx-ido-mode 1))))))
+
 (provide 'ido-completing-read+)
 
 ;;; ido-completing-read+.el ends here
