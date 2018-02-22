@@ -523,7 +523,7 @@ completion for them."
          ;; Disable flx-ido for dynamic collections in Emacs 26.
          ;; Temporary workaround for #146.
          (flx-ido-mode
-          (and flx-ido-mode
+          (and (bound-and-true-p flx-ido-mode)
                (or (version< emacs-version "26")
                    (not ido-cr+-dynamic-collection))))
          ;; If the whitelist is empty, everything is whitelisted
