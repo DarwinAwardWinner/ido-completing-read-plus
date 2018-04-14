@@ -567,6 +567,26 @@ also accept a quoted list for the sake of convenience."
               "Pick: " (collection-as-function collection) nil t nil nil (car collection)))
            :to-equal "bbb-eee-ggg")))
 
+      (it "should not hang or error when cycling matches in `Info-menu' (issue #151)"
+        (expect
+         (progn
+           (ido-ubiquitous-mode 1)
+           (save-excursion
+             (info)
+             (with-simulated-input
+                 '("emacs"
+                   (ido-next-match)
+                   (wsi-simulate-idle-time 5)
+                   (ido-next-match)
+                   (wsi-simulate-idle-time 5)
+                   (ido-next-match)
+                   (wsi-simulate-idle-time 5)
+                   (ido-next-match)
+                   (wsi-simulate-idle-time 5)
+                   "RET")
+               (command-execute 'Info-menu))))
+         :not :to-throw))
+
       (describe "with flx-ido-mode"
         (before-each
           (flx-ido-mode 1)
@@ -1012,6 +1032,7 @@ also accept a quoted list for the sake of convenience."
            (with-simulated-input "RET"
              (ido-completing-read+ "Prompt: " 'def-nil-collection nil t))
            :to-equal "blue"))))))
+
 
 ;; (defun ido-cr+-run-all-tests ()
 ;;   (interactive)
