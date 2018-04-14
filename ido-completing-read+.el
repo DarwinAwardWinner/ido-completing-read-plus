@@ -879,12 +879,20 @@ result."
        (nreverse filtered-collection)
      filtered-collection)))
 
+(defun ido-cr+-cyclicp (x)
+  "Returns non-nill if X is a list containing a circular reference."
+  (cl-loop
+   for tortoise on x
+   for hare on (cdr x) by #'cddr
+   thereis (eq tortoise hare)))
+
 (defun ido-cr+-update-dynamic-collection ()
   "Update the set of completions for a dynamic collection.
 
 This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
   (when (and (ido-cr+-active)
              ido-cr+-dynamic-collection)
+    (cl-assert (not (ido-cr+-cyclicp ido-cur-list)))
     (let ((orig-ido-cur-list ido-cur-list))
       (condition-case-unless-debug err
           (let* ((ido-text
@@ -915,6 +923,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
                     string ido-cr+-dynamic-collection predicate)
                    into result
                    finally return result)))
+            (cl-assert (not (ido-cr+-cyclicp new-completions)))
             ;; Put the previous first match back at the front if possible
             (when (and new-completions
                        first-match
@@ -951,7 +960,9 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
          ;; the failed update
          (setq ido-cur-list orig-ido-cur-list)
          ;; Prevent any further attempts at dynamic updating
-         (setq ido-cr+-dynamic-collection nil)))))
+         (setq ido-cr+-dynamic-collection nil)
+         (cl-assert (not (ido-cr+-cyclicp ido-cur-list)))
+         (cl-assert (null ido-cr+-dynamic-collection))))))
   ;; Always cancel an active timer when this function is called.
   (when ido-cr+-dynamic-update-timer
     (cancel-timer ido-cr+-dynamic-update-timer)
@@ -965,6 +976,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
     (when ido-cr+-dynamic-update-timer
       (cancel-timer ido-cr+-dynamic-update-timer)
       (setq ido-cr+-dynamic-update-timer nil))
+    (cl-assert (not (ido-cr+-cyclicp ido-cur-list)))
     (if (<= (length ido-matches) 1)
         ;; If we've narrowed it down to zero or one matches, update
         ;; immediately.
@@ -1162,6 +1174,18 @@ blacklist was modified."
     (ido-cr+--debug-message "Skipping blacklist update by user request.")))
 
 (ido-cr+-maybe-update-blacklist)
+
+;; TODO: Remove this when it's no longer necessary for debugging
+(defun ido-chop@ido-cr+-prevent-infinite-loops (items elem)
+  "This advice checks for conditions that cause infinite loops in `ido-chop'.
+
+If any of these conditions is detected, it throws an error.
+Ideally this should not be necessary, but it helps with
+debugging."
+  (cl-assert (not (ido-cr+-cyclicp items)))
+  (cl-assert (member elem items)))
+(advice-add 'ido-chop :before
+            #'ido-chop@ido-cr+-prevent-infinite-loops)
 
 (provide 'ido-completing-read+)
 
