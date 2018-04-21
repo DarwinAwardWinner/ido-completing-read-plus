@@ -520,12 +520,12 @@ completion for them."
           (if ido-cr+-dynamic-collection
               (memoize (indirect-function 'all-completions))
             'all-completions))
-         ;; Disable flx-ido for dynamic collections in Emacs 26.
-         ;; Temporary workaround for #146.
-         (flx-ido-mode
-          (and (bound-and-true-p flx-ido-mode)
-               (or (version< emacs-version "26")
-                   (not ido-cr+-dynamic-collection))))
+         ;; ;; Disable flx-ido for dynamic collections in Emacs 26.
+         ;; ;; Temporary workaround for #146.
+         ;; (flx-ido-mode
+         ;;  (and (bound-and-true-p flx-ido-mode)
+         ;;       (or (version< emacs-version "26")
+         ;;           (not ido-cr+-dynamic-collection))))
          ;; If the whitelist is empty, everything is whitelisted
          (whitelisted (not ido-cr+-function-whitelist))
          ;; If non-nil, we need alternate nil DEF handling
