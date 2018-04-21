@@ -916,7 +916,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
                  (new-completions
                   (cl-loop
                    for string in strings-to-check
-                   nconc
+                   append
                    (funcall
                     (or ido-cr+-all-prefix-completions-memoized
                         'ido-cr+-all-prefix-completions)
