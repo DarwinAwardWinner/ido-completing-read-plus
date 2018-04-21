@@ -6,10 +6,14 @@ ELC_FILES := $(patsubst %.el,%.elc,$(ELISP_FILES))
 
 all: test
 
-# We run clean-elc because undercover.el doesn't support elc files
+# We run clean-elc first because undercover.el doesn't support elc
+# files. We run the tests first without loading flx-ido, and then with
+# it. We only send the coverage report when running the full test
+# suite.
 test:
 	cask clean-elc
-	cask exec buttercup -L .
+	UNDERCOVER_CONFIG='((:send-report nil))' cask exec buttercup -L . tests
+	cask exec buttercup -L . tests tests-with-flx-ido
 
 compile: $(ELC_FILES)
 

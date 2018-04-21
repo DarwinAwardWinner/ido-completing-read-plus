@@ -5,7 +5,6 @@
             (:exclude "test-*.el"))
 
 (require 'ido)
-(require 'flx-ido)
 (require 'minibuf-eldef)
 (require 'ido-completing-read+)
 (require 'buttercup)
@@ -133,7 +132,6 @@ also accept a quoted list for the sake of convenience."
       ido-confirm-unique-completion
       ido-enable-flex-matching
       ido-enable-dot-prefix
-      flx-ido-mode
       (minibuffer-electric-default-mode t)))
 
     ;; Suppress all messages during tests
@@ -585,109 +583,7 @@ also accept a quoted list for the sake of convenience."
                    (wsi-simulate-idle-time 5)
                    "RET")
                (command-execute 'Info-menu))))
-         :not :to-throw))
-
-      (describe "with flx-ido-mode"
-        (before-each
-          (flx-ido-mode 1)
-          (flx-ido-reset))
-
-        (it "should allow selection of dynamically-added completions"
-          (expect
-           (with-simulated-input "hello-w RET"
-             (ido-completing-read+ "Say something: " my-dynamic-collection))
-           :to-equal "hello-world")
-          (expect 'ido-cr+-update-dynamic-collection
-                  :to-have-been-called))
-
-        (it "should allow ido flex-matching of dynamically-added completions"
-          (expect
-           (with-simulated-input "hello-ld RET"
-             (ido-completing-read+ "Say something: " my-dynamic-collection))
-           :to-equal
-           "hello-world")
-          (expect 'ido-cr+-update-dynamic-collection
-                  :to-have-been-called))
-
-        (it "should do a dynamic update when pressing TAB"
-          (expect
-           (with-simulated-input "h TAB -ld RET"
-             (ido-completing-read+ "Say something: " my-dynamic-collection))
-           :to-equal
-           "hello-world")
-          (expect 'ido-cr+-update-dynamic-collection
-                  :to-have-been-called))
-
-        (it "should do a dynamic update when idle"
-          (expect
-           (with-simulated-input
-               '("h"
-                 (wsi-simulate-idle-time (1+ ido-cr+-dynamic-update-idle-time))
-                 "-ld RET")
-             (ido-completing-read+ "Say something: " my-dynamic-collection))
-           :to-equal
-           "hello-world")
-          (expect 'ido-cr+-update-dynamic-collection
-                  :to-have-been-called))
-
-        (it "should do a dynamic update when there is only one match remaining"
-          (expect
-           (with-simulated-input "hell-ld RET"
-             (ido-completing-read+ "Say something: " my-dynamic-collection))
-           :to-equal
-           "hello-world")
-          (expect 'ido-cr+-update-dynamic-collection
-                  :to-have-been-called))
-
-        (it "should not exit with a unique match if new matches are dynamically added"
-          (expect
-           (with-simulated-input '("hell TAB -ld RET")
-             (ido-completing-read+ "Say something: " my-dynamic-collection))
-           :to-equal
-           "hello-world")
-          (expect 'ido-cr+-update-dynamic-collection
-                  :to-have-been-called))
-
-        (it "should exit with a match that is still unique after dynamic updating"
-          (expect
-           (with-simulated-input '("helic TAB")
-             (ido-completing-read+ "Say something: " my-dynamic-collection))
-           :to-equal
-           "helicopter")
-          (expect 'ido-cr+-update-dynamic-collection
-                  :to-have-been-called))
-
-        (it "should respect `ido-restrict-to-matches' when doing dynamic updates"
-          (let ((collection
-                 (list "aaa-ddd-ggg" "aaa-eee-ggg" "aaa-fff-ggg"
-                       "bbb-ddd-ggg" "bbb-eee-ggg" "bbb-fff-ggg"
-                       "ccc-ddd-ggg" "ccc-eee-ggg" "ccc-fff-ggg"
-                       "aaa-ddd-hhh" "aaa-eee-hhh" "aaa-fff-hhh"
-                       "bbb-ddd-hhh" "bbb-eee-hhh" "bbb-fff-hhh"
-                       "ccc-ddd-hhh" "ccc-eee-hhh" "ccc-fff-hhh"
-                       "aaa-ddd-iii" "aaa-eee-iii" "aaa-fff-iii"
-                       "bbb-ddd-iii" "bbb-eee-iii" "bbb-fff-iii"
-                       "ccc-ddd-iii" "ccc-eee-iii" "ccc-fff-iii")))
-            ;; Test the internal function
-            (expect
-             (ido-cr+-apply-restrictions
-              collection
-              (list (cons nil "bbb")
-                    (cons nil "eee")))
-             :to-equal '("bbb-eee-ggg" "bbb-eee-hhh" "bbb-eee-iii"))
-
-            ;; First verify it without a dynamic collection
-            (expect
-             (with-simulated-input "eee C-SPC bbb C-SPC ggg RET"
-               (ido-completing-read+
-                "Pick: " collection nil t nil nil (car collection)))
-             :to-equal "bbb-eee-ggg")
-            ;; Now test the same with a dynamic collection
-            (expect
-             (with-simulated-input "eee C-SPC bbb C-SPC ggg RET"
-               (ido-completing-read+
-                "Pick: " (collection-as-function collection) nil t nil nil (car collection)))
-             :to-equal "bbb-eee-ggg")))))
+         :not :to-throw)))
 
     (describe "with unusual inputs"
       (it "should accept a COLLECTION of symbols"
