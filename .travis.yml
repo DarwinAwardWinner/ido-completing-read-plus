@@ -10,7 +10,8 @@ env:
     - EMACS_VERSION=emacs-25.2
     - EMACS_VERSION=emacs-25.3
     - EMACS_VERSION=emacs-26-pretest
-    - EMACS_VERSION=emacs-git-snapshot
+    # For some reason emac-git-snapshot hangs forever
+    # - EMACS_VERSION=emacs-git-snapshot
     - EMACS_VERSION=remacs-git-snapshot
 
 matrix:
