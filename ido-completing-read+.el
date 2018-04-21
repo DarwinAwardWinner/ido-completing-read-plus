@@ -206,13 +206,13 @@ generally be nil while running an idle timer.")
 
 These are used for falling back to `completing-read-default'.")
 
-(defvar ido-cr+-all-completions-memoized nil
+(defvar ido-cr+-all-completions-memoized 'all-completions
   "Memoized version of `all-completions'.
 
 During completion with dynamic collection, this variable is set
 to a memoized copy of `all-completions'.")
 
-(defvar ido-cr+-all-prefix-completions-memoized nil
+(defvar ido-cr+-all-prefix-completions-memoized 'ido-cr+-all-prefix-completions
   "Memoized version of `ido-cr+-all-prefix-completions'.
 
 During completion with dynamic collection, this variable is set
@@ -834,15 +834,15 @@ not a function, this is equivalent to
     (cl-loop
      for i from 0 upto (length string)
      append (funcall
-             (or ido-cr+-all-completions-memoized
-                 'all-completions)
+             ido-cr+-all-completions-memoized
              (s-left i string)
              collection
              predicate)
      into completion-list
      finally return (delete-dups completion-list)))
-   ;; Otherwise, just call `all-completions' on the empty string to
-   ;; get every possible completions for a static COLLECTION.
+   ;; If COLLECTION is not dynamic, then just call `all-completions'
+   ;; on the empty string, which will already return every possible
+   ;; completion.
    (t
     (all-completions "" collection predicate))))
 
@@ -892,7 +892,7 @@ result."
 This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
   (when (and (ido-cr+-active)
              ido-cr+-dynamic-collection)
-    (cl-assert (not (ido-cr+-cyclicp ido-cur-list)))
+    ;; (cl-assert (not (ido-cr+-cyclicp ido-cur-list)))
     (let ((orig-ido-cur-list ido-cur-list))
       (condition-case-unless-debug err
           (let* ((ido-text
@@ -918,8 +918,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
                    for string in strings-to-check
                    append
                    (funcall
-                    (or ido-cr+-all-prefix-completions-memoized
-                        'ido-cr+-all-prefix-completions)
+                    ido-cr+-all-prefix-completions-memoized
                     string ido-cr+-dynamic-collection predicate)
                    into result
                    finally return result)))
