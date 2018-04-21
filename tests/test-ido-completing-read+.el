@@ -1034,8 +1034,5 @@ also accept a quoted list for the sake of convenience."
            :to-equal "blue"))))))
 
 
-;; (defun ido-cr+-run-all-tests ()
-;;   (interactive)
-;;   (ert "^ido-cr\\+-"))
 
 ;;; test-ido-completing-read+.el ends here
