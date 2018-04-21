@@ -1031,8 +1031,30 @@ also accept a quoted list for the sake of convenience."
           (expect
            (with-simulated-input "RET"
              (ido-completing-read+ "Prompt: " 'def-nil-collection nil t))
-           :to-equal "blue"))))))
+           :to-equal "blue"))))
 
-
+    ;; Test is currently disabled pending additional information
+    (xit "should not hang or error when deleting characters in `org-refile' (issue #152)"
+      (expect
+       (progn
+         (ido-ubiquitous-mode 1)
+         (save-excursion
+           (with-temp-buffer
+             (org-mode)
+             (insert (s-trim "
+    * Heading 1
+    ** Subheading 1.1
+    ** Subheading 1.2
+    ** Subheading 1.3
+    * Heading 2
+    * Heading 3
+    "))
+             (goto-char (point-max))
+             ;; TODO Figure out what else needs to be set up to call
+             ;; `org-refile'
+             (with-simulated-input
+                 "Heading DEL DEL DEL DEL DEL RET"
+               (command-execute 'org-refile)))))
+       :not :to-throw))))
 
 ;;; test-ido-completing-read+.el ends here
