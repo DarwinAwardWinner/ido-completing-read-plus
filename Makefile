@@ -10,10 +10,13 @@ all: test
 # files. We run the tests first without loading flx-ido, and then with
 # it. We only send the coverage report when running the full test
 # suite.
-test:
-	cask clean-elc
-	UNDERCOVER_CONFIG='((:send-report nil))' cask exec buttercup -L . tests
+test: clean
+	cask exec buttercup -L . tests
+
+test-with-flx: clean
 	cask exec buttercup -L . tests tests-with-flx-ido
+
+all-tests: test test-with-flx
 
 compile: $(ELC_FILES)
 

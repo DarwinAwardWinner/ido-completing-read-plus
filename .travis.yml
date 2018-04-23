@@ -42,4 +42,6 @@ before_script:
 
 script:
   - make compile
-  - make test
+  # Don't send redundant coverage info
+  - UNDERCOVER_CONFIG='((:send-report nil))' make test
+  - make test-with-flx
