@@ -880,6 +880,19 @@ result."
    for hare on (cdr x) by #'cddr
    thereis (eq tortoise hare)))
 
+(defun ido-cr+-maybe-chop (items elem)
+  "Like `ido-chop', but a no-op if ELEM is not in ITEMS.
+
+Normal `ido-chop' hangs infinitely in this case."
+  (cl-loop
+   with new-tail = ()
+   for remaining on items
+   for next = (car remaining)
+   if (equal next elem)
+   return (nconc remaining new-tail)
+   else collect next into new-tail
+   finally return items))
+
 (defun ido-cr+-update-dynamic-collection ()
   "Update the set of completions for a dynamic collection.
 
