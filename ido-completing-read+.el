@@ -916,7 +916,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
                     string ido-cr+-dynamic-collection predicate)
                    into result
                    finally return result)))
-            (cl-assert (not (ido-cr+-cyclicp new-completions)))
+            ;; (cl-assert (not (ido-cr+-cyclicp new-completions)))
             ;; Put the previous first match back at the front if possible
             (when (and new-completions
                        first-match
