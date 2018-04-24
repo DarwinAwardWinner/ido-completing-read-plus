@@ -113,6 +113,17 @@ also accept a quoted list for the sake of convenience."
     (setq vars (eval vars)))
   `(mapc #'unshadow-var ',vars))
 
+(defmacro with-temp-info-buffer (&rest body)
+  "Create a temporary info buffer and exeluate BODY forms there."
+  (declare (indent 0))
+  `(let ((temp-bufname (generate-new-buffer-name " *temp-info*")))
+     (unwind-protect
+         (save-excursion
+           (info nil (generate-new-buffer-name " *temp-info*"))
+           ,@body)
+       (when (get-buffer temp-bufname)
+         (kill-buffer temp-bufname)))))
+
 (describe "Within the `ido-completing-read+' package"
 
   ;; Reset all of these variables to their standard values before each
@@ -563,27 +574,7 @@ also accept a quoted list for the sake of convenience."
            (with-simulated-input "eee C-SPC aaa C-u C-SPC ccc C-u C-SPC ggg RET"
              (ido-completing-read+
               "Pick: " (collection-as-function collection) nil t nil nil (car collection)))
-           :to-equal "bbb-eee-ggg")))
-
-      (it "should not hang or error when cycling matches in `Info-menu' (issue #151)"
-        (expect
-         (progn
-           (ido-ubiquitous-mode 1)
-           (save-excursion
-             (info)
-             (with-simulated-input
-                 '("emacs"
-                   (ido-next-match)
-                   (wsi-simulate-idle-time 5)
-                   (ido-next-match)
-                   (wsi-simulate-idle-time 5)
-                   (ido-next-match)
-                   (wsi-simulate-idle-time 5)
-                   (ido-next-match)
-                   (wsi-simulate-idle-time 5)
-                   "RET")
-               (command-execute 'Info-menu))))
-         :not :to-throw)))
+           :to-equal "bbb-eee-ggg"))))
 
     (describe "with unusual inputs"
       (it "should accept a COLLECTION of symbols"
@@ -951,6 +942,38 @@ also accept a quoted list for the sake of convenience."
              (with-simulated-input
                  "Heading DEL DEL DEL DEL DEL RET"
                (command-execute 'org-refile)))))
-       :not :to-throw))))
+       :not :to-throw)))
+
+  (describe "regressions should not occur for"
+    (it "issue #151: should not hang or error when cycling matches in `Info-menu'"
+      (expect
+       (progn
+         (ido-ubiquitous-mode 1)
+         (with-temp-info-buffer
+           (with-simulated-input
+               '("emacs"
+                 (ido-next-match)
+                 (wsi-simulate-idle-time 5)
+                 (ido-next-match)
+                 (wsi-simulate-idle-time 5)
+                 (ido-next-match)
+                 (wsi-simulate-idle-time 5)
+                 (ido-next-match)
+                 (wsi-simulate-idle-time 5)
+                 "RET")
+             (command-execute 'Info-menu))))
+       :not :to-throw))
+
+    (it "issue #153: should preserve the selected item when doing a deferred dynamic update"
+      (expect
+       (with-simulated-input
+           '("Emacs"
+             (ido-next-match)
+             (wsi-simulate-idle-time 5)
+             "RET")
+         (ido-completing-read+
+          "Choose: "
+          (collection-as-function '("Emacs" "Emacs A" "Emacs B" "Emacs C"))))
+       :to-equal "Emacs A"))))
 
 ;;; test-ido-completing-read+.el ends here
