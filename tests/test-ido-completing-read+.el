@@ -189,6 +189,23 @@ also accept a quoted list for the sake of convenience."
          (ido-completing-read+ "Prompt: " '("blue" "yellow" "green") nil t))
        :to-equal ""))
 
+    (it "should work with `minibuffer-electric-default-mode'"
+      (let ((eldef-was-showing nil))
+        ;; No REQUIRE-MATCH, so electric default should not show
+        (with-simulated-input
+            '("blu DEL DEL DEL"
+              (setq eldef-was-showing minibuf-eldef-showing-default-in-prompt)
+              "RET")
+          (ido-completing-read+ "Prompt (default green): " '("blue" "yellow" "green")))
+        (expect eldef-was-showing :not :to-be-truthy)
+        ;; With REQUIRE-MATCH, so electric default should show
+        (with-simulated-input
+            '("blu DEL DEL DEL"
+              (setq eldef-was-showing minibuf-eldef-showing-default-in-prompt)
+              "RET")
+          (ido-completing-read+ "Prompt (default green): " '("blue" "yellow" "green") nil t))
+        (expect eldef-was-showing :to-be-truthy)))
+
     (it "should accept all the same forms of DEF as `completing-read-default'"
       ;; DEF in COLLECTION
       (expect
