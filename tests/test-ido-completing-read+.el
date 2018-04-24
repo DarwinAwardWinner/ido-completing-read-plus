@@ -7,6 +7,20 @@
 (require 'cl-lib)
 (require 'with-simulated-input)
 
+;; Note: Currently unused, but potentially useful in the future
+(defun ido-cr+-maybe-chop (items elem)
+  "Like `ido-chop', but a no-op if ELEM is not in ITEMS.
+
+Normal `ido-chop' hangs infinitely in this case."
+  (cl-loop
+   with new-tail = ()
+   for remaining on items
+   for next = (car remaining)
+   if (equal next elem)
+   return (nconc remaining new-tail)
+   else collect next into new-tail
+   finally return items))
+
 (defun collection-as-function (collection)
   "Return a function equivalent to COLLECTION.
 
