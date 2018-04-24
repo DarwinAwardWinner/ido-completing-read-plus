@@ -88,7 +88,9 @@ not be updated until you restart Emacs.")
 (require 'cl-lib)
 (require 'cus-edit)
 (require 's)
-(require 'memoize)
+
+;; Optional dependency, only needed for optimization
+(require 'memoize nil t)
 
 ;; Silence some byte-compiler warnings
 (eval-when-compile
@@ -517,11 +519,11 @@ completion for them."
          (ido-cr+-last-dynamic-update-text nil)
          ;; Only memoize if the collection is dynamic.
          (ido-cr+-all-prefix-completions-memoized
-          (if ido-cr+-dynamic-collection
+          (if (and ido-cr+-dynamic-collection (featurep 'memoize))
               (memoize (indirect-function 'ido-cr+-all-prefix-completions))
             'ido-cr+-all-prefix-completions))
          (ido-cr+-all-completions-memoized
-          (if ido-cr+-dynamic-collection
+          (if (and ido-cr+-dynamic-collection (featurep 'memoize))
               (memoize (indirect-function 'all-completions))
             'all-completions))
          ;; If the whitelist is empty, everything is whitelisted
