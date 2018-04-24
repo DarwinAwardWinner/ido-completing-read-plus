@@ -14,7 +14,7 @@ test: clean
 	cask exec buttercup -L . tests
 
 test-with-flx: clean
-	cask exec buttercup -L . tests tests-with-flx-ido
+	cask exec buttercup -l tests/setup-undercover.el -L . tests tests-with-flx-ido
 
 all-tests: test test-with-flx
 

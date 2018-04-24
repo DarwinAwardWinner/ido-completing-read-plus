@@ -1,9 +1,5 @@
 ;;; -*- lexical-binding: t -*-
 
-(require 'undercover)
-(undercover "*.el"
-            (:exclude "test-*.el"))
-
 (require 'ido)
 (require 'minibuf-eldef)
 (require 'ido-completing-read+)
