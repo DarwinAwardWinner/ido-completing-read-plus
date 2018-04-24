@@ -1,3 +1,9 @@
+2018-04-24  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-cr+-update-dynamic-collection):
+	Prevent unintended re-sorting of the completion list after dynamic
+	updates.
+
 2018-04-21  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-cr+-update-dynamic-collection): Fix
