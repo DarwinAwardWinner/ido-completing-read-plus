@@ -1196,18 +1196,6 @@ blacklist was modified."
 
 (ido-cr+-maybe-update-blacklist)
 
-;; TODO: Remove this when it's no longer necessary for debugging
-(defun ido-chop@ido-cr+-prevent-infinite-loops (items elem)
-  "This advice checks for conditions that cause infinite loops in `ido-chop'.
-
-If any of these conditions is detected, it throws an error.
-Ideally this should not be necessary, but it helps with
-debugging."
-  (cl-assert (not (ido-cr+-cyclicp items)))
-  (cl-assert (member elem items)))
-(advice-add 'ido-chop :before
-            #'ido-chop@ido-cr+-prevent-infinite-loops)
-
 (provide 'ido-completing-read+)
 
 ;;; ido-completing-read+.el ends here
