@@ -6,7 +6,7 @@
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
 ;; Version: 4.11
-;; Package-Requires: ((emacs "24.4") (cl-lib "0.5") (s "0.1") (memoize "1.1"))
+;; Package-Requires: ((emacs "24.4") (cl-lib "0.5") (s "0.1") (memoize "1.1") (named-timer "0"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-completing-read-plus
 ;; Keywords: ido, completion, convenience
 
@@ -88,6 +88,7 @@ not be updated until you restart Emacs.")
 (require 'cl-lib)
 (require 'cus-edit)
 (require 's)
+(require 'named-timer)
 
 ;; Optional dependency, only needed for optimization
 (require 'memoize nil t)
@@ -189,9 +190,6 @@ dynamically.")
 
 (defvar ido-cr+-dynamic-update-idle-time 0.25
   "Time to wait before updating dynamic completion list.")
-
-(defvar ido-cr+-dynamic-update-timer nil
-  "Idle timer for updating dynamic completion list.")
 
 (defvar ido-cr+-exhibit-pending nil
   "This is non-nil after calling `ido-tidy' until the next call to `ido-exhibit'.
@@ -700,7 +698,6 @@ completion for them."
           ;; Finally ready to do actual ido completion
           (prog1
               (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth)))
-                    (ido-cr+-dynamic-update-timer nil)
                     (ido-cr+-exhibit-pending t)
                     ;; Reset this for recursive calls to ido-cr+
                     (ido-cr+-assume-static-collection nil))
@@ -709,9 +706,7 @@ completion for them."
                      prompt collection
                      predicate require-match initial-input hist def
                      inherit-input-method)
-                  (when ido-cr+-dynamic-update-timer
-                    (cancel-timer ido-cr+-dynamic-update-timer)
-                    (setq ido-cr+-dynamic-update-timer nil))))
+                  (named-timer-cancel :ido-cr+-dynamic-update)))
             ;; This detects when the user triggered fallback mode
             ;; manually.
             (when (eq ido-exit 'fallback)
@@ -974,27 +969,23 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
            ;; Prevent any further attempts at dynamic updating
            (setq ido-cr+-dynamic-collection nil))))))
   ;; Always cancel an active timer when this function is called.
-  (when ido-cr+-dynamic-update-timer
-    (cancel-timer ido-cr+-dynamic-update-timer)
-    (setq ido-cr+-dynamic-update-timer nil)))
+  (named-timer-cancel :ido-cr+-dynamic-update))
 
 (defun ido-cr+-schedule-dynamic-collection-update ()
   "Schedule a dynamic collection update for now or in the future."
   (when (and (ido-cr+-active)
              ido-cr+-dynamic-collection)
     ;; Cancel the previous timer
-    (when ido-cr+-dynamic-update-timer
-      (cancel-timer ido-cr+-dynamic-update-timer)
-      (setq ido-cr+-dynamic-update-timer nil))
+    (named-timer-cancel :ido-cr+-dynamic-update)
     (cl-assert (not (ido-cr+-cyclicp ido-cur-list)))
     (if (<= (length ido-matches) 1)
         ;; If we've narrowed it down to zero or one matches, update
         ;; immediately.
         (ido-cr+-update-dynamic-collection)
       ;; If there are still several choices, defer update until idle
-      (setq ido-cr+-dynamic-update-timer
-            (run-with-idle-timer (max 0.01 ido-cr+-dynamic-update-idle-time) nil
-                                 #'ido-cr+-update-dynamic-collection)))))
+      (named-timer-idle-run :ido-cr+-dynamic-update
+        (max 0.01 ido-cr+-dynamic-update-idle-time) nil
+        #'ido-cr+-update-dynamic-collection))))
 
 (defun ido-cr+-minibuffer-setup ()
   "set up minibuffer `post-command-hook' for ido-cr+ "

@@ -5,6 +5,9 @@
 
 (depends-on "s")
 (depends-on "memoize" "1.1")
+(depends-on "named-timer"
+            :git "https://github.com/DarwinAwardWinner/emacs-named-timer"
+            :files ("*.el"))
 
 (development
  (depends-on "flx-ido")
