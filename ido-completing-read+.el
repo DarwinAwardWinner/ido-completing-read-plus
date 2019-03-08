@@ -296,7 +296,11 @@ disable fallback based on collection size, set this to nil."
     ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/44
     tmm-prompt
     ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/156
-    org-tags-completion-function)
+    org-tags-completion-function
+    ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/159
+    ffap-read-file-or-url
+    ffap-read-file-or-url-internal
+    )
   "Functions & commands for which ido-cr+ should be disabled.
 
 Each entry can be either a symbol or a string. A symbol means to
