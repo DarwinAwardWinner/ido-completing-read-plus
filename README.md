@@ -163,7 +163,7 @@ differed in their handling of RET on an empty input. Now there is only
 one mode, and the no-default case is handled by acting as if the empty
 string was specified as the default, which more closely matches the
 behavior of standard emacs completion. Since you, the user, have no
-way of knowing how `completing-read' was called, you can tell when
+way of knowing how `completing-read` was called, you can tell when
 this is occurring by watching for the appearance of an empty
 completion at the front of the list. Compare:
 
