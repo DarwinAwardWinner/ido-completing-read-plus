@@ -10,8 +10,7 @@ env:
     - EMACS_VERSION=emacs-25.2
     - EMACS_VERSION=emacs-25.3
     - EMACS_VERSION=emacs-26.1
-    # For some reason emac-git-snapshot hangs forever
-    # - EMACS_VERSION=emacs-git-snapshot
+    - EMACS_VERSION=emacs-git-snapshot
     - EMACS_VERSION=remacs-git-snapshot
 
 matrix:
@@ -43,4 +42,5 @@ script:
   - make compile
   # Don't send redundant coverage info
   - UNDERCOVER_CONFIG='((:send-report nil))' make test
-  - make test-with-flx
+  # For some reason emacs-git-snapshot hangs forever on this step
+  - if [ "$EMACS_VERSION" != emacs-git-snapshot ]; then make test-with-flx; fi
