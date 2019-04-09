@@ -1183,7 +1183,7 @@ blacklist was modified."
              (new-entries (cl-set-difference defval curval :test #'equal)))
         (if new-entries
             (if (eq ido-cr+-auto-update-blacklist 'notify)
-                (display-warning 'ido-completing-read+ "There are %s new blacklist entries available. Use `M-x ido-cr+-update-blacklist' to install them. (See `ido-cr+-auto-update-blacklist' for more information.)")
+                (display-warning 'ido-completing-read+ "There are %s new blacklist entries available. Use `M-x ido-cr+-update-blacklist' to install them. (See `ido-cr+-auto-update-blacklist' for more information.)" (length new-entries))
               (ido-cr+--debug-message "Initiating blacklist update.")
               (ido-cr+-update-blacklist t))
           (ido-cr+--debug-message "No blacklist updates available.")))
