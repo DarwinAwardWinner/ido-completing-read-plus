@@ -300,6 +300,8 @@ disable fallback based on collection size, set this to nil."
     ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/159
     ffap-read-file-or-url
     ffap-read-file-or-url-internal
+    ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/161
+    sly-read-symbol-name
     )
   "Functions & commands for which ido-cr+ should be disabled.
 
