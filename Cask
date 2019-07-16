@@ -10,4 +10,5 @@
  (depends-on "flx-ido")
  (depends-on "with-simulated-input" "2.2")
  (depends-on "buttercup" "1.9")
- (depends-on "undercover"))
+ (depends-on "undercover")
+ (depends-on "elsa"))
