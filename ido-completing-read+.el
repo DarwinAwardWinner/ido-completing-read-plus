@@ -695,10 +695,10 @@ completion for them."
             (signal 'ido-cr+-fallback
                     '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
 
-          ;; Fix ido handling of cons-style INITIAL-INPUT. TODO add a
-          ;; version check after this bug is fixed:
-          ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27807
-          (when (consp initial-input)
+          ;; Fix ido's broken handling of cons-style INITIAL-INPUT on
+          ;; Emacsen older than 27.1.
+          (when (and (consp initial-input)
+                     (version< emacs-version "27.1"))
             ;; `completing-read' uses 0-based index while
             ;; `read-from-minibuffer' uses 1-based index.
             (cl-incf (cdr initial-input)))
