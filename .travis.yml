@@ -2,8 +2,6 @@ language: nix
 
 env:
   matrix:
-    - EMACS_CI=emacs-24-4
-    - EMACS_CI=emacs-24-5
     - EMACS_CI=emacs-25-1
     - EMACS_CI=emacs-25-2
     - EMACS_CI=emacs-25-3
