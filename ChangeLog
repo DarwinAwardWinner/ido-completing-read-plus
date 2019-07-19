@@ -1,3 +1,8 @@
+2019-07-18  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-completing-read+): Disable
+	workaround for Emacs bug #27807 in Emacs 27.1 and higher
+
 2018-06-27  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-cr+-function-blacklist): Disable
