@@ -2,6 +2,7 @@
 (source melpa)
 
 (package-file "ido-completing-read+.el")
+(files "ido-completing-read+.el" "ido-ubiquitous.el")
 
 (depends-on "memoize" "1.1")
 
