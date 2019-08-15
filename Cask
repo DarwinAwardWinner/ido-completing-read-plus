@@ -3,7 +3,6 @@
 
 (package-file "ido-completing-read+.el")
 
-(depends-on "s")
 (depends-on "memoize" "1.1")
 
 (development

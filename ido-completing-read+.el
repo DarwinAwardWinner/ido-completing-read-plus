@@ -87,7 +87,6 @@ not be updated until you restart Emacs.")
 (require 'minibuf-eldef)
 (require 'cl-lib)
 (require 'cus-edit)
-(require 's)
 
 ;; Optional dependency, only needed for optimization
 (require 'memoize nil t)
@@ -844,7 +843,7 @@ not a function, this is equivalent to
      for i from 0 upto (length string)
      append (funcall
              ido-cr+-all-completions-memoized
-             (s-left i string)
+             (substring string 0 i)
              collection
              predicate)
      into completion-list
@@ -909,7 +908,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
       ;; If current `ido-text' is equal to or a prefix of the previous
       ;; one, a dynamic update is not needed.
       (when (or (null ido-cr+-last-dynamic-update-text)
-                (not (s-prefix? ido-text ido-cr+-last-dynamic-update-text)))
+                (not (string-prefix-p ido-text ido-cr+-last-dynamic-update-text)))
         (ido-cr+--debug-message "Doing a dynamic update because `ido-text' changed from %S to %S"
                                 ido-cr+-last-dynamic-update-text ido-text)
         (setq ido-cr+-last-dynamic-update-text ido-text)
@@ -924,7 +923,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
                      ;; If `ido-text' is a prefix of `first-match', then we
                      ;; only need to check `first-match'
                      ((and first-match
-                           (s-prefix? ido-text first-match))
+                           (string-prefix-p ido-text first-match))
                       (list first-match))
                      ;; Otherwise we need to check both
                      (t
