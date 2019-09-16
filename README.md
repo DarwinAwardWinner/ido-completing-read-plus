@@ -56,23 +56,18 @@ and then turn on `ido-ubiquitous-mode`:
 (require 'ido-completing-read+)
 (ido-ubiquitous-mode 1)
 ```
-## Smex ##
 
-Smex allows you to use ido for completion of commands in M-x, with
-enhancements like putting your most-used commands at the front of the
-list. First install the [smex](https://github.com/nonsequitur/smex)
-package, then follow the directions to load it and replace your normal
-M-x key-binding with smex:
+## Amx ##
+
+Amx, another of my packages, allows you to use alternate completion
+systems like ido for commands in M-x, with enhancements like putting
+your most-used commands at the front of the list. First install
+[amx](https://melpa.org/#/amx) from MELPA, then turn on `amx-mode`:
+
 ```elisp
-(require 'smex) ; Not needed if you use package.el
-(smex-initialize) ; Can be omitted. This might cause a (minimal) delay
-                  ; when Smex is auto-initialized on its first run.
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
-;; This is your old M-x.
-(global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+(require 'amx)
+(amx-mode 1)
 ```
-(These directions are the same ones given in the smex README file.)
 
 ## ido-yes-or-no ##
 
