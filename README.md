@@ -44,14 +44,17 @@ that.)
 ## Ido itself ##
 
 First, enable `ido-mode` and `ido-everywhere`.
+
 ```elisp
 (ido-mode 1)
 (ido-everywhere 1)
 ```
+
 ## ido-completing-read+ (this package) ##
 
-Install this package [from MELPA](http://melpa.org/#/ido-completing-read+)
+Install this package [from MELPA](https://melpa.org/#/ido-completing-read+)
 and then turn on `ido-ubiquitous-mode`:
+
 ```elisp
 (require 'ido-completing-read+)
 (ido-ubiquitous-mode 1)
@@ -73,10 +76,12 @@ your most-used commands at the front of the list. First install
 
 If you want to use ido for yes-or-no questions, even though it's
 massive overkill, install my [ido-yes-or-no package from MELPA](http://melpa.org/#/ido-yes-or-no), and then enable the mode:
+
 ```elisp
 (require 'ido-yes-or-no)
 (ido-yes-or-no-mode 1)
 ```
+
 ## ido for `describe-face` and certain other commands ##
 
 Some commands, such as `describe-face`, use `completing-read-multiple`
@@ -87,10 +92,12 @@ which would then use ido thanks to ido-ubiquitous-mode. First, install
 the [crm-custom](https://github.com/DarwinAwardWinner/crm-custom)
 package [from MELPA](http://melpa.org/#/crm-custom), then enable the
 mode:
+
 ```elisp
 (require 'crm-custom)
 (crm-custom-mode 1)
 ```
+
 Make sure to read and understand the FAQ entry below about the empty
 entry at the beginning of the completion list before using this mode,
 or using it will likely be very confusing.
@@ -112,10 +119,12 @@ For any case where ido cannot be used, there is another older mode
 called `icomplete-mode` that integrates with standard emacs completion
 and adds some ido-like behavior. It is built in to emacs, so no
 installation is necessary. Just load the file and enable the mode:
+
 ```elisp
 (require 'icomplete)
 (icomplete-mode 1)
 ```
+
 # Frequently asked questions #
 
 ## How does ido-ubiquitous-mode decide when to replace `completing-read`? <br/> Why don't some commands use ido completion? ##
@@ -133,7 +142,7 @@ ido-incompatible features are being used or not, so
 ido-completing-read+ also comes with a blacklist of functions that are
 known not to work with ido. You can inspect this blacklist using
 
-    `M-x describe-variable ido-cr+-function-blacklist`
+    M-x describe-variable ido-cr+-function-blacklist
 
 If you want to know why a certain command isn't getting ido
 completion, you can enable `ido-cr+-debug-mode` and then run the
