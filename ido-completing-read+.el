@@ -106,6 +106,7 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-completing-read-plus)
 
+;; (ido-cr+--debug-message :: String -> Mixed... -> String)
 (defsubst ido-cr+--debug-message (format-string &rest args)
   (when ido-cr+-debug-mode
     (apply #'message (concat "ido-completing-read+: " format-string) args)))
@@ -138,15 +139,24 @@ package's variable is not safe in general, but in this case it
 should be, because ido always let-binds this variable before
 using it, so the initial value shouldn't matter.")))
 
+;; (ido-context-switch-command :: Command)
 (define-ido-internal-var ido-context-switch-command)
+;; (ido-cur-list :: List String)
 (define-ido-internal-var ido-cur-list)
+;; (ido-cur-item :: Symbol)
 (define-ido-internal-var ido-cur-item)
+;; (ido-require-match :: Bool)
 (define-ido-internal-var ido-require-match)
+;; (ido-process-ignore-lists :: Bool)
 (define-ido-internal-var ido-process-ignore-lists)
 
 ;; Vars and functions from flx-ido package
+;; (flx-ido-mode :: Bool)
 (defvar flx-ido-mode)
 (declare-function flx-ido-reset "ext:flx-ido.el")
+
+;; (minibuf-eldef-showing-default-in-prompt :: Bool)
+(defvar minibuf-eldef-showing-default-in-prompt)
 
 ;;;###autoload
 (defvar ido-cr+-minibuffer-depth -1
@@ -233,6 +243,7 @@ pattern used to restrict.")
   "Extra features and compatibility for `ido-completing-read'."
   :group 'ido)
 
+;; (ido-cr+-fallback-function :: Symbol)
 (defcustom ido-cr+-fallback-function
   ;; Initialize to the current value of `completing-read-function',
   ;; unless that is already set to the ido completer, in which case
@@ -410,11 +421,13 @@ https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues"
   ;; This function accepts a string, or an ido-cr+-fallback
   ;; signal.
   (when ido-cr+-debug-mode
-    (when (and (listp arg)
-               (eq (car arg) 'ido-cr+-fallback))
-      (setq arg (cadr arg)))
-    (ido-cr+--debug-message "Falling back to `%s' because %s."
-                            ido-cr+-fallback-function arg)))
+    (let ((reason
+           (if (and (listp arg)
+                    (eq (car arg) 'ido-cr+-fallback))
+               (cadr arg)
+             arg)))
+      (ido-cr+--debug-message "Falling back to `%s' because %s."
+                              ido-cr+-fallback-function reason))))
 
 ;;;###autoload
 (defsubst ido-cr+-active ()
