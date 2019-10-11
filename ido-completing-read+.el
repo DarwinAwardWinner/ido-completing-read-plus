@@ -954,9 +954,9 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
               (if (equal new-completions ido-cur-list)
                   (ido-cr+--debug-message "Skipping dynamic update because the completion list did not change.")
                 (when (and (bound-and-true-p flx-ido-mode)
-                           (functionp 'flx-ido-reset))
+                           (functionp #'flx-ido-reset))
                   ;; Reset flx-ido since the set of completions has changed
-                  (funcall 'flx-ido-reset))
+                  (funcall #'flx-ido-reset))
                 (setq ido-cur-list (delete-dups (append ido-cur-list new-completions)))
                 (when ido-cr+-active-restrictions
                   (setq ido-cur-list (ido-cr+-apply-restrictions
