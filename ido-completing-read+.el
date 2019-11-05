@@ -281,6 +281,7 @@ disable fallback based on collection size, set this to nil."
 (defcustom ido-cr+-function-blacklist
   '(read-file-name-internal
     read-buffer
+    internal-complete-buffer
     ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/60
     todo-add-category
     ;; Gnus already supports ido on its own
