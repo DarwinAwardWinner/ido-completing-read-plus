@@ -11,3 +11,6 @@
 (eldev-add-extra-dependencies 'test 'flx-ido)
 (eldev-add-extra-dependencies 'test 'with-simulated-input)
 (eldev-add-extra-dependencies 'test 'undercover)
+
+;; Tell checkdoc not to demand two spaces after a period.
+(setq sentence-end-double-space nil)
