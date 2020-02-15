@@ -1,0 +1,13 @@
+;; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
+
+(eldev-use-package-archive 'gnu)
+(eldev-use-package-archive 'melpa-stable)
+
+(setq eldev-project-main-file "ido-completing-read+.el")
+(setq eldev-main-fileset '("ido-completing-read+.el" "ido-ubiquitous.el"))
+
+(setq eldev-test-framework 'buttercup)
+
+(eldev-add-extra-dependencies 'test 'flx-ido)
+(eldev-add-extra-dependencies 'test 'with-simulated-input)
+(eldev-add-extra-dependencies 'test 'undercover)

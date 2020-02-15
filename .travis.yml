@@ -10,7 +10,7 @@ env:
     - EMACS_CI=emacs-26-1
     - EMACS_CI=emacs-26-2
     - EMACS_CI=emacs-26-3
-    - EMACS_CI=emacs-snapshot
+    # - EMACS_CI=emacs-snapshot
 
 matrix:
   allow_failures:
@@ -24,24 +24,13 @@ before_script:
     travis-wait-enhanced --version
   # Install nix-emacs-ci
   - bash <(curl https://raw.githubusercontent.com/purcell/nix-emacs-ci/master/travis-install)
-  # Install cask
-  - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
-  - export PATH="$HOME/.cask/bin:$PATH"
-  # Fix cask (See https://github.com/cask/cask/issues/399#issuecomment-331640427)
-  - perl -ibak -lape 's{#!/usr/bin/env python}{#!/usr/bin/python}' "$(which cask)"
-  # Check that cask is finding the right emacs
-  - cask emacs --version
-  # Use version-specific Cask file if it exists
-  - if [ -e "Cask-$EMACS_CI" ]; then cp "Cask-$EMACS_CI" "Cask"; fi
+  # Install Eldev
+  - curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/travis-eldev > x.sh && source ./x.sh
   # Install elisp dependencies
-  - cask install
+  - eldev prepare test
 
 script:
-  - travis-wait-enhanced --timeout=3m -- make compile
-  # Don't send redundant coverage info
-  - UNDERCOVER_CONFIG='((:send-report nil))' travis-wait-enhanced --timeout=3m -- make test
-  # For some reason emacs-git-snapshot hangs forever on this step
-  - |
-    if [ "$EMACS_CI" != emacs-snapshot ]; then
-      travis-wait-enhanced --timeout=3m -- make test-with-flx;
-    fi
+  # Run flx-ido tests in source mode for undercover's benefit
+  - travis-wait-enhanced --timeout=3m -- eldev -s -dtT -S '(load-file "Eldev-flx-ido")' test
+  # Packaged mode, don't run undercover or flx-ido
+  - travis-wait-enhanced --timeout=3m -- eldev -p -dtT test
