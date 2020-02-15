@@ -84,6 +84,7 @@ Note that when you update ido-completing-read+, this variable may
 not be updated until you restart Emacs.")
 
 (require 'ido)
+(require 'seq)
 (require 'minibuf-eldef)
 (require 'cl-lib)
 (require 'cus-edit)
