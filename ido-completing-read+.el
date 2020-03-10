@@ -234,6 +234,26 @@ Each element is a cons cell of (REMOVEP . TEXT), where REMOVEP is
 the prefix argument to `ido-restrict-to-matches' and TEXT is the
 pattern used to restrict.")
 
+(defvar ido-cr+-need-bug27807-workaround
+  (cl-letf*
+      ((ido-trace-enable t)
+       (ido-exit ido-exit)
+       ((symbol-function 'read-from-minibuffer)
+        (lambda (prompt &optional initial-contents &rest remaining-args)
+          (setq ido-exit 'takeprompt) ; Emulate pressing C-j in ido
+          (if (consp initial-contents)
+              (substring (car initial-contents) 0 (1- (cdr initial-contents)))
+            initial-contents)))
+       (input-before-point
+        (ido-completing-read "Pick: " '("aaa" "aab" "aac") nil nil '("aa" . 1))))
+    ;; If an initial position of 1 yields a 0-length string, then this
+    ;; Emacs does not have the bug fix and requires the workaround.
+    (= (length input-before-point) 0))
+  "If non-nil enable the workaround for Emacs bug #27807.
+
+This variable is normally set when ido-cr+ is loaded, and should
+not need to be modified by users.")
+
 (defgroup ido-completing-read-plus nil
   "Extra features and compatibility for `ido-completing-read'."
   :group 'ido)
@@ -707,9 +727,9 @@ See `completing-read' for the meaning of the arguments."
                     '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
 
           ;; Fix ido's broken handling of cons-style INITIAL-INPUT on
-          ;; Emacsen older than 27.
+          ;; Emacsen older than 27. See Emacs bug #27807.
           (when (and (consp initial-input)
-                     (< emacs-major-version 27))
+                     ido-cr+-need-bug27807-workaround)
             ;; `completing-read' uses 0-based index while
             ;; `read-from-minibuffer' uses 1-based index.
             (cl-incf (cdr initial-input)))
