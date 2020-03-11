@@ -237,25 +237,24 @@ pattern used to restrict.")
 
 (defvar ido-cr+-need-bug27807-workaround
   (cl-letf*
-      ((ido-trace-enable t)
-       (ido-exit ido-exit)
+      ((ido-exit ido-exit)
        ((symbol-function 'read-from-minibuffer)
         (lambda (_prompt &optional initial-contents &rest _remaining-args)
           (setq ido-exit 'takeprompt) ; Emulate pressing C-j in ido
           (if (consp initial-contents)
               (substring (car initial-contents) 0 (1- (cdr initial-contents)))
             initial-contents)))
+       ;; Need to get the unadvised original of `ido-completing-read'
+       ;; because the advice is autoloaded, so calling it while
+       ;; loading the package will trigger a recursive load.
+       ((symbol-function 'ido-completing-read)
+        (advice--cd*r (symbol-function 'ido-completing-read)))
        (input-before-point
-        ;; Need to get the unadvised original of `ido-completing-read'
-        ;; because the advice is autoloaded, so calling it will
-        ;; trigger a recursive load of ido-cr+.
-        (funcall
-         (advice--cd*r (symbol-function 'ido-completing-read))
-         "Pick: " '("aaa" "aab" "aac") nil nil '("aa" . 1))))
+        (ido-completing-read "Pick: " '("aaa" "aab" "aac") nil nil '("aa" . 1))))
     ;; If an initial position of 1 yields a 0-length string, then this
     ;; Emacs does not have the bug fix and requires the workaround.
     (= (length input-before-point) 0))
-  "If non-nil enable the workaround for Emacs bug #27807.
+  "If non-nil, enable the workaround for Emacs bug #27807.
 
 This variable is normally set when ido-cr+ is loaded, and should
 not need to be modified by users.")
