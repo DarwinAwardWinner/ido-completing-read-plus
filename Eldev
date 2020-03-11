@@ -1,7 +1,7 @@
 ;; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
 
 (eldev-use-package-archive 'gnu)
-(eldev-use-package-archive 'melpa-stable)
+(eldev-use-package-archive 'melpa-unstable)
 
 (setq eldev-project-main-file "ido-completing-read+.el")
 (setq eldev-main-fileset '("ido-completing-read+.el" "ido-ubiquitous.el"))
@@ -10,6 +10,7 @@
 
 (eldev-add-extra-dependencies 'test 'flx-ido)
 (eldev-add-extra-dependencies 'test 'with-simulated-input)
+(eldev-add-extra-dependencies 'test 's)
 (when (version< emacs-version "27")
   (eldev-add-extra-dependencies 'test 'undercover))
 

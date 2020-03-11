@@ -6,6 +6,7 @@
 (require 'buttercup)
 (require 'cl-lib)
 (require 'with-simulated-input)
+(require 's)
 
 ;; Note: Currently unused, but potentially useful in the future
 (defun ido-cr+-maybe-chop (items elem)
