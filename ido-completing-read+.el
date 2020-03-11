@@ -83,6 +83,7 @@
 Note that when you update ido-completing-read+, this variable may
 not be updated until you restart Emacs.")
 
+(require 'nadvice)
 (require 'ido)
 (require 'seq)
 (require 'minibuf-eldef)
@@ -239,13 +240,18 @@ pattern used to restrict.")
       ((ido-trace-enable t)
        (ido-exit ido-exit)
        ((symbol-function 'read-from-minibuffer)
-        (lambda (prompt &optional initial-contents &rest remaining-args)
+        (lambda (_prompt &optional initial-contents &rest _remaining-args)
           (setq ido-exit 'takeprompt) ; Emulate pressing C-j in ido
           (if (consp initial-contents)
               (substring (car initial-contents) 0 (1- (cdr initial-contents)))
             initial-contents)))
        (input-before-point
-        (ido-completing-read "Pick: " '("aaa" "aab" "aac") nil nil '("aa" . 1))))
+        ;; Need to get the unadvised original of `ido-completing-read'
+        ;; because the advice is autoloaded, so calling it will
+        ;; trigger a recursive load of ido-cr+.
+        (funcall
+         (advice--cd*r (symbol-function 'ido-completing-read))
+         "Pick: " '("aaa" "aab" "aac") nil nil '("aa" . 1))))
     ;; If an initial position of 1 yields a 0-length string, then this
     ;; Emacs does not have the bug fix and requires the workaround.
     (= (length input-before-point) 0))
