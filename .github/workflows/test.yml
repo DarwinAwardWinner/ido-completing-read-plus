@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emacs_version:
+          - 27.1
+          - 26.3
+          - 26.2
+          - 26.1
+          - 25.3
+          - 25.2
+          - 25.1
+          - 24.5
+          - 24.4
+          - snapshot
+    env:
+      # We only generate a coverage report for one Emacs version
+      # (generally the latest release version) in order to avoid
+      # duplicate reports.
+      coveralls_emacs_version: 27.1
+    steps:
+    - name: Set up Emacs
+      uses: purcell/setup-emacs@master
+      with:
+        version: ${{matrix.emacs_version}}
+
+    - name: Install Eldev
+      run: curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev | sh
+
+    - name: Check out the source code
+      uses: actions/checkout@v2
+
+    - name: Install Elisp dependencies
+      run: eldev prepare test
+
+    - name: Run the test suite
+      run: |
+        eldev -p -dtT test
+
+    - name: Run the test suite in source mode (for undercover)
+      if: ${{ matrix.emacs_version == env.coveralls_emacs_version }}
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      run: |
+        eldev -s -dtT test
