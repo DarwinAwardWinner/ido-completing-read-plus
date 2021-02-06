@@ -3,7 +3,7 @@
 ;; Copyright (C) 2011-2017 Ryan C. Thompson
 
 ;; Filename: ido-completing-read+.el
-;; Author: Ryan Thompson
+;; Author: Ryan C. Thompson <rct@thompsonclan.org>
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
 ;; Version: 4.13
 ;; Package-Requires: ((emacs "24.4") (seq "0.5") (cl-lib "0.5") (memoize "1.1"))
