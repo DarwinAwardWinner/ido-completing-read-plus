@@ -1,3 +1,9 @@
+2021-02-06  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-cr+-function-blacklist): Disable
+	ido completion in org-olpath-completing-read
+	* ido-completing-read+.el: General bug fixes
+
 2019-07-18  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-completing-read+): Disable
