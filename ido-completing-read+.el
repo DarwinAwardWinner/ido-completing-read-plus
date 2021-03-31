@@ -5,7 +5,7 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan C. Thompson <rct@thompsonclan.org>
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 4.13
+;; Version: 4.14
 ;; Package-Requires: ((emacs "24.4") (seq "0.5") (cl-lib "0.5") (memoize "1.1"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-completing-read-plus
 ;; Keywords: ido, completion, convenience
@@ -48,7 +48,7 @@
 ;; this mode is enabled. Some other functions have ido disabled in
 ;; them because their packages already provide support for ido via
 ;; other means (for example, magit). See `M-x describe-variable
-;; ido-cr+-function-blacklist' for more information.
+;; ido-cr+-disable-list' for more information.
 
 ;; ido-completing-read+ version 4.0 is a major update. The formerly
 ;; separate package ido-ubiquitous has been subsumed into
@@ -77,7 +77,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-completing-read+-version "4.13"
+(defconst ido-completing-read+-version "4.14"
   "Currently running version of ido-completing-read+.
 
 Note that when you update ido-completing-read+, this variable may
@@ -307,7 +307,7 @@ disable fallback based on collection size, set this to nil."
                         widget)))))
   :group 'ido-completing-read-plus)
 
-(defcustom ido-cr+-function-blacklist
+(defcustom ido-cr+-disable-list
   '(read-file-name-internal
     read-buffer
     internal-complete-buffer
@@ -341,10 +341,10 @@ fall back specifically for the named function. A regular
 expression means to fall back for any function whose name matches
 that regular expression. When ido-cr+ is called through
 `completing-read', if any function in the call stack of the
-current command matches any of the blacklist entries, ido-cr+
+current command matches any of the disable list entries, ido-cr+
 will be disabled for that command. Additionally, if the
-collection in the call to `completing-read' matches any of the
-blacklist entries, ido-cr+ will be disabled.
+collection in the call to `completing-read' is a function name
+that matches any of the entries, ido-cr+ will be disabled.
 
 Note that using specific function names is generally preferable
 to regular expressions, because the associated function
@@ -355,22 +355,32 @@ regular expressions, only name-based matching is possible."
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
 
-(defcustom ido-cr+-function-whitelist
+(define-obsolete-variable-alias
+  'ido-cr+-function-blacklist
+  'ido-cr+-disable-list
+  "ido-completing-read+ 4.14")
+
+(defcustom ido-cr+-allow-list
   nil
-  "Functions & commands for which ido-cr+ should be enabled.
+  "If non-nil, limit ido-cr+ only to the specified commands & functions.
 
-If this variable is nil, the whitelist will not be used, and
-ido-cr+ will be allowed in all functions/commands not listed in
-`ido-cr+-function-backlist'.
+If this variable is nil, the ido-cr+ will be enabled for all
+commands and functions not specified in all commands/functions
+not specified in `ido-cr+-function-backlist'.
 
-If this variable is non-nil, ido-cr+'s whitelisting mode will be
+If this variable is non-nil, ido-cr+'s limited mode will be
 enabled, and ido-cr+ will be disabled for *all* functions unless
-they match one of the entries. Matching is done in the same
-manner as `ido-cr+-function-blacklist', and blacklisting takes
-precedence over whitelisting."
+they match one of the entries in this variable. Matching is done
+in the same manner as `ido-cr+-disable-list', and the disable
+list also takes precedence over the allow list."
   :group 'ido-completing-read-plus
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
+
+(define-obsolete-variable-alias
+  'ido-cr+-function-whitelist
+  'ido-cr+-allow-list
+  "ido-completing-read+ 4.14")
 
 (defcustom ido-cr+-nil-def-alternate-behavior-list
   '("\\`describe-\\(function\\|variable\\)\\'"
@@ -394,16 +404,16 @@ precedence over whitelisting."
     )
   "Functions & commands with alternate behavior when DEF is nil.
 
-This variable has the same format as
-`ido-cr+-function-blacklist'. When `ido-completing-read+` is
-called through `completing-read' by/with any command, function,
-or collection matched by entries in this list, it will behave
-differently when DEF is nil. Instead of using the empty string as
-the default value, it will use the first element of COLLECTION.
+This variable has the same format as `ido-cr+-disable-list'. When
+`ido-completing-read+` is called through `completing-read'
+by/with any command, function, or collection matched by entries
+in this list, it will behave differently when DEF is nil. Instead
+of using the empty string as the default value, it will use the
+first element of COLLECTION.
 
 This is needed for optimal compatibility with commands written
-under the assumption that REQUIRE-MATCH means that a match is
-required."
+under the reasonable but wrong assumption that REQUIRE-MATCH
+means that a match is required."
   :group 'ido-completing-read-plus
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
@@ -446,8 +456,12 @@ case, the DATA part of the signal is used as the message."
     (when (and (listp arg)
                (eq (car arg) 'ido-cr+-fallback))
       (setq arg (cadr arg)))
-    (ido-cr+--debug-message "Falling back to `%s' because %s."
-                            ido-cr+-fallback-function arg)))
+    (ido-cr+--debug-message
+     "Falling back to `%s' because %s."
+     (if (symbolp ido-cr+-fallback-function)
+         ido-cr+-fallback-function
+       "ido-cr+-fallback-function")
+     arg)))
 
 ;;;###autoload
 (defsubst ido-cr+-active ()
@@ -462,9 +476,9 @@ case, the DATA part of the signal is used as the message."
 (defmacro ido-cr+-function-is-in-list (fun fun-list &optional list-name)
   "Return non-nil if FUN matches an entry in FUN-LIST.
 
-This is used to check for matches to `ido-cr+-function-blacklist'
-and `ido-cr+-function-whitelist'. Read those docstrings to see
-how the matching is done.
+This is used to check for matches to `ido-cr+-disable-list' and
+`ido-cr+-allow-list'. Read those docstrings to see how
+the matching is done.
 
 This is declared as macro only in order to extract the variable
 name used for the second argument so it can be used in a debug
@@ -496,26 +510,36 @@ information manually if it is known."
         ((stringp entry)
          (and (symbolp ,fun)
               (string-match-p entry (symbol-name ,fun))))
-        ;; Anything else: invalid blacklist entry
+        ;; Anything else: invalid list entry
         (t
          (ido-cr+--debug-message "Ignoring invalid entry in %s: `%S'" ,list-name entry)
          nil))
     return entry
-    ;; If no blacklist entry matches, return nil
+    ;; If no list entry matches, return nil
     finally return nil))
 
-(defun ido-cr+-function-is-blacklisted (fun)
-  "Return non-nil if FUN is blacklisted.
+(defsubst ido-cr+-disabled-in-function-p (fun)
+  "Return non-nil if ido-cr+ is disabled for FUN.
 
-See `ido-cr+-function-blacklist'."
-  (ido-cr+-function-is-in-list fun ido-cr+-function-blacklist))
+See `ido-cr+-disable-list'."
+  (ido-cr+-function-is-in-list fun ido-cr+-disable-list))
 
-(defun ido-cr+-function-is-whitelisted (fun)
-  "Return non-nil if FUN is whitelisted.
+(define-obsolete-function-alias
+  'ido-cr+-function-is-blacklisted
+  'ido-cr+-disabled-in-function-p
+  "ido-completing-read+ 4.14")
 
-See `ido-cr+-function-whitelist'."
-  (or (null ido-cr+-function-whitelist)
-      (ido-cr+-function-is-in-list fun ido-cr+-function-whitelist)))
+(defsubst ido-cr+-allowed-in-function-p (fun)
+  "Return non-nil if ido-cr+ is allowed for FUN.
+
+See `ido-cr+-allow-list'."
+  (or (null ido-cr+-allow-list)
+      (ido-cr+-function-is-in-list fun ido-cr+-allow-list)))
+
+(define-obsolete-function-alias
+  'ido-cr+-function-is-whitelisted
+  'ido-cr+-allowed-in-function-p
+  "ido-completing-read+ 4.14")
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
@@ -571,8 +595,8 @@ See `completing-read' for the meaning of the arguments."
           (if (and ido-cr+-dynamic-collection (featurep 'memoize))
               (memoize (indirect-function 'all-completions))
             'all-completions))
-         ;; If the whitelist is empty, everything is whitelisted
-         (whitelisted (not ido-cr+-function-whitelist))
+         ;; If the allow list is empty, everything is allowed
+         (ido-cr+-allowed (not ido-cr+-allow-list))
          ;; If non-nil, we need alternate nil DEF handling
          (alt-nil-def nil))
     (condition-case sig
@@ -582,23 +606,23 @@ See `completing-read' for the meaning of the arguments."
             (signal 'ido-cr+-fallback
                     '("ido cannot handle alternate input methods")))
 
-          ;; Check for black/white-listed collection function
+          ;; Check for allow/disable-listed collection function
           (when (functionp collection)
-            ;; Blacklist
-            (when (ido-cr+-function-is-blacklisted collection)
+            ;; Disable list
+            (when (ido-cr+-disabled-in-function-p collection)
               (if (symbolp collection)
                   (signal 'ido-cr+-fallback
-                          (list (format "collection function `%S' is blacklisted" collection)))
+                          (list (format "collection function `%S' is disabled" collection)))
                 (signal 'ido-cr+-fallback
-                        (list "collection function is blacklisted"))))
-            ;; Whitelist
-            (when (and (not whitelisted)
-                       (ido-cr+-function-is-whitelisted collection))
+                        (list "collection function is disabled"))))
+            ;; Allow list
+            (when (and (not ido-cr+-allowed)
+                       (ido-cr+-allowed-in-function-p collection))
               (ido-cr+--debug-message
                (if (symbolp collection)
-                   (format "Collection function `%S' is whitelisted" collection)
-                 "Collection function is whitelisted"))
-              (setq whitelisted t))
+                   (format "Collection function `%S' is allowed" collection)
+                 "Collection function is allowed"))
+              (setq ido-cr+-allowed t))
             ;; nil DEF list
             (when (and
                    require-match (null def)
@@ -631,21 +655,21 @@ See `completing-read' for the meaning of the arguments."
                       ido-cr+-max-items))))
 
           ;; If called from `completing-read', check for
-          ;; black/white-listed commands/callers
+          ;; disabled/allowed commands/callers
           (when (ido-cr+--called-from-completing-read)
             ;; Check calling command and `ido-cr+-current-command'
             (cl-loop
              for cmd in (list this-command ido-cr+-current-command)
 
-             if (ido-cr+-function-is-blacklisted cmd)
+             if (ido-cr+-disabled-in-function-p cmd)
              do (signal 'ido-cr+-fallback
-                        (list "calling command `%S' is blacklisted" cmd))
+                        (list "calling command `%S' is disabled" cmd))
 
-             if (and (not whitelisted)
-                     (ido-cr+-function-is-whitelisted cmd))
+             if (and (not ido-cr+-allowed)
+                     (ido-cr+-allowed-in-function-p cmd))
              do (progn
-                  (ido-cr+--debug-message "Command `%S' is whitelisted" cmd)
-                  (setq whitelisted t))
+                  (ido-cr+--debug-message "Command `%S' is allowed" cmd)
+                  (setq ido-cr+-allowed t))
 
              if (and
                  require-match (null def) (not alt-nil-def)
@@ -670,20 +694,20 @@ See `completing-read' for the meaning of the arguments."
                                       '(internal--funcall-interactively
                                         (indirect-function 'call-interactively))))
 
-                     if (ido-cr+-function-is-blacklisted caller)
+                     if (ido-cr+-disabled-in-function-p caller)
                      do (signal 'ido-cr+-fallback
                                 (list (if (symbolp caller)
-                                          (format "calling function `%S' is blacklisted" caller)
-                                        "a calling function is blacklisted")))
+                                          (format "calling function `%S' is disabled" caller)
+                                        "a calling function is disabled")))
 
-                     if (and (not whitelisted)
-                             (ido-cr+-function-is-whitelisted caller))
+                     if (and (not ido-cr+-allowed)
+                             (ido-cr+-allowed-in-function-p caller))
                      do (progn
                           (ido-cr+--debug-message
                            (if (symbolp caller)
-                               (format "Calling function `%S' is whitelisted" caller)
-                             "A calling function is whitelisted"))
-                          (setq whitelisted t))
+                               (format "Calling function `%S' is allowed" caller)
+                             "A calling function is allowed"))
+                          (setq ido-cr+-allowed t))
 
                      if (and require-match (null def) (not alt-nil-def)
                              (ido-cr+-function-is-in-list
@@ -695,9 +719,9 @@ See `completing-read' for the meaning of the arguments."
                              "Using alternate nil DEF handling for a calling function"))
                           (setq alt-nil-def t))))
 
-          (unless whitelisted
+          (unless ido-cr+-allowed
             (signal 'ido-cr+-fallback
-                    (list "no functions or commands matched the whitelist for this call")))
+                    (list "no functions or commands matched the allow list for this call")))
 
           (when (and require-match (null def))
             ;; Replace nil with "" for DEF if match is required, unless
@@ -1105,7 +1129,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
 
 If this mode causes problems for a function, you can customize
 when ido completion is or is not used by customizing
-`ido-cr+-function-blacklist'."
+`ido-cr+-disable-list'."
   nil
   :global t
   :group 'ido-completing-read-plus
@@ -1116,21 +1140,21 @@ when ido completion is or is not used by customizing
             #'ido-completing-read+
           ido-cr+-fallback-function)))
 
-(defcustom ido-cr+-auto-update-blacklist 'notify
+(defcustom ido-cr+-auto-update-disable-list 'notify
   "Whether to add new overrides when updating ido-cr+.
 
 This variable has 3 possible values, with the following meanings:
 
-  t: Auto-update the blacklist
+  t: Auto-update the disable list
   `notify': Notify you about updates but do not apply them
-  nil: Ignore all blacklist updates
+  nil: Ignore all disable list updates
 
-Ido-cr+ comes with a default blacklist for commands that are
-known to be incompatible with ido completion. New versions of
-ido-cr+ may come with updates to this blacklist as more
-incompatible commands are discovered. However, customizing your
-own overrides would normally prevent you from receiving these
-updates, since Emacs will not overwrite your customizations.
+Ido-cr+ comes with a default list of commands that are known to
+be incompatible with ido completion. New versions of ido-cr+ may
+come with updates to this \"disable list\" as more incompatible
+commands are discovered. However, customizing your own overrides
+would normally prevent you from receiving these updates, since
+Emacs will not overwrite your customizations.
 
 To resolve this problem, you can set this variable to t, and then
 ido-cr+ can automatically add any new built-in overrides whenever
@@ -1138,14 +1162,13 @@ it is updated. (Actually, the update will happen the next time
 Emacs is restarted after the update.) This allows you to add your
 own overrides but still receive updates to the default set.
 
-If you want ido-cr+ to just notify you about new default
-overrides instead of adding them itself, set this variable to
-`notify'. If you don't want this auto-update behavior at all, set
-it to nil.
+If you want ido-cr+ to just notify you about new defaults instead
+of adding them itself, set this variable to `notify'. If you
+don't want this auto-update behavior at all, set it to nil.
 
 \(Note that having this option enabled effectively prevents you
-from removing any of the built-in default blacklist entries,
-since they will simply be re-added the next time Emacs starts.)"
+from removing any of the built-in default entries, since they
+will simply be re-added the next time Emacs starts.)"
   :type '(choice :tag "When new overrides are available:"
                  (const :menu-tag "Auto-add"
                         :tag "Add them automatically"
@@ -1158,14 +1181,14 @@ since they will simply be re-added the next time Emacs starts.)"
                         nil))
   :group 'ido-completing-read-plus)
 
-(defun ido-cr+-update-blacklist (&optional save quiet)
-  "Re-add any missing default blacklist entries.
+(defun ido-cr+-update-disable-list (&optional save quiet)
+  "Re-add any missing default entries to `ido-cr+-disable-list'.
 
 This is useful after an update of ido-ubiquitous that adds new
-default overrides. See `ido-cr+-auto-update-blacklist' for more
-information.
+default overrides. See `ido-cr+-auto-update-disable-list' for
+more information.
 
-If SAVE is non-nil, also save the new blacklist to the user's
+If SAVE is non-nil, also save the new disable list to the user's
 Custom file (but only if it was already customized beforehand).
 When called interactively, a prefix argument triggers a save.
 
@@ -1173,12 +1196,12 @@ Unless QUIET is non-nil, this function produces messages indicating
 all changes that were made.
 
 When called from Lisp code, this function returns non-nil if the
-blacklist was modified."
+disable list was modified."
   (interactive "P")
-  (let* ((var-state (custom-variable-state 'ido-cr+-function-blacklist
-                                           ido-cr+-function-blacklist))
-         (curval ido-cr+-function-blacklist)
-         (defval (eval (car (get 'ido-cr+-function-blacklist 'standard-value))))
+  (let* ((var-state (custom-variable-state 'ido-cr+-disable-list
+                                           ido-cr+-disable-list))
+         (curval ido-cr+-disable-list)
+         (defval (eval (car (get 'ido-cr+-disable-list 'standard-value))))
          (newval (delete-dups (append defval curval)))
          (new-entries (cl-set-difference defval curval :test #'equal))
          (modified nil)
@@ -1187,52 +1210,62 @@ blacklist was modified."
     (cl-case var-state
       (standard
        ;; Var is not customized, just set the new default
-       (ido-cr+--debug-message "Blacklist was not customized, so it has been updated to the new default value.")
-       (setq ido-cr+-function-blacklist defval
+       (ido-cr+--debug-message "Disable list was not customized, so it has been updated to the new default value.")
+       (setq ido-cr+-disable-list defval
              modified new-entries))
       ((saved set changed)
        ;; Var has been customized and saved by the user, so set the
        ;; new value and maybe save it
-       (ido-cr+--debug-message "Updating user-customized blacklist with new default entries.")
-       (setq ido-cr+-function-blacklist newval
+       (ido-cr+--debug-message "Updating user-customized disable list with new default entries.")
+       (setq ido-cr+-disable-list newval
              modified t)
        (when (and save (eq var-state 'saved))
-         (ido-cr+--debug-message "Saving new blacklist value to Custom file.")
-         (customize-save-variable 'ido-cr+-function-blacklist ido-cr+-function-blacklist)
+         (ido-cr+--debug-message "Saving new disable list value to Custom file.")
+         (customize-save-variable 'ido-cr+-disable-list ido-cr+-disable-list)
          (setq saved t)))
       (otherwise
-       (ido-cr+--debug-message "Customization status of blacklist is unknown. Not modifying it.")))
+       (ido-cr+--debug-message "Customization status of disable list is unknown. Not modifying it.")))
     (if (and modified (not quiet))
         (progn
-          (push (format "Added the following entries to `ido-cr+-function-blacklist': %S" new-entries)
+          (push (format "Added the following entries to `ido-cr+-disable-list': %S" new-entries)
                 message-lines)
           (if saved
-              (push "Saved the new value of `ido-cr+-function-blacklist' to your Custom file."
+              (push "Saved the new value of `ido-cr+-disable-list' to your Custom file."
                     message-lines)
-            (push "However, the new value of `ido-cr+-function-blacklist' has not yet been saved for future sessions. To save it. re-run this command with a prefix argument:  `C-u M-x ido-cr+-update-blacklist'; or else manually inspect and save the value using `M-x customize-variable ido-cr+-function-blacklist'."
+            (push "However, the new value of `ido-cr+-disable-list' has not yet been saved for future sessions. To save it. re-run this command with a prefix argument:  `C-u M-x ido-cr+-update-disable-list'; or else manually inspect and save the value using `M-x customize-variable ido-cr+-disable-list'."
                   message-lines)))
-      (push "No updates were required to `ido-cr+-function-blacklist'." message-lines))
+      (push "No updates were required to `ido-cr+-disable-list'." message-lines))
     (unless quiet
       (message (mapconcat #'identity (nreverse message-lines) "\n")))
     modified))
 
-(defun ido-cr+-maybe-update-blacklist ()
-  "Maybe call `ico-cr+-update-blacklist.
+(define-obsolete-function-alias
+  'ido-cr+-update-blacklist
+  'ido-cr+-update-disable-list
+  "ido-completing-read+ 4.14")
 
- See `ido-cr+-auto-update-blacklist' for more information."
-  (if ido-cr+-auto-update-blacklist
-      (let* ((curval ido-cr+-function-blacklist)
-             (defval (eval (car (get 'ido-cr+-function-blacklist 'standard-value))))
+(defun ido-cr+-maybe-update-disable-list ()
+  "Maybe call `ico-cr+-update-disable-list.
+
+ See `ido-cr+-auto-update-disable-list' for more information."
+  (if ido-cr+-auto-update-disable-list
+      (let* ((curval ido-cr+-disable-list)
+             (defval (eval (car (get 'ido-cr+-disable-list 'standard-value))))
              (new-entries (cl-set-difference defval curval :test #'equal)))
         (if new-entries
-            (if (eq ido-cr+-auto-update-blacklist 'notify)
-                (display-warning 'ido-completing-read+ (format "There are %s new blacklist entries available. Use `M-x ido-cr+-update-blacklist' to install them. (See `ido-cr+-auto-update-blacklist' for more information.)" (length new-entries)))
-              (ido-cr+--debug-message "Initiating blacklist update.")
-              (ido-cr+-update-blacklist t))
-          (ido-cr+--debug-message "No blacklist updates available.")))
-    (ido-cr+--debug-message "Skipping blacklist update by user request.")))
+            (if (eq ido-cr+-auto-update-disable-list 'notify)
+                (display-warning 'ido-completing-read+ (format "There are %s new disable list entries available. Use `M-x ido-cr+-update-disable-list' to install them. (See `ido-cr+-auto-update-disable-list' for more information.)" (length new-entries)))
+              (ido-cr+--debug-message "Initiating disable list update.")
+              (ido-cr+-update-disable-list t))
+          (ido-cr+--debug-message "No disable list updates available.")))
+    (ido-cr+--debug-message "Skipping disable list update by user request.")))
 
-(ido-cr+-maybe-update-blacklist)
+(define-obsolete-function-alias
+  'ido-cr+-maybe-update-blacklist
+  'ido-cr+-maybe-update-disable-list
+  "ido-completing-read+ 4.14")
+
+(ido-cr+-maybe-update-disable-list)
 
 (provide 'ido-completing-read+)
 

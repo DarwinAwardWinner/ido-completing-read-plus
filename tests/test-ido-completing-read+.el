@@ -144,11 +144,11 @@ also accept a quoted list for the sake of convenience."
      ((ido-mode t)
       (ido-ubiquitous-mode t)
       (ido-cr+-debug-mode t)
-      ido-cr+-auto-update-blacklist
+      ido-cr+-auto-update-disable-list
       ido-cr+-fallback-function
       ido-cr+-max-items
-      ido-cr+-function-blacklist
-      ido-cr+-function-whitelist
+      ido-cr+-disable-list
+      ido-cr+-allow-list
       ido-cr+-nil-def-alternate-behavior-list
       ido-cr+-replace-completely
       ido-confirm-unique-completion
@@ -679,200 +679,200 @@ also accept a quoted list for the sake of convenience."
            (command-execute 'test-command)))
        :to-equal "g"))
 
-    (describe "with `ido-cr+-function-blacklist'"
+    (describe "with `ido-cr+-disable-list'"
       (before-all
-        (setf (symbol-function 'blacklisted-command)
+        (setf (symbol-function 'disabled-command)
               (lambda (arg)
                 (interactive (list (completing-read "Prompt: " '("blue" "yellow" "green"))))
                 arg)
-              (symbol-function 'blacklisted-function)
+              (symbol-function 'disabled-function)
               (lambda ()
                 (completing-read "Prompt: " '("blue" "yellow" "green")))
-              (symbol-function 'cmd-that-calls-blacklisted-function)
+              (symbol-function 'cmd-that-calls-disabled-function)
               (lambda ()
                 (interactive)
-                (funcall 'blacklisted-function))
-              (symbol-function 'blacklisted-collection)
+                (funcall 'disabled-function))
+              (symbol-function 'disabled-collection)
               (collection-as-function '("blue" "yellow" "green"))))
 
       (after-all
-        (setf (symbol-function 'blacklisted-command) nil
-              (symbol-function 'blacklisted-function) nil
-              (symbol-function 'cmd-that-calls-blacklisted-function) nil
-              (symbol-function 'blacklisted-collection) nil))
-      ;; First verify that they work normally before blacklisting them
-      (describe "when the specified functions are not blacklisted"
+        (setf (symbol-function 'disabled-command) nil
+              (symbol-function 'disabled-function) nil
+              (symbol-function 'cmd-that-calls-disabled-function) nil
+              (symbol-function 'disabled-collection) nil))
+      ;; First verify that they work normally before disabling them
+      (describe "when the specified functions are not disabled"
 
-        (it "should not affect a non-blacklisted command"
+        (it "should not affect a non-disabled command"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'blacklisted-command))
+             (call-interactively 'disabled-command))
            :to-equal "green"))
 
-        (it "should not affect a non-blacklisted function"
+        (it "should not affect a non-disabled function"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'cmd-that-calls-blacklisted-function))
+             (call-interactively 'cmd-that-calls-disabled-function))
            :to-equal "green"))
 
-        (it "should not affect a non-blacklisted collection"
+        (it "should not affect a non-disabled collection"
           (expect
            (with-simulated-input "g RET"
-             (ido-completing-read+ "Prompt: " 'blacklisted-collection))
+             (ido-completing-read+ "Prompt: " 'disabled-collection))
            :to-equal "green")))
 
-      (describe "when the specified functions are blacklisted"
+      (describe "when the specified functions are disabled"
         (before-each
-          (setq ido-cr+-function-blacklist
-                (append '(blacklisted-command
-                          blacklisted-function
-                          blacklisted-collection)
-                        ido-cr+-function-blacklist)))
+          (setq ido-cr+-disable-list
+                (append '(disabled-command
+                          disabled-function
+                          disabled-collection)
+                        ido-cr+-disable-list)))
 
-        (it "should prevent ido in a blacklisted command"
+        (it "should prevent ido in a disabled command"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'blacklisted-command))
+             (call-interactively 'disabled-command))
            :to-equal "g"))
 
-        (it "should prevent ido in a blacklisted function"
+        (it "should prevent ido in a disabled function"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'cmd-that-calls-blacklisted-function))
+             (call-interactively 'cmd-that-calls-disabled-function))
            :to-equal "g"))
 
-        (it "should prevent ido with a blacklisted collection"
+        (it "should prevent ido with a disabled collection"
           (expect
            (with-simulated-input "g RET"
-             (ido-completing-read+ "Prompt: " 'blacklisted-collection))
+             (ido-completing-read+ "Prompt: " 'disabled-collection))
            :to-equal "g")))
 
       (describe "when updating ido-cr+"
 
         (before-each
-          (spy-on 'ido-cr+-update-blacklist :and-call-through))
+          (spy-on 'ido-cr+-update-disable-list :and-call-through))
 
-        (it "should update the blacklist when `ido-cr+-auto-update-blacklist' is t"
-          (assume ido-cr+-function-blacklist)
-          (let ((orig-blacklist ido-cr+-function-blacklist))
-            (customize-set-variable 'ido-cr+-auto-update-blacklist t)
-            (customize-set-variable 'ido-cr+-function-blacklist nil)
-            (ido-cr+-maybe-update-blacklist)
-            (expect 'ido-cr+-update-blacklist :to-have-been-called)
-            (expect ido-cr+-function-blacklist :to-have-same-items-as orig-blacklist)))
-        (it "should not update the blacklist when `ido-cr+-auto-update-blacklist' is nil"
-          (assume ido-cr+-function-blacklist)
-          (let ((orig-blacklist ido-cr+-function-blacklist))
-            (customize-set-variable 'ido-cr+-auto-update-blacklist nil)
-            (customize-set-variable 'ido-cr+-function-blacklist nil)
-            (ido-cr+-maybe-update-blacklist)
-            (expect 'ido-cr+-update-blacklist :not :to-have-been-called)
-            (expect ido-cr+-function-blacklist :to-have-same-items-as nil)))
+        (it "should update the disable list when `ido-cr+-auto-update-disable-list' is t"
+          (assume ido-cr+-disable-list)
+          (let ((orig-disable-list ido-cr+-disable-list))
+            (customize-set-variable 'ido-cr+-auto-update-disable-list t)
+            (customize-set-variable 'ido-cr+-disable-list nil)
+            (ido-cr+-maybe-update-disable-list)
+            (expect 'ido-cr+-update-disable-list :to-have-been-called)
+            (expect ido-cr+-disable-list :to-have-same-items-as orig-disable-list)))
+        (it "should not update the disable list when `ido-cr+-auto-update-disable-list' is nil"
+          (assume ido-cr+-disable-list)
+          (let ((orig-disable-list ido-cr+-disable-list))
+            (customize-set-variable 'ido-cr+-auto-update-disable-list nil)
+            (customize-set-variable 'ido-cr+-disable-list nil)
+            (ido-cr+-maybe-update-disable-list)
+            (expect 'ido-cr+-update-disable-list :not :to-have-been-called)
+            (expect ido-cr+-disable-list :to-have-same-items-as nil)))
 
-        (it "should notify about blacklist updates when `ido-cr+-auto-update-blacklist' is `notify'"
-          (assume ido-cr+-function-blacklist)
+        (it "should notify about disable list updates when `ido-cr+-auto-update-disable-list' is `notify'"
+          (assume ido-cr+-disable-list)
           (spy-on 'display-warning)
-          (let ((orig-blacklist ido-cr+-function-blacklist))
-            (customize-set-variable 'ido-cr+-auto-update-blacklist 'notify)
-            (customize-set-variable 'ido-cr+-function-blacklist nil)
-            (ido-cr+-maybe-update-blacklist)
-            (expect 'ido-cr+-update-blacklist :not :to-have-been-called)
+          (let ((orig-disable-list ido-cr+-disable-list))
+            (customize-set-variable 'ido-cr+-auto-update-disable-list 'notify)
+            (customize-set-variable 'ido-cr+-disable-list nil)
+            (ido-cr+-maybe-update-disable-list)
+            (expect 'ido-cr+-update-disable-list :not :to-have-been-called)
             (expect 'display-warning :to-have-been-called)
-            (expect ido-cr+-function-blacklist :to-have-same-items-as nil)))))
+            (expect ido-cr+-disable-list :to-have-same-items-as nil)))))
 
-    (describe "with `ido-cr+-function-whitelist'"
+    (describe "with `ido-cr+-allow-list'"
       (before-all
-        (setf (symbol-function 'whitelisted-command)
+        (setf (symbol-function 'allowed-command)
               (lambda (arg)
                 (interactive
                  (list
                   (completing-read "Prompt: " '("blue" "yellow" "green"))))
                 arg)
-              (symbol-function 'whitelisted-function)
+              (symbol-function 'allowed-function)
               (lambda ()
                 (completing-read "Prompt: " '("blue" "yellow" "green")))
-              (symbol-function 'cmd-that-calls-whitelisted-function)
+              (symbol-function 'cmd-that-calls-allowed-function)
               (lambda ()
                 (interactive)
-                (funcall 'whitelisted-function))
-              (symbol-function 'whitelisted-collection)
+                (funcall 'allowed-function))
+              (symbol-function 'allowed-collection)
               (lambda (string pred action)
                 (complete-with-action action '("blue" "yellow" "green") string pred))))
 
       (after-all
-        (setf (symbol-function 'whitelisted-command) nil
-              (symbol-function 'whitelisted-function) nil
-              (symbol-function 'cmd-that-calls-whitelisted-function) nil
-              (symbol-function 'whitelisted-collection) nil))
+        (setf (symbol-function 'allowed-command) nil
+              (symbol-function 'allowed-function) nil
+              (symbol-function 'cmd-that-calls-allowed-function) nil
+              (symbol-function 'allowed-collection) nil))
 
-      (describe "when the whitelist is inactive (i.e. everything is whitelisted)"
+      (describe "when the allow list is inactive (i.e. everything is allowed)"
         (before-each
-          (setq ido-cr+-function-whitelist nil))
+          (setq ido-cr+-allow-list nil))
 
         (it "should enable ido in a command"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'whitelisted-command))
+             (call-interactively 'allowed-command))
            :to-equal "green"))
 
         (it "should enable ido in a function"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'cmd-that-calls-whitelisted-function))
+             (call-interactively 'cmd-that-calls-allowed-function))
            :to-equal "green"))
 
         (it "should enable ido for a collection"
           (expect
            (with-simulated-input "g RET"
-             (ido-completing-read+ "Prompt: " 'whitelisted-collection))
+             (ido-completing-read+ "Prompt: " 'allowed-collection))
            :to-equal "green")))
 
-      (describe "when the specified functions are whitelisted"
+      (describe "when the specified functions are allowed"
         (before-each
-          (setq ido-cr+-function-whitelist
-                (append '(whitelisted-command
-                          whitelisted-function
-                          whitelisted-collection)
-                        ido-cr+-function-whitelist)))
+          (setq ido-cr+-allow-list
+                (append '(allowed-command
+                          allowed-function
+                          allowed-collection)
+                        ido-cr+-allow-list)))
 
-        (it "should enable ido in a whitelisted command"
+        (it "should enable ido in an allowed command"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'whitelisted-command))
+             (call-interactively 'allowed-command))
            :to-equal "green"))
 
-        (it "should enable ido in a whitelisted function"
+        (it "should enable ido in an allowed function"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'cmd-that-calls-whitelisted-function))
+             (call-interactively 'cmd-that-calls-allowed-function))
            :to-equal "green"))
 
-        (it "should enable ido for a whitelisted collection"
+        (it "should enable ido for an allowed collection"
           (expect
            (with-simulated-input "g RET"
-             (ido-completing-read+ "Prompt: " 'whitelisted-collection))
+             (ido-completing-read+ "Prompt: " 'allowed-collection))
            :to-equal "green")))
 
-      (describe "when the whitelist is active but empty (i.e. nothing whitelisted)"
+      (describe "when the allow list is active but empty (i.e. nothing allowed)"
         (before-each
-          (setq ido-cr+-function-whitelist (list nil)))
+          (setq ido-cr+-allow-list (list nil)))
 
         (it "should prevent ido in a command"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'whitelisted-command))
+             (call-interactively 'allowed-command))
            :to-equal "g"))
 
         (it "should prevent ido in a function"
           (expect
            (with-simulated-input "g RET"
-             (call-interactively 'cmd-that-calls-whitelisted-function))
+             (call-interactively 'cmd-that-calls-allowed-function))
            :to-equal "g"))
 
         (it "should prevent ido for a collection"
           (expect
            (with-simulated-input "g RET"
-             (ido-completing-read+ "Prompt: " 'whitelisted-collection))
+             (ido-completing-read+ "Prompt: " 'allowed-collection))
            :to-equal "g"))))
 
     (describe "with `ido-cr+-nil-def-alternate-behavior-list'"

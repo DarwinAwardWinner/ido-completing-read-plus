@@ -1,3 +1,11 @@
+2021-03-30  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-cr+-disable-list): Rename from
+	ido-cr+-function-blacklist. Related functions and variables are
+	likewise renamed.
+	(ido-cr+-allow-list): Rename from ido-cr+-function-whitelist.
+	Related functions and variables are likewise renamed.
+
 2021-02-06  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-cr+-function-blacklist): Disable

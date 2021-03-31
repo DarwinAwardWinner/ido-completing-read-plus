@@ -4,11 +4,11 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Version: 4.13
+;; Version: 4.14
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((ido-completing-read+ "4.13"))
+;; Package-Requires: ((ido-completing-read+ "4.14"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
@@ -39,7 +39,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-ubiquitous-version "4.13"
+(defconst ido-ubiquitous-version "4.14"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
@@ -52,28 +52,28 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous#version-40-changes")
 
 (define-obsolete-function-alias 'completing-read-ido-ubiquitous 'ido-completing-read+
   "ido-completing-read+ 4.0")
-(define-obsolete-function-alias 'ido-ubiquitous-update-overrides 'ido-cr+-update-blacklist
+(define-obsolete-function-alias 'ido-ubiquitous-update-overrides 'ido-cr+-update-disable-list
   "ido-completing-read+ 4.0")
-(define-obsolete-function-alias 'ido-ubiquitous--maybe-update-overrides 'ido-cr+-maybe-update-blacklist
+(define-obsolete-function-alias 'ido-ubiquitous--maybe-update-overrides 'ido-cr+-maybe-update-disable-list
   "ido-completing-read+ 4.0")
-(define-obsolete-variable-alias 'ido-ubiquitous-auto-update-overrides 'ido-cr+-auto-update-blacklist
+(define-obsolete-variable-alias 'ido-ubiquitous-auto-update-overrides 'ido-cr+-auto-update-disable-list
   "ido-completing-read+ 4.0")
 
 (make-obsolete-variable
  'ido-ubiquitous-default-state
- "For the new variables to control which commands have ido completion, see `ido-cr+-function-blacklist' and `ido-cr+-function-whitelist'. For information on what happened to \"old-style\" default selection, See the FAQ."
+ "For the new variables to control which commands have ido completion, see `ido-cr+-disable-list' and `ido-cr+-allow-list'. For information on what happened to \"old-style\" default selection, See the FAQ."
  "ido-completing-read+ 4.0")
 (make-obsolete-variable
  'ido-ubiquitous-command-overrides
- "For the new variables to control which commands have ido completion, see `ido-cr+-function-blacklist' and `ido-cr+-function-whitelist'. For information on what happened to \"old-style\" default selection, See the FAQ."
+ "For the new variables to control which commands have ido completion, see `ido-cr+-disable-list' and `ido-cr+-allow-list'. For information on what happened to \"old-style\" default selection, See the FAQ."
  "ido-completing-read+ 4.0")
 (make-obsolete-variable
  'ido-ubiquitous-function-overrides
- "For the new variables to control which commands have ido completion, see `ido-cr+-function-blacklist' and `ido-cr+-function-whitelist'. For information on what happened to \"old-style\" default selection, See the FAQ."
+ "For the new variables to control which commands have ido completion, see `ido-cr+-disable-list' and `ido-cr+-allow-list'. For information on what happened to \"old-style\" default selection, See the FAQ."
  "ido-completing-read+ 4.0")
 (make-obsolete-variable
  'ido-ubiquitous-allow-on-functional-collection
- "Ido-cr+ now works with most dynamic completion tables (i.e. \"functional collections\"), so this variable is no longer necessary. If a specific command uses a dynamic completion table that conflicts with ido-cr+, add it to `ido-cr+-function-blacklist' instead."
+ "Ido-cr+ now works with most dynamic completion tables (i.e. \"functional collections\"), so this variable is no longer necessary. If a specific command uses a dynamic completion table that conflicts with ido-cr+, add it to `ido-cr+-disable-list' instead."
  "ido-completing-read+ 4.0")
 
 (provide 'ido-ubiquitous)

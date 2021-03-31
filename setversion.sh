@@ -7,7 +7,7 @@ if [ -n "$TARGET_VERSION" ]; then
          -e "s/((?:defconst|defvar|setq).*-version\s+)\"[0-9.]+\"/\${1}\"$TARGET_VERSION\"/g;" \
          -e "s/(Package-Requires.*\(ido-completing-read\+\s+)\"[0-9.]+\"\)/\${1}\"${TARGET_VERSION}\")/g;" \
          -e "s/\(package \"ido-ubiquitous\" \"[0-9.]+\"/(package \"ido-ubiquitous\" \"${TARGET_VERSION}\"/g" \
-         *.el Cask
+         *.el
 else
     echo "Usage: $0 VERSION_NUMBER"
 fi

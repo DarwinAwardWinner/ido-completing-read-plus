@@ -19,8 +19,8 @@ merged into ido-completing-read+, which now provides all the features
 of both packages. The distinction between "new" and "old" default
 selection styles has been eliminated and replaced by a new variable
 `ido-cr+-nil-def-alternate-behavior-list` (see [FAQ][1] for details),
-and the override system has been accordingly simplified into just a
-blacklist and a whitelist. If you have previously customized any
+and the override system has been accordingly simplified into just an
+allow list and a disable list. If you have previously customized any
 ido-ubiquitous options, be sure to check out
 
     `M-x customize-group ido-completing-read+`
@@ -139,10 +139,10 @@ way whenever it detects that these features might be used by a given
 call to `completing-read`. Furthermore, it's not always possible to
 detect based on the arguments to `completing-read` whether such
 ido-incompatible features are being used or not, so
-ido-completing-read+ also comes with a blacklist of functions that are
-known not to work with ido. You can inspect this blacklist using
+ido-completing-read+ also comes with a list of functions that are
+known not to work with ido. You can inspect this list using
 
-    M-x describe-variable ido-cr+-function-blacklist
+    M-x describe-variable ido-cr+-disable-list
 
 If you want to know why a certain command isn't getting ido
 completion, you can enable `ido-cr+-debug-mode` and then run the
@@ -198,22 +198,22 @@ or code that you are having trouble with, and when the completion
 prompt appears, make a selection to complete the process. Then,
 examine the Messages buffer, where ido-completing-read+ will explain
 which mode of operation it selected and why. Based on this, you can
-add an entry to `ido-cr+-function-blacklist`, or take some other
+add an entry to `ido-cr+-disable-list`, or take some other
 appropriate action.
 
-Updates to ido-completing-read+ may include new blacklist entries, but
-Emacs will not edit your override variables if you have already
+Updates to ido-completing-read+ may include new disable list entries,
+but Emacs will not edit your override variables if you have already
 customized them. So, if you have recently upgraded
-ido-completing-read+, remember to invoke `ido-cr+-update-blacklist` to
-add in any new overrides. By default, ido-completing-read+ will remind
-you to do this whenever a new version adds to the blacklist. For more
-information, see:
+ido-completing-read+, remember to invoke `ido-cr+-update-disable-list`
+to add in any new overrides. By default, ido-completing-read+ will
+remind you to do this whenever a new version adds to the list. For
+more information, see:
 
-    M-x describe-variable ido-cr+-auto-update-blacklist
+    M-x describe-variable ido-cr+-auto-update-disable-list
 
 ## Where can I report bugs? ##
 
-If you end up adding any blacklist entries, please report them at
+If you end up adding any disable list entries, please report them at
 https://github.com/DarwinAwardWinner/ido-ubiquitous/issues so I can
 incorporate them into the defaults for future versions. You can also
 report any bugs you find in ido-completing-read+.

@@ -127,11 +127,11 @@ also accept a quoted list for the sake of convenience."
      ((ido-mode t)
       (ido-ubiquitous-mode t)
       (ido-cr+-debug-mode t)
-      ido-cr+-auto-update-blacklist
+      ido-cr+-auto-update-disable-list
       ido-cr+-fallback-function
       ido-cr+-max-items
-      ido-cr+-function-blacklist
-      ido-cr+-function-whitelist
+      ido-cr+-disable-list
+      ido-cr+-allow-list
       ido-cr+-nil-def-alternate-behavior-list
       ido-cr+-replace-completely
       ido-confirm-unique-completion
