@@ -4,9 +4,11 @@ on:
   push:
     paths-ignore:
       - '**.md'
+      - 'ChangeLog'
   pull_request:
     paths-ignore:
       - '**.md'
+      - 'ChangeLog'
 
 jobs:
   test:
