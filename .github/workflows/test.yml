@@ -32,7 +32,7 @@ jobs:
       # We only generate a coverage report for one Emacs version
       # (generally the latest release version) in order to avoid
       # duplicate reports.
-      coveralls_emacs_version: 27.1
+      coveralls_emacs_version: 27.2
     steps:
     - name: Set up Emacs
       uses: purcell/setup-emacs@master
