@@ -315,16 +315,16 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
          :to-equal ""))
       ;; "C-j" should NOT be allowed to return an empty string if
       ;; require-match and default are both non-nil.
-      (it "should not alow exiting with an empty string if DEF is non-nil"
+      (it "should not allow exiting with an empty string if DEF is non-nil"
         (expect
          (with-simulated-input "C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t nil nil "yellow"))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t nil nil "yellow"))
          :to-throw))
 
       (it "shouldn't allow C-j to select an ambiguous match"
@@ -332,7 +332,7 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "b C-j C-j C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
          :to-throw)
         ;; First press of C-j should complete to "blue" after the
         ;; first b, but then get stuck on the choice for the second b.
@@ -356,7 +356,7 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "b l u e g C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
          :to-equal "bluegrass"))
 
       (it "should require an extra C-j to exit when `ido-confirm-unique-completion' is non-nil"
@@ -367,7 +367,7 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "b l u e g C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
          :to-throw)
         ;; The first "C-j" should complete to "bluegrass", and the second
         ;; should return.
@@ -375,7 +375,7 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "b l u e g C-j C-j"
            (ido-completing-read+
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
          :to-equal "bluegrass"))
 
       ;; Finally, a test for the expected wrong behavior without
@@ -386,7 +386,7 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "b C-j"
            (ido-completing-read
             "Prompt: "
-            '("bluebird" "blues" "bluegrass" "blueberry" "yellow ""green") nil t))
+            '("bluebird" "blues" "bluegrass" "blueberry" "yellow" "green") nil t))
          :to-equal "b")))
 
     (describe "when INHERIT-INPUT-METHOD is non-nil"
