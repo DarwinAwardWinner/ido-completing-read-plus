@@ -328,6 +328,9 @@ also accept a quoted list for the sake of convenience."
          :to-throw))
 
       (it "shouldn't allow C-j to select an ambiguous match"
+        ;; Make this a no-op to avoid end-of-buffer errors, which are
+        ;; irrelevant to this test.
+        (spy-on 'scroll-other-window)
         (expect
          (with-simulated-input "b C-j C-j C-j"
            (ido-completing-read+
