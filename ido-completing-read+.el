@@ -307,6 +307,11 @@ disable fallback based on collection size, set this to nil."
                         widget)))))
   :group 'ido-completing-read-plus)
 
+(define-obsolete-variable-alias
+  'ido-cr+-function-blacklist
+  'ido-cr+-disable-list
+  "ido-completing-read+ 4.14")
+
 (defcustom ido-cr+-disable-list
   '(read-file-name-internal
     read-buffer
@@ -356,8 +361,8 @@ regular expressions, only name-based matching is possible."
                          (string :tag "Regexp"))))
 
 (define-obsolete-variable-alias
-  'ido-cr+-function-blacklist
-  'ido-cr+-disable-list
+  'ido-cr+-function-whitelist
+  'ido-cr+-allow-list
   "ido-completing-read+ 4.14")
 
 (defcustom ido-cr+-allow-list
@@ -377,10 +382,21 @@ list also takes precedence over the allow list."
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
 
-(define-obsolete-variable-alias
-  'ido-cr+-function-whitelist
-  'ido-cr+-allow-list
-  "ido-completing-read+ 4.14")
+(defvaralias 'ido-cr+-nil-def-wall-of-shame 'ido-cr+-nil-def-alternate-behavior-list
+  "Functions and commands whose authors need to read the docstring for `completing-read'.
+
+Many functions that call `completing-read' are written with the
+assumption that the setting the REQUIRE-MATCH argument of
+`completing-read' to t means it is required to return a match.
+While that would make logical sense, it's wrong. the docstring
+for `completing-read' describes the correct behavior.
+
+> If the input is null, ‘completing-read’ returns DEF, or the
+> first element of the list of default values, or an empty string
+> if DEF is nil, regardless of the value of REQUIRE-MATCH.
+
+This can be avoided by passing an element of COLLECTION as DEF
+instead of leaving it as nil.")
 
 (defcustom ido-cr+-nil-def-alternate-behavior-list
   '("\\`describe-\\(function\\|variable\\)\\'"
@@ -417,22 +433,6 @@ means that a match is required."
   :group 'ido-completing-read-plus
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
-
-(defvaralias 'ido-cr+-nil-def-wall-of-shame 'ido-cr+-nil-def-alternate-behavior-list
-  "Functions and commands whose authors need to read the docstring for `completing-read'.
-
-Many functions that call `completing-read' are written with the
-assumption that the setting the REQUIRE-MATCH argument of
-`completing-read' to t means it is required to return a match.
-While that would make logical sense, it's wrong. the docstring
-for `completing-read' describes the correct behavior.
-
-> If the input is null, ‘completing-read’ returns DEF, or the
-> first element of the list of default values, or an empty string
-> if DEF is nil, regardless of the value of REQUIRE-MATCH.
-
-This can be avoided by passing an element of COLLECTION as DEF
-instead of leaving it as nil.")
 
 ;;;###autoload
 (defcustom ido-cr+-replace-completely nil
@@ -518,6 +518,11 @@ information manually if it is known."
     ;; If no list entry matches, return nil
     finally return nil))
 
+(define-obsolete-function-alias
+  'ido-cr+-function-is-blacklisted
+  'ido-cr+-disabled-in-function-p
+  "ido-completing-read+ 4.14")
+
 (defsubst ido-cr+-disabled-in-function-p (fun)
   "Return non-nil if ido-cr+ is disabled for FUN.
 
@@ -525,8 +530,8 @@ See `ido-cr+-disable-list'."
   (ido-cr+-function-is-in-list fun ido-cr+-disable-list))
 
 (define-obsolete-function-alias
-  'ido-cr+-function-is-blacklisted
-  'ido-cr+-disabled-in-function-p
+  'ido-cr+-function-is-whitelisted
+  'ido-cr+-allowed-in-function-p
   "ido-completing-read+ 4.14")
 
 (defsubst ido-cr+-allowed-in-function-p (fun)
@@ -535,11 +540,6 @@ See `ido-cr+-disable-list'."
 See `ido-cr+-allow-list'."
   (or (null ido-cr+-allow-list)
       (ido-cr+-function-is-in-list fun ido-cr+-allow-list)))
-
-(define-obsolete-function-alias
-  'ido-cr+-function-is-whitelisted
-  'ido-cr+-allowed-in-function-p
-  "ido-completing-read+ 4.14")
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
@@ -1181,6 +1181,11 @@ will simply be re-added the next time Emacs starts.)"
                         nil))
   :group 'ido-completing-read-plus)
 
+(define-obsolete-function-alias
+  'ido-cr+-update-blacklist
+  'ido-cr+-update-disable-list
+  "ido-completing-read+ 4.14")
+
 (defun ido-cr+-update-disable-list (&optional save quiet)
   "Re-add any missing default entries to `ido-cr+-disable-list'.
 
@@ -1240,8 +1245,8 @@ disable list was modified."
     modified))
 
 (define-obsolete-function-alias
-  'ido-cr+-update-blacklist
-  'ido-cr+-update-disable-list
+  'ido-cr+-maybe-update-blacklist
+  'ido-cr+-maybe-update-disable-list
   "ido-completing-read+ 4.14")
 
 (defun ido-cr+-maybe-update-disable-list ()
@@ -1259,11 +1264,6 @@ disable list was modified."
               (ido-cr+-update-disable-list t))
           (ido-cr+--debug-message "No disable list updates available.")))
     (ido-cr+--debug-message "Skipping disable list update by user request.")))
-
-(define-obsolete-function-alias
-  'ido-cr+-maybe-update-blacklist
-  'ido-cr+-maybe-update-disable-list
-  "ido-completing-read+ 4.14")
 
 (ido-cr+-maybe-update-disable-list)
 
