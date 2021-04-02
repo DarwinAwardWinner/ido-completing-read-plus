@@ -52,9 +52,14 @@ jobs:
       run: |
         eldev -p -dtT test
 
+    - name: Run the test suite with flx-ido
+      run: |
+        eldev -p -S '(load-file "./Eldev-flx-ido")' -dtT test
+
     - name: Run the test suite in source mode (for undercover)
       if: ${{ matrix.emacs_version == env.coveralls_emacs_version }}
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
         eldev -s -dtT test
+        eldev -s -S '(load-file "./Eldev-flx-ido")' -dtT test

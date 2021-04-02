@@ -2,4 +2,4 @@
 
 ;; This file is meant to be loaded with `eldev -S' to run the flx-ido
 ;; tests instead of the regular ones.
-(setq eldev-test-fileset '("./001-setup-undercover.el" "./tests-with-flx-ido/" "./tests/"))
+(setq eldev-test-fileset '("./tests-with-flx-ido/" "./tests/"))
