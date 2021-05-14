@@ -2,8 +2,7 @@
 
 [![MELPA Stable](https://stable.melpa.org/packages/ido-completing-read+-badge.svg)](https://stable.melpa.org/#/ido-completing-read%2B)
 [![Join the chat at https://gitter.im/DarwinAwardWinner/ido-ubiquitous](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/DarwinAwardWinner/ido-ubiquitous?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/DarwinAwardWinner/ido-completing-read-plus.svg?branch=master)](https://travis-ci.org/DarwinAwardWinner/ido-completing-read-plus)
-[![Coverage Status](https://coveralls.io/repos/github/DarwinAwardWinner/ido-completing-read-plus/badge.svg?branch=master)](https://coveralls.io/github/DarwinAwardWinner/ido-completing-read-plus?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/DarwinAwardWinner/ido-completing-read-plus/badge.svg?branch=main)](https://coveralls.io/github/DarwinAwardWinner/ido-completing-read-plus?branch=main)
 
 This package replaces stock emacs completion with ido completion
 wherever it is possible to do so without breaking things (i.e. what
@@ -236,15 +235,15 @@ You can see the bug reports about weird warnings
 
 ## What is the "bleeding-edge" branch? ##
 
-All users should just use the master branch, or better yet, install
-from MELPA. The bleeding-edge branch is where I test experimental and
+All users should just use the main branch, or better yet, install from
+MELPA. The bleeding-edge branch is where I test experimental and
 unfinished features. Because ido-completing-read+ hooks deeply into
 the bowels of Emacs, a bug in ido-completing-read+ could easily freeze
 or crash Emacs entirely. Additionally, some bug only show up when
 ido-completing-read+ is installed and compiled as a package. So I test
 every new feature myself for some time on this branch before pushing
-to the master branch. If you report a bug, I might develop a fix for
-it on the bleeding edge branch and ask then you to try this branch.
+to the main branch. If you report a bug, I might develop a fix for it
+on the bleeding edge branch and ask then you to try this branch.
 Otherwise, normal users don't need to think about this branch.
 
 ## Running the tests
