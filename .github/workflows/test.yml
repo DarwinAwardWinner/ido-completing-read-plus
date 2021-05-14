@@ -29,10 +29,7 @@ jobs:
           - 24.4
           - snapshot
     env:
-      # We only generate a coverage report for one Emacs version
-      # (generally the latest release version) in order to avoid
-      # duplicate reports.
-      coveralls_emacs_version: 27.2
+      coveralls_skip_versions: "" # Empty list
     steps:
     - name: Set up Emacs
       uses: purcell/setup-emacs@master
@@ -57,9 +54,20 @@ jobs:
         eldev -p -S '(load-file "./Eldev-flx-ido")' -dtT test
 
     - name: Run the test suite in source mode (for undercover)
-      if: ${{ matrix.emacs_version == env.coveralls_emacs_version }}
+      if: ${{ ! contains(env.coveralls_skip_versions, matrix.emacs_version) }}
       env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        COVERALLS_FLAG_NAME: Emacs ${{ matrix.emacs_version }}
+        COVERALLS_PARALLEL: 1
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         eldev -s -dtT test
         eldev -s -S '(load-file "./Eldev-flx-ido")' -dtT test
+
+  finalize:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: test
+    steps:
+    - name: Finalize Coveralls
+      run: |
+        curl "https://coveralls.io/webhook?repo_name=$GITHUB_REPOSITORY&repo_token=${{ secrets.GITHUB_TOKEN }}" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
