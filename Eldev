@@ -5,9 +5,6 @@
 (eldev-use-package-archive 'gnu)
 (eldev-use-package-archive 'melpa-unstable)
 
-(setq eldev-project-main-file "ido-completing-read+.el")
-(setq eldev-main-fileset '("ido-completing-read+.el" "ido-ubiquitous.el"))
-
 (setq eldev-test-framework 'buttercup)
 
 (eldev-add-extra-dependencies 'test 'flx-ido)
