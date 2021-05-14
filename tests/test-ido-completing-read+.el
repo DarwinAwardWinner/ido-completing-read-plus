@@ -208,16 +208,16 @@ also accept a quoted list for the sake of convenience."
       (let ((eldef-was-showing nil))
         ;; No REQUIRE-MATCH, so electric default should not show
         (with-simulated-input
-            '("blu DEL DEL DEL"
-              (setq eldef-was-showing minibuf-eldef-showing-default-in-prompt)
-              "RET")
+            ("blu DEL DEL DEL"
+             (setq eldef-was-showing minibuf-eldef-showing-default-in-prompt)
+             "RET")
           (ido-completing-read+ "Prompt (default green): " '("blue" "yellow" "green")))
         (expect eldef-was-showing :not :to-be-truthy)
         ;; With REQUIRE-MATCH, so electric default should show
         (with-simulated-input
-            '("blu DEL DEL DEL"
-              (setq eldef-was-showing minibuf-eldef-showing-default-in-prompt)
-              "RET")
+            ("blu DEL DEL DEL"
+             (setq eldef-was-showing minibuf-eldef-showing-default-in-prompt)
+             "RET")
           (ido-completing-read+ "Prompt (default green): " '("blue" "yellow" "green") nil t))
         (expect eldef-was-showing :to-be-truthy)))
 
@@ -511,9 +511,9 @@ also accept a quoted list for the sake of convenience."
       (it "should do a dynamic update when idle"
         (expect
          (with-simulated-input
-             '("h"
-               (wsi-simulate-idle-time (1+ ido-cr+-dynamic-update-idle-time))
-               "-ld RET")
+             ("h"
+              (wsi-simulate-idle-time (1+ ido-cr+-dynamic-update-idle-time))
+              "-ld RET")
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
          "hello-world")
@@ -531,7 +531,7 @@ also accept a quoted list for the sake of convenience."
 
       (it "should not exit with a unique match if new matches are dynamically added"
         (expect
-         (with-simulated-input '("hell TAB -ld RET")
+         (with-simulated-input ("hell TAB -ld RET")
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
          "hello-world")
@@ -540,7 +540,7 @@ also accept a quoted list for the sake of convenience."
 
       (it "should exit with a match that is still unique after dynamic updating"
         (expect
-         (with-simulated-input '("helic TAB")
+         (with-simulated-input ("helic TAB")
            (ido-completing-read+ "Say something: " my-dynamic-collection))
          :to-equal
          "helicopter")
@@ -560,7 +560,7 @@ also accept a quoted list for the sake of convenience."
               ;; was not being debugged.
               (debug-on-error nil))
           (expect
-           (with-simulated-input '("hell TAB RET")
+           (with-simulated-input ("hell TAB RET")
              (ido-completing-read+ "Say something: " collection))
            :to-equal
            "hello")))
@@ -984,26 +984,26 @@ also accept a quoted list for the sake of convenience."
        (progn
          (ido-ubiquitous-mode 1)
          (with-temp-info-buffer
-           (with-simulated-input
-               '((ido-next-match)
-                 (wsi-simulate-idle-time 5)
-                 (ido-next-match)
-                 (wsi-simulate-idle-time 5)
-                 (ido-next-match)
-                 (wsi-simulate-idle-time 5)
-                 (ido-next-match)
-                 (wsi-simulate-idle-time 5)
-                 "RET")
-             (command-execute 'Info-menu))))
+          (with-simulated-input
+              '((ido-next-match)
+                (wsi-simulate-idle-time 5)
+                (ido-next-match)
+                (wsi-simulate-idle-time 5)
+                (ido-next-match)
+                (wsi-simulate-idle-time 5)
+                (ido-next-match)
+                (wsi-simulate-idle-time 5)
+                "RET")
+            (command-execute 'Info-menu))))
        :not :to-throw))
 
     (it "issue #153: should preserve the selected item when doing a deferred dynamic update"
       (expect
        (with-simulated-input
-           '("Emacs"
-             (ido-next-match)
-             (wsi-simulate-idle-time 5)
-             "RET")
+           ("Emacs"
+            (ido-next-match)
+            (wsi-simulate-idle-time 5)
+            "RET")
          (ido-completing-read+
           "Choose: "
           (collection-as-function '("Emacs" "Emacs A" "Emacs B" "Emacs C"))))

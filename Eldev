@@ -11,7 +11,10 @@
 (setq eldev-test-framework 'buttercup)
 
 (eldev-add-extra-dependencies 'test 'flx-ido)
-(eldev-add-extra-dependencies 'test 'with-simulated-input)
+(eldev-add-extra-dependencies
+ 'test
+ '(:package with-simulated-input
+            :version  "3.0"))
 (eldev-add-extra-dependencies 'test 's)
 
 ;; Tell checkdoc not to demand two spaces after a period.

@@ -226,7 +226,7 @@ also accept a quoted list for the sake of convenience."
 
         (it "should not exit with a unique match if new matches are dynamically added"
           (expect
-           (with-simulated-input '("hell TAB -ld RET")
+           (with-simulated-input ("hell TAB -ld RET")
              (ido-completing-read+ "Say something: " my-dynamic-collection))
            :to-equal
            "hello-world")
@@ -235,7 +235,7 @@ also accept a quoted list for the sake of convenience."
 
         (it "should exit with a match that is still unique after dynamic updating"
           (expect
-           (with-simulated-input '("helic TAB")
+           (with-simulated-input ("helic TAB")
              (ido-completing-read+ "Say something: " my-dynamic-collection))
            :to-equal
            "helicopter")
