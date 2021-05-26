@@ -15,6 +15,9 @@
 (require 'buttercup)
 (require 'cl-lib)
 (require 'with-simulated-input)
+(require 's)
+
+(defvar my-dynamic-collection nil)
 
 (defun collection-as-function (collection)
   "Return a function equivalent to COLLECTION.
@@ -206,9 +209,9 @@ also accept a quoted list for the sake of convenience."
         (it "should do a dynamic update when idle"
           (expect
            (with-simulated-input
-               '("h"
-                 (wsi-simulate-idle-time (1+ ido-cr+-dynamic-update-idle-time))
-                 "-ld RET")
+               ("h"
+                (wsi-simulate-idle-time (1+ ido-cr+-dynamic-update-idle-time))
+                "-ld RET")
              (ido-completing-read+ "Say something: " my-dynamic-collection))
            :to-equal
            "hello-world")

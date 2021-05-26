@@ -104,7 +104,7 @@ not be updated until you restart Emacs.")
   "If non-nil, ido-cr+ will print debug info.
 
 Debug info is printed to the *Messages* buffer."
-  nil
+  :init-value nil
   :global t
   :group 'ido-completing-read-plus)
 
