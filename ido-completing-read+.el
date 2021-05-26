@@ -6,7 +6,7 @@
 ;; Author: Ryan C. Thompson <rct@thompsonclan.org>
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
 ;; Version: 4.14
-;; Package-Requires: ((emacs "24.4") (seq "0.5") (cl-lib "0.5") (memoize "1.1"))
+;; Package-Requires: ((emacs "24.4") (seq "0.5") (memoize "1.1"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-completing-read-plus
 ;; Keywords: ido, completion, convenience
 
@@ -122,7 +122,7 @@ Arguments are identical to `message'."
 ;; silence byte-compiler warnings, despite already being declared in
 ;; ido.el.
 
-(defmacro define-ido-internal-var (symbol &optional initvalue docstring)
+(defmacro ido-cr+-define-ido-internal-var (symbol &optional initvalue docstring)
   "Declare and initialize SYMBOL an ido internal variable.
 
 This is used to suppress byte-compilation warnings about
@@ -144,11 +144,11 @@ package's variable is not safe in general, but in this case it
 should be, because ido always let-binds this variable before
 using it, so the initial value shouldn't matter.")))
 
-(define-ido-internal-var ido-context-switch-command)
-(define-ido-internal-var ido-cur-list)
-(define-ido-internal-var ido-cur-item)
-(define-ido-internal-var ido-require-match)
-(define-ido-internal-var ido-process-ignore-lists)
+(ido-cr+-define-ido-internal-var ido-context-switch-command)
+(ido-cr+-define-ido-internal-var ido-cur-list)
+(ido-cr+-define-ido-internal-var ido-cur-item)
+(ido-cr+-define-ido-internal-var ido-require-match)
+(ido-cr+-define-ido-internal-var ido-process-ignore-lists)
 
 ;; Vars and functions from flx-ido package
 (defvar flx-ido-mode)
@@ -382,8 +382,9 @@ list also takes precedence over the allow list."
   :type '(repeat (choice (symbol :tag "Function or command name")
                          (string :tag "Regexp"))))
 
-(defvaralias 'ido-cr+-nil-def-wall-of-shame 'ido-cr+-nil-def-alternate-behavior-list
-  "Functions and commands whose authors need to read the docstring for `completing-read'.
+(defvaralias 'ido-cr+-nil-def-wall-of-shame
+  'ido-cr+-nil-def-alternate-behavior-list
+  "Functions and commands that use `completing-read' improperly.
 
 Many functions that call `completing-read' are written with the
 assumption that the setting the REQUIRE-MATCH argument of
@@ -1130,7 +1131,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
 If this mode causes problems for a function, you can customize
 when ido completion is or is not used by customizing
 `ido-cr+-disable-list'."
-  nil
+  :init-value nil
   :global t
   :group 'ido-completing-read-plus
   ;; Actually enable/disable the mode by setting
