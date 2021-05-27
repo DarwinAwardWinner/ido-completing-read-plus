@@ -605,10 +605,53 @@ also accept a quoted list for the sake of convenience."
            (with-simulated-input "eee C-SPC aaa C-u C-SPC ccc C-u C-SPC ggg RET"
              (ido-completing-read+
               "Pick: " (collection-as-function collection) nil t nil nil (car collection)))
-           :to-equal "bbb-eee-ggg"))))
+           :to-equal "bbb-eee-ggg")))
+
+      ;; It turns out that even `completing-read' can't handle this
+      ;; ridiculousness, so I'm not going to worry about it unless it
+      ;; becomes a problem in practice.
+      (xit "should allow exiting with a match that is only detected by `test-completion'"
+        (let* ((real-collection '("blue" "yellow" "brown"))
+               ;; A special dynamic collection function that always
+               ;; returns nil except for `test-completion'.
+               (special-collection-function
+                (lambda (string predicate action)
+                  (pcase action
+                    ('metadata nil)
+                    (`(boundaries . _) nil)
+                    ;; `try-completion'
+                    ('nil nil)
+                    ;; `all-completions'
+                    ('t nil)
+                    ;; `test-completion'
+                    (_ (test-completion string real-collection predicate))))))
+          ;; Verify that the collection exhibits the desired
+          ;; pathological behavior
+          (expect
+           (all-completions "" special-collection-function)
+           :to-equal nil)
+          (expect
+           (all-completions "yellow" special-collection-function)
+           :to-equal nil)
+          (expect
+           (try-completion "yellow" special-collection-function)
+           :to-equal nil)
+          (expect
+           (test-completion "yellow" special-collection-function)
+           :to-equal t)
+          (expect
+           ;; Unambiguous input, but the collection function only
+           ;; accepts exact matches, so this should fail.
+           (with-simulated-input "yel RET RET RET"
+             (ido-completing-read+ "Pick: " special-collection-function nil t))
+           :to-throw 'error)
+          (expect
+           (with-simulated-input "yellow RET"
+             (ido-completing-read+ "Pick: " special-collection-function nil t))
+           :to-equal "yellow"))))
 
     (describe "with unusual inputs"
-      (it "should accept a COLLECTION of symbols"
+      (it "should accept symbols in COLLECTION"
         (expect
          (with-simulated-input "g RET"
            (ido-completing-read+ "Prompt: " '(blue yellow green)))
