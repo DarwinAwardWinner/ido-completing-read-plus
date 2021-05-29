@@ -112,6 +112,11 @@ of them separately.
 * [Gnus](http://www.gnus.org/): `(setq gnus-completing-read-function 'gnus-ido-completing-read)`
 * [ESS](https://ess.r-project.org/): `(setq ess-use-ido t)`
 
+If you are a package author implementing ido support for *your*
+package, you should consider using `ido-completing-read+` in place of
+`ido-completing-read`, since it smooths out many of the unexpected
+edge cases of ido relative to `completing-read-default`.
+
 ## icomplete-mode ##
 
 For any case where ido cannot be used, there is another older mode

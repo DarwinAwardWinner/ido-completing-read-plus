@@ -30,7 +30,10 @@
 ;; standard completion instead. Hence, you can safely set
 ;; `completing-read-function' to `ido-completing-read+' without
 ;; worrying about breaking completion features that are incompatible
-;; with ido.
+;; with ido. (Package authors interested in implementing ido support
+;; within their packages can also use `ido-completing-read+' instead
+;; of `ido-completing-read' to provide a more consistent user
+;; experience.)
 
 ;; To use this package, call `ido-ubiquitous-mode' to enable the mode,
 ;; or use `M-x customize-variable ido-ubiquitous-mode' it to enable it
