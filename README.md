@@ -1,6 +1,7 @@
 # ido-completing-read+ (formerly ido-ubiquitous) #
 
 [![MELPA Stable](https://stable.melpa.org/packages/ido-completing-read+-badge.svg)](https://stable.melpa.org/#/ido-completing-read%2B)
+[![CI Status](https://github.com/DarwinAwardWinner/ido-completing-read-plus/actions/workflows/test.yml/badge.svg)](https://github.com/DarwinAwardWinner/ido-completing-read-plus/actions/workflows/test.yml)
 [![Join the chat at https://gitter.im/DarwinAwardWinner/ido-ubiquitous](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/DarwinAwardWinner/ido-ubiquitous?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Coverage Status](https://coveralls.io/repos/github/DarwinAwardWinner/ido-completing-read-plus/badge.svg?branch=main)](https://coveralls.io/github/DarwinAwardWinner/ido-completing-read-plus?branch=main)
 
