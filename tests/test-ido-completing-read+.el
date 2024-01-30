@@ -696,7 +696,17 @@ also accept a quoted list for the sake of convenience."
          (with-simulated-input "forward-char RET"
            (ido-completing-read+ "Prompt: " obarray #'commandp
                                  t nil nil "backward-char"))
-         :to-equal "forward-char"))))
+         :to-equal "forward-char"))
+
+      (it "should strip display properties from the return value"
+        (expect
+         (let ((string-with-display-prop "apple"))
+           (add-text-properties 4 5 '(display "...") string-with-display-prop)
+           (next-single-property-change
+            0 'display
+            (with-simulated-input "appl RET"
+              (ido-completing-read+ "Prompt: " (list string-with-display-prop)))))
+         :to-be nil))))
 
   (describe "ido-ubiquitous-mode"
     ;; Set up a test command that calls `completing-read'
