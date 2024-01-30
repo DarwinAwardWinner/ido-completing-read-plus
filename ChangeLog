@@ -1,3 +1,9 @@
+2024-01-29  Ryan C. Thompson  <rct@thompsonclan.org>
+
+	* ido-completing-read+.el (ido-completing-read+): Fix an
+	incompatibility with `yank-pop' and other functions by stripping
+	display properties from the return value. Fixes #179.
+
 2021-03-30  Ryan C. Thompson  <rct@thompsonclan.org>
 
 	* ido-completing-read+.el (ido-cr+-disable-list): Rename from
