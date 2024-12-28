@@ -35,13 +35,21 @@ jobs:
         version: ${{matrix.emacs_version}}
 
     - name: Install Eldev
-      run: curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev | sh
+      uses: nick-invision/retry@v2
+      with:
+        max_attempts: 3
+        timeout_minutes: 1
+        command: curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev | sh
 
     - name: Check out the source code
       uses: actions/checkout@v4
 
     - name: Install Elisp dependencies
-      run: eldev prepare test
+      uses: nick-invision/retry@v2
+      with:
+        max_attempts: 3
+        timeout_minutes: 2
+        command: eldev prepare test
 
     - name: Compile the package
       run: eldev compile
